@@ -190,7 +190,7 @@ export const CyberButton = ({
     const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
 
     useEffect(() => {
-        if (variant !== 'corner' || disabled) return;
+        if (variant !== 'corner' || disabled || loading) return;
 
         const handleGlobalMouseMove = (e: MouseEvent) => {
             if (!buttonRef.current) return;
@@ -286,7 +286,11 @@ export const CyberButton = ({
                 ) : (
                     <>
                         {icon && <span className="opacity-80 group-hover:opacity-100 transition-opacity">{icon}</span>}
-                        {typeof children === 'string' ? <GlitchText text={children} /> : children}
+                        {typeof children === 'string' && variant === 'chamfer' ? (
+                            <GlitchText text={children} />
+                        ) : (
+                            children
+                        )}
                     </>
                 )}
             </span>
