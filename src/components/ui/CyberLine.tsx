@@ -46,10 +46,7 @@ export const CyberLine = ({ className, variant = 'surface' }: CyberLineProps) =>
                     </svg>
 
                     {/* Bottom Line - no margin, directly connected */}
-                    <div className="h-[1px] bg-cyan-900/60 flex-grow relative">
-                        {/* Center Highlight */}
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-[1px] bg-cyan-500 shadow-[0_0_6px_var(--color-cyan-500)]" />
-                    </div>
+                    <div className="h-[1px] bg-cyan-900/60 flex-grow relative" />
 
                     {/* Right Slope: 45-degree angle up */}
                     <svg width="12" height="100%" viewBox="0 0 12 24" fill="none" className="shrink-0" preserveAspectRatio="none">

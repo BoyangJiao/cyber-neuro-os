@@ -7,6 +7,7 @@ export interface CyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonE
     icon?: ReactNode;
     loading?: boolean;
     chamferCorner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    iconOnly?: boolean;
 }
 
 const GlitchText = ({ text }: { text: string }) => {
@@ -181,6 +182,7 @@ export const CyberButton = ({
     loading,
     disabled,
     chamferCorner,
+    iconOnly,
     ...props
 }: CyberButtonProps) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -231,12 +233,12 @@ export const CyberButton = ({
         return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
     }, [variant, disabled]);
 
-    const baseStyles = "relative inline-flex items-center justify-center font-display font-bold uppercase tracking-widest transition-all duration-300 group outline-none select-none z-0";
+    const baseStyles = "relative inline-flex items-center justify-center font-sans font-bold uppercase tracking-widest overflow-hidden transition-all duration-300 group outline-none select-none z-0";
 
     const sizeStyles = {
-        sm: "px-4 py-2 text-xs",
-        md: "px-6 py-3 text-sm min-w-[120px]",
-        lg: "px-8 py-4 text-base min-w-[160px]",
+        sm: iconOnly ? "px-2 h-8 text-xs" : "px-2 h-8 text-xs",
+        md: iconOnly ? "px-4 h-10 text-sm" : "px-4 h-10 text-sm min-w-[120px]",
+        lg: iconOnly ? "px-6 h-11 text-base" : "px-6 h-11 text-base min-w-[160px]",
     };
 
     const variants = {
@@ -285,7 +287,7 @@ export const CyberButton = ({
                     </span>
                 ) : (
                     <>
-                        {icon && <span className="opacity-80 group-hover:opacity-100 transition-opacity">{icon}</span>}
+                        {icon && <span className="text-2xl opacity-80 group-hover:opacity-100 transition-opacity">{icon}</span>}
                         {typeof children === 'string' && variant === 'chamfer' ? (
                             <GlitchText text={children} />
                         ) : (

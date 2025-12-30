@@ -1,4 +1,4 @@
-import { type ReactNode, type CSSProperties } from 'react';
+import { type ReactNode, type CSSProperties, type HTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
 import {
     Animator,
@@ -7,11 +7,12 @@ import {
     FrameNefrex
 } from '@arwes/react';
 
-export interface HoloFrameProps {
+export interface HoloFrameProps extends HTMLAttributes<HTMLDivElement> {
     children: ReactNode;
     className?: string;
     variant?: 'corner' | 'lines' | 'outline';
     filled?: boolean;
+    background?: ReactNode;
     // Legacy: chamferCorner was planned for custom chamfer positioning, moved to legacy consideration
 }
 
@@ -19,7 +20,9 @@ export const HoloFrame = ({
     children,
     className,
     variant = 'corner',
-    filled = false
+    filled = false,
+    background,
+    ...props
 }: HoloFrameProps) => {
     // Official Arwes frames use CSS variables for customization
     // We map our theme colors to Arwes tokens
@@ -34,6 +37,7 @@ export const HoloFrame = ({
             <div
                 className={twMerge("relative p-8 transition-all duration-300 group", className)}
                 style={arwesThemeStyles}
+                {...props}
             >
                 {/* Frame Layer */}
                 <div className="absolute inset-0 z-0">
@@ -58,8 +62,13 @@ export const HoloFrame = ({
                     )}
                 </div>
 
-                {/* Content Layer */}
-                <div className="relative z-10">
+                {/* Background Layer: Custom background content (optional) */}
+                <div className="absolute inset-0 z-0">
+                    {background}
+                </div>
+
+                {/* Content Layer - fills container for children to use h-full */}
+                <div className="relative z-10 h-full flex flex-col">
                     {children}
                 </div>
             </div>

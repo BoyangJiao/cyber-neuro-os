@@ -32,13 +32,18 @@
     --color-cyber-900: #134E4A;
     --color-cyber-950: #042F2E;
 
-    --font-display: "Rajdhani", sans-serif;
+    --font-display: "Chakra Petch", sans-serif;
+    --font-sans: "Bai Jamjuree", sans-serif;
     --font-mono: "Share Tech Mono", monospace;
-    --font-code: "JetBrains Mono", monospace;
+    --font-code: "Share Tech Mono", monospace;
+}
+
+@utility cyber-grid {
+    @apply grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-10;
 }
 
 :root {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     line-height: 1.5;
     font-weight: 400;
 
@@ -88,4 +93,24 @@ body {
 ::selection {
     background: var(--color-cyan-900);
     color: var(--color-cyan-50);
+}
+
+@keyframes scanline {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
 }
