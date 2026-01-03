@@ -1,5 +1,6 @@
 import { HoloFrame } from './HoloFrame';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
+import { motion } from 'framer-motion';
 
 export interface FeatureCardProps {
     title: string;
@@ -9,6 +10,7 @@ export interface FeatureCardProps {
 
 export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
     const { playHover, playClick } = useSoundSystem();
+    const MotionDiv = motion.div as any;
 
     return (
         <HoloFrame
@@ -30,7 +32,7 @@ export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
             }
         >
             {/* Content Layer: fills container */}
-            <div className="relative flex-1 w-full">
+            <MotionDiv layout className="relative flex-1 w-full" exit={{ opacity: 0, transition: { duration: 0.01 } }}>
 
                 {/* Title: 32px from top, absolutely positioned */}
                 <div className="absolute top-0 left-0 right-0 pt-8 font-display text-2xl font-bold tracking-wider text-cyan-100 z-10 text-center uppercase leading-none">
@@ -41,7 +43,7 @@ export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
                 <div className="absolute inset-0 flex items-center justify-center">
                     <i className={`${icon} text-[108px] text-cyan-50 leading-none`}></i>
                 </div>
-            </div>
+            </MotionDiv>
         </HoloFrame>
     );
 };

@@ -1,0 +1,69 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import type { Project } from '../../data/projects';
+import { CyberButton } from '../ui/CyberButton';
+import { twMerge } from 'tailwind-merge';
+
+interface ProjectPaginationProps {
+    projects: Project[];
+    activeProjectId: string;
+    onSelect: (id: string) => void;
+}
+
+export const ProjectPagination = ({ projects, activeProjectId, onSelect }: ProjectPaginationProps) => {
+    const MotionDiv = motion.div as any;
+    const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+    return (
+        <div className="flex items-center gap-2 pointer-events-auto">
+            {projects.map((project, index) => {
+                const isActive = project.id === activeProjectId;
+                const isHovered = hoveredId === project.id;
+                const showExpanded = isActive || isHovered;
+
+                return (
+                    <MotionDiv
+                        key={project.id}
+                        layout // Enable smooth width transition
+                        initial={false}
+                        animate={{
+                            width: 'auto' // Layout handles sizing based on content
+                        }}
+                        className="relative"
+                        onMouseEnter={() => setHoveredId(project.id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                    >
+                        <CyberButton
+                            variant="chamfer"
+                            className={twMerge(
+                                "h-8 transition-all duration-300 min-w-0 px-2",
+                                showExpanded ? "px-6" : "px-3 opacity-60 [&>div.absolute]:opacity-0"
+                            )}
+                            onClick={() => onSelect(project.id)}
+                            chamferCorner="bottom-right"
+                        >
+                            {/* Content */}
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                {/* Index indicator (always visible) */}
+                                <span className={twMerge(
+                                    "font-mono text-xs",
+                                    showExpanded ? "text-cyan-400" : "text-cyan-700"
+                                )}>
+                                    0{index + 1}
+                                </span>
+
+                                {/* Title (Visible if active or hovered) */}
+                                <span className={twMerge(
+                                    "text-xs font-bold tracking-wider transition-all duration-300 overflow-hidden",
+                                    showExpanded ? "w-auto opacity-100 pl-2 border-l border-cyan-500/30" : "w-0 opacity-0"
+                                )}>
+                                    {project.title}
+                                </span>
+                            </div>
+                        </CyberButton>
+                    </MotionDiv>
+                );
+            })}
+        </div>
+    );
+};

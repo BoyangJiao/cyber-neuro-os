@@ -13,7 +13,7 @@ export interface HoloFrameProps extends HTMLAttributes<HTMLDivElement> {
     variant?: 'corner' | 'lines' | 'outline';
     filled?: boolean;
     background?: ReactNode;
-    // Legacy: chamferCorner was planned for custom chamfer positioning, moved to legacy consideration
+    active?: boolean;
 }
 
 export const HoloFrame = ({
@@ -22,6 +22,7 @@ export const HoloFrame = ({
     variant = 'corner',
     filled = false,
     background,
+    active,
     ...props
 }: HoloFrameProps) => {
     // Official Arwes frames use CSS variables for customization
@@ -33,7 +34,7 @@ export const HoloFrame = ({
     } as CSSProperties;
 
     return (
-        <Animator>
+        <Animator active={active}>
             <div
                 className={twMerge("relative p-8 transition-all duration-300 group", className)}
                 style={arwesThemeStyles}
@@ -44,7 +45,8 @@ export const HoloFrame = ({
                     {variant === 'corner' && (
                         <FrameCorners
                             padding={0}
-                            strokeWidth={1}
+                            strokeWidth={2}
+                            style={{ filter: 'drop-shadow(0 0 4px rgba(0, 240, 255, 0.8))' }}
                         />
                     )}
                     {variant === 'lines' && (

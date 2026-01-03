@@ -1,15 +1,18 @@
 import { useRef } from 'react';
-import { FeatureCard } from '../ui/FeatureCard';
-import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { FeatureCard } from '../ui/FeatureCard';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface FeatureItem {
     title: string;
     icon: string;
+    link?: string;
 }
 
 const features: FeatureItem[] = [
-    { title: 'PROJECT', icon: 'ri-rocket-2-line' },
+    { title: 'PROJECT', icon: 'ri-rocket-2-line', link: '/projects' },
     { title: 'VIDEO', icon: 'ri-movie-2-line' },
     { title: 'GAME', icon: 'ri-gamepad-line' },
     { title: 'SOUND', icon: 'ri-voiceprint-line' },
@@ -19,36 +22,24 @@ const features: FeatureItem[] = [
 
 export const FeaturePanel = () => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const MotionDiv = motion.div as any;
 
     useGSAP(() => {
-        const cards = gsap.utils.toArray<HTMLElement>(".feature-card");
-        const row1 = cards.slice(0, 3);
-        const row2 = cards.slice(3, 6);
+        const timeline = gsap.timeline({ defaults: { ease: "power2.out", duration: 0.5 } });
 
-        const tl = gsap.timeline({ delay: 0.2 });
-
-        // Row 1 entrance
-        tl.fromTo(row1,
+        // Row 1 (Index 0, 1, 2)
+        timeline.fromTo(".feature-card:nth-child(-n+3)",
             { opacity: 0, y: 50 },
-            {
-                opacity: 1,
-                y: 0,
-                duration: 0.5,
-                ease: "power2.out"
-            }
+            { opacity: 1, y: 0 }
         );
 
-        // Row 2 entrance (starts slightly after row 1 begins)
-        tl.fromTo(row2,
+        // Row 2 (Index 3, 4, 5) - Starts slightly before Row 1 ends
+        timeline.fromTo(".feature-card:nth-child(n+4)",
             { opacity: 0, y: 50 },
-            {
-                opacity: 1,
-                y: 0,
-                duration: 0.5,
-                ease: "power2.out"
-            },
+            { opacity: 1, y: 0 },
             "-=0.3"
         );
+
     }, { scope: containerRef });
 
     return (
@@ -64,10 +55,30 @@ export const FeaturePanel = () => {
                             key={item.title}
                             className="feature-card snap-center shrink-0 w-[85vw] lg:w-[279px] h-[60vh] lg:h-full"
                         >
-                            <FeatureCard
-                                title={item.title}
-                                icon={item.icon}
-                            />
+                            {item.title === 'PROJECT' ? (
+                                <MotionDiv layoutId="project-expand" className="h-full">
+                                    <Link to={item.link!} className="block h-full">
+                                        <FeatureCard
+                                            title={item.title}
+                                            icon={item.icon}
+                                        />
+                                    </Link>
+                                </MotionDiv>
+                            ) : (
+                                item.link ? (
+                                    <Link to={item.link} className="block h-full">
+                                        <FeatureCard
+                                            title={item.title}
+                                            icon={item.icon}
+                                        />
+                                    </Link>
+                                ) : (
+                                    <FeatureCard
+                                        title={item.title}
+                                        icon={item.icon}
+                                    />
+                                )
+                            )}
                         </div>
                     ))}
                     {/* Spacer for mobile scroll end padding */}
