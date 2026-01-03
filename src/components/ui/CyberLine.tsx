@@ -30,9 +30,9 @@ export const CyberLine = ({ className, variant = 'surface' }: CyberLineProps) =>
                 {/* Left Connector Group */}
                 <div className="flex items-center h-full grow basis-0 min-w-[20px]">
                     {/* End Cap */}
-                    <div className="w-2 h-1 bg-cyan-500/80 shrink-0" />
+                    <div className="w-4 h-[2px] bg-cyan-100 shrink-0" />
                     <div className="w-1 h-1 shrink-0" /> {/* Spacer */}
-                    <div className="w-2 h-1 bg-cyan-500/50 shrink-0" />
+                    <div className="w-4 h-[2px] bg-cyan-100/50 shrink-0" />
 
                     {/* Top Line connects to slope */}
                     <div className="h-[1px] bg-cyan-900/60 flex-grow relative top-[0.5px]" />
@@ -57,9 +57,9 @@ export const CyberLine = ({ className, variant = 'surface' }: CyberLineProps) =>
                 {/* Right Connector Group */}
                 <div className="flex items-center h-full grow basis-0 min-w-[20px] flex-row-reverse">
                     {/* End Cap */}
-                    <div className="w-2 h-1 bg-cyan-500/80 shrink-0" />
+                    <div className="w-4 h-[2px] bg-cyan-100 shrink-0" />
                     <div className="w-1 h-1 shrink-0" /> {/* Spacer */}
-                    <div className="w-2 h-1 bg-cyan-500/50 shrink-0" />
+                    <div className="w-4 h-[2px] bg-cyan-100/50 shrink-0" />
 
                     {/* Top Line connects to slope */}
                     <div className="h-[1px] bg-cyan-900/60 flex-grow relative top-[0.5px]" />

@@ -8,7 +8,7 @@ import {
 } from '@arwes/react';
 
 export interface HoloFrameProps extends HTMLAttributes<HTMLDivElement> {
-    children: ReactNode;
+    children?: ReactNode;
     className?: string;
     variant?: 'corner' | 'lines' | 'outline';
     filled?: boolean;

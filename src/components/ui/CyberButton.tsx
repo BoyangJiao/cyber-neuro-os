@@ -1,5 +1,6 @@
 import React, { type ReactNode, useState, useRef, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
+import { useSoundSystem } from '../../hooks/useSoundSystem';
 
 export interface CyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: 'corner' | 'chamfer' | 'ghost' | 'dot';
@@ -147,8 +148,8 @@ const FrameDot = ({ isHovered, isPressed = false }: { isHovered: boolean, isPres
         )
         : 'opacity-100';
 
-    // Locked Dots: width 8px (w-2), height 4px (h-1)
-    const dotBaseClass = "absolute w-1 h-1 bg-white z-10 transition-all duration-200";
+    // Locked Dots: 2px square
+    const dotBaseClass = "absolute w-[2px] h-[2px] bg-white z-10 transition-all duration-200";
 
     return (
         <div className="absolute inset-0 overflow-hidden">
@@ -159,7 +160,7 @@ const FrameDot = ({ isHovered, isPressed = false }: { isHovered: boolean, isPres
             <div
                 className={twMerge(
                     "absolute left-1/2 top-1/2 bg-cyan-600/90 z-0 -translate-x-1/2 -translate-y-1/2 transition-all duration-200 ease-out",
-                    isHovered ? 'h-[calc(100%-8px)] w-[calc(100%-8px)]' : 'h-0 w-[calc(100%-8px)]',
+                    isHovered ? 'h-[calc(100%-2px)] w-[calc(100%-2px)]' : 'h-0 w-[calc(100%-2px)]',
                     isPressed && "bg-cyan-400/95 scale-[0.97]"
                 )}
             />
@@ -186,6 +187,7 @@ export const CyberButton = ({
     ...props
 }: CyberButtonProps) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const { playHover, playClick } = useSoundSystem();
     const [isHovered, setIsHovered] = useState(false);
     const [isPressed, setIsPressed] = useState(false);
     const [proximityOpacity, setProximityOpacity] = useState(0);
@@ -231,7 +233,7 @@ export const CyberButton = ({
 
         window.addEventListener('mousemove', handleGlobalMouseMove);
         return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
-    }, [variant, disabled]);
+    }, [variant, disabled, loading]);
 
     const baseStyles = "relative inline-flex items-center justify-center font-sans font-bold uppercase tracking-widest overflow-hidden transition-all duration-300 group outline-none select-none z-0";
 
@@ -262,13 +264,30 @@ export const CyberButton = ({
         <button
             ref={buttonRef}
             className={mergedClasses}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => {
+            onMouseEnter={(e) => {
+                setIsHovered(true);
+                playHover();
+                props.onMouseEnter?.(e);
+            }}
+            onMouseLeave={(e) => {
                 setIsHovered(false);
                 setIsPressed(false);
+                props.onMouseLeave?.(e);
             }}
-            onMouseDown={() => !disabled && setIsPressed(true)}
-            onMouseUp={() => setIsPressed(false)}
+            onMouseDown={(e) => {
+                if (!disabled) {
+                    setIsPressed(true);
+                }
+                props.onMouseDown?.(e);
+            }}
+            onMouseUp={(e) => {
+                setIsPressed(false);
+                props.onMouseUp?.(e);
+            }}
+            onClick={(e) => {
+                playClick();
+                props.onClick?.(e);
+            }}
             disabled={disabled || loading}
             {...props}
         >

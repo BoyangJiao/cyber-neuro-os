@@ -1,4 +1,5 @@
 import { HoloFrame } from './HoloFrame';
+import { useSoundSystem } from '../../hooks/useSoundSystem';
 
 export interface FeatureCardProps {
     title: string;
@@ -7,11 +8,17 @@ export interface FeatureCardProps {
 }
 
 export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
+    const { playHover, playClick } = useSoundSystem();
+
     return (
         <HoloFrame
             variant="lines"
             className="group h-full cursor-pointer transition-colors duration-300"
-            onClick={onClick}
+            onClick={() => {
+                playClick();
+                onClick?.();
+            }}
+            onMouseEnter={() => playHover()}
             background={
                 <>
                     {/* Hover Background: Pixel Pattern (Solid Squares) */}
