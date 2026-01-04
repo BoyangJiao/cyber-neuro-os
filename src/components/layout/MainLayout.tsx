@@ -1,5 +1,4 @@
 import { type ReactNode } from 'react';
-import { CyberLine } from '../ui/CyberLine';
 import { Header } from './Header';
 import { Animator } from '@arwes/react';
 
@@ -22,22 +21,18 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
                 <Header />
 
                 {/* 4. Main Body: Flex-1 to fill remaining space */}
-                <main className="relative z-10 flex-1 w-full min-h-0 overflow-y-auto px-10 py-6">
+                <main className="relative z-10 flex-1 w-full min-h-0 overflow-y-auto px-4 lg:px-6 xl:px-10 py-3 lg:py-4 xl:py-6">
                     {/* Inner Container: Sets the bounds but allows full width usage */}
                     <div className="w-full h-full relative">
                         {children}
                     </div>
                 </main>
 
-                {/* Footer: Fixed height at bottom with rotated HUD line */}
-                <footer className="relative z-50 flex-none w-full">
-                    {/* Footer Decorative Top Line - Rotated 180° */}
-                    <div className="absolute top-0 left-10 right-10 rotate-180">
-                        <CyberLine variant="hud" className="w-full" />
-                    </div>
+                {/* Footer: Fixed height at bottom */}
+                <footer className="relative z-50 flex-none w-full pb-4">
 
-                    {/* Footer Content */}
-                    <div className="flex items-center justify-between px-10 h-24 w-full">
+                    {/* Footer Content - 48px height, bottom aligned */}
+                    <div className="flex items-end justify-between px-4 lg:px-6 xl:px-10 h-12 w-full">
                         {footer ? (
                             footer
                         ) : (

@@ -27,7 +27,7 @@ function App() {
   }
 
   return (
-    <div className="bg-cyber-950 min-h-screen overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
+    <div className="bg-cyber-950 min-h-screen w-full overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
       <MainLayout footer={<Footer />}>
         {/* Dashboard Container - Grid System */}
         <div className="cyber-grid h-full items-stretch relative">

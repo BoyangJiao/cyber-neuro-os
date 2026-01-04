@@ -57,19 +57,19 @@ const FrameCorners = ({
         <div className="absolute inset-0 pointer-events-none transition-all duration-300">
             {/* Top Left */}
             <svg className={`absolute top-0 left-0 w-3 h-3 transition-opacity duration-100 ${glowClass}`} viewBox="0 0 12 12" fill="none">
-                <path d="M1 12V1H12" stroke={color} strokeWidth="2" />
+                <path d="M1 12V1H12" stroke={color} strokeWidth={2} />
             </svg>
             {/* Top Right */}
             <svg className={`absolute top-0 right-0 w-3 h-3 transition-opacity duration-100 ${glowClass}`} viewBox="0 0 12 12" fill="none">
-                <path d="M12 12V1H1" stroke={color} strokeWidth="2" />
+                <path d="M12 12V1H1" stroke={color} strokeWidth={2} />
             </svg>
             {/* Bottom Left */}
             <svg className={`absolute bottom-0 left-0 w-3 h-3 transition-opacity duration-100 ${glowClass}`} viewBox="0 0 12 12" fill="none">
-                <path d="M1 0V11H12" stroke={color} strokeWidth="2" />
+                <path d="M1 0V11H12" stroke={color} strokeWidth={2} />
             </svg>
             {/* Bottom Right */}
             <svg className={`absolute bottom-0 right-0 w-3 h-3 transition-opacity duration-100 ${glowClass}`} viewBox="0 0 12 12" fill="none">
-                <path d="M12 0V11H1" stroke={color} strokeWidth="2" />
+                <path d="M12 0V11H1" stroke={color} strokeWidth={2} />
             </svg>
 
             {/* Background Frame - Internal scale only on press to keep corners fixed */}

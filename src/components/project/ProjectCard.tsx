@@ -2,7 +2,6 @@ import { motion, MotionValue, useTransform } from 'framer-motion';
 import { HoloFrame } from '../ui/HoloFrame';
 import type { Project } from '../../data/projects';
 import { twMerge } from 'tailwind-merge';
-import { ProjectInfo } from './ProjectInfo';
 
 interface ProjectCardProps {
     project: Project;
@@ -12,73 +11,65 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard = ({ project, isActive, onClick, index }: ProjectCardProps) => {
-    // ========== PRISM GEOMETRY ==========
-    // This simulates a 9-sided rotating prism where each project is a face.
-    // The viewer sees ~3 faces at a time (center + 2 angled sides).
-    // When switching projects, the entire prism rotates around its vertical axis.
+    // ========== COVER FLOW WITH TRAPEZOID EFFECT ==========
+    // Active card: flat, centered
+    // Inactive cards: rotated, skewed (trapezoid), pushed back
 
-    const prismRadius = 700;    // Distance from center axis to face surface (SMALLER = tighter grouping)
-    const anglePerFace = 40;    // Degrees per face (360 / 9 faces = 40deg)
+    const xOffset = 200; // Horizontal spacing between cards
+    const zDepth = 120;  // How far back side cards go
+    const rotateAngle = 35; // Y-axis rotation for side cards
+    const skewAngle = 8;    // Trapezoid skew effect
 
-    // Calculate face angle (degrees) based on relative index
-    const faceAngle = useTransform(index, (i) => i * anglePerFace);
+    // X position
+    const x = useTransform(index, (i) => i * xOffset);
 
-    // ---------- POSITION ----------
-    // X: Horizontal position derived from prism geometry
-    // At angle 0: center. At angle 40: offset right. At angle -40: offset left.
-    const x = useTransform(faceAngle, (a) => {
-        const rad = (a * Math.PI) / 180;
-        return `calc(-50% + ${Math.sin(rad) * prismRadius}px)`;
+    // Z depth (push back side cards)
+    const z = useTransform(index, (i) => Math.min(0, -Math.abs(i) * zDepth));
+
+    // Y-axis rotation (face inward)
+    const rotateY = useTransform(index, (i) => {
+        if (i < -0.5) return rotateAngle;
+        if (i > 0.5) return -rotateAngle;
+        return i * -rotateAngle * 2;
     });
 
-    // Y: Compensate for perspective-induced vertical offset
-    // Side cards need to shift UP to align with center card's top/bottom edges
-    const y = useTransform(faceAngle, (a) => {
-        const offset = Math.abs(a) * 2.2; // Pixels to shift up per degree of angle
-        return `calc(-50% - ${offset}px)`;
+    // Trapezoid skew (perspective distortion)
+    const skewY = useTransform(index, (i) => {
+        if (i < -0.5) return -skewAngle;
+        if (i > 0.5) return skewAngle;
+        return i * skewAngle * 2;
     });
 
-    // Z: Depth from viewer. Center face is closest, sides recede.
-    // At angle 0: z = 0 (front). At angle 90: z = -prismRadius (side, deep).
-    const z = useTransform(faceAngle, (a) => {
-        const rad = (a * Math.PI) / 180;
-        return (Math.cos(rad) - 1) * prismRadius;
+    // Scale
+    const scale = useTransform(index, (i) => {
+        const abs = Math.abs(i);
+        if (abs < 0.3) return 1;
+        return 0.85;
     });
 
-    // ---------- ORIENTATION ----------
-    // RotateY: Each face rotates to face outward from the prism center
-    const rotateY = useTransform(faceAngle, (a) => -a);
-
-    // SkewY: The critical "polyhedron facet" effect
-    // Reduced factor to prevent vertical misalignment while keeping facet feel
-    const skewY = useTransform(faceAngle, (a) => a * -0.5);
-
-    // ---------- APPEARANCE ----------
-    // Scale: Uniform for vertical alignment (no size variation)
-    const scale = 1;
-
-    // Opacity: SHARP cutoff to simulate solid object with hidden back faces
-    // Faces visible from -60deg to +60deg. Fade between 30-60.
-    const opacity = useTransform(faceAngle, (a) => {
-        const absA = Math.abs(a);
-        if (absA > 60) return 0;             // Behind the prism - invisible
-        if (absA < 30) return 1;             // Front faces - fully visible
-        return 1 - ((absA - 30) / 30);       // Transition zone - gradual fade
+    // Opacity
+    const opacity = useTransform(index, (i) => {
+        const abs = Math.abs(i);
+        if (abs < 0.5) return 1;
+        if (abs < 2) return 0.7;
+        return Math.max(0, 0.5 - (abs - 2) * 0.25);
     });
 
-    // Z-Index: Ensure front faces render on top
-    const zIndex = useTransform(faceAngle, (a) => Math.round(100 - Math.abs(a)));
+    // Z-index
+    const zIndex = useTransform(index, (i) => Math.round(100 - Math.abs(i)));
 
     const MotionDiv = motion.div as any;
 
     return (
         <MotionDiv
             className={twMerge(
-                "absolute top-1/2 left-1/2 w-[410px] h-[502px] cursor-pointer"
+                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+                "w-[180px] lg:w-[220px] xl:w-[260px] 2xl:w-[305px]",
+                "h-[220px] lg:h-[270px] xl:h-[320px] 2xl:h-[375px]",
+                "cursor-pointer"
             )}
             style={{
                 x,
-                y,
                 z,
                 rotateY,
                 skewY,
@@ -93,26 +84,20 @@ export const ProjectCard = ({ project, isActive, onClick, index }: ProjectCardPr
                 variant="corner"
                 active={isActive}
                 className={twMerge(
-                    "w-full h-full bg-cyber-900/80 backdrop-blur-md transition-colors duration-300 overflow-hidden",
-                    isActive ? "border-cyan-400/50" : "border-cyan-900/30 group-hover:border-cyan-500/30"
+                    "w-full h-full bg-cyber-900/60 backdrop-blur-sm transition-all duration-500 overflow-hidden",
+                    isActive
+                        ? "border-cyan-400/80 shadow-[0_0_30px_rgba(34,211,238,0.3)]"
+                        : "border-cyan-800/40"
                 )}
             >
-                {/* Placeholder Image */}
-                <div className="w-full h-full relative group-hover:scale-105 transition-transform duration-700">
-                    <img
-                        src={`https://placehold.co/600x800/06121a/00f0ff?text=${encodeURIComponent(project.title)}`}
-                        alt={project.title}
-                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
-                    />
-
-                    {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-cyber-950/80 via-transparent to-transparent"></div>
-                </div>
+                {/* Simple Placeholder Image */}
+                <img
+                    src={`https://placehold.co/400x500/0a1420/0a1420`}
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                />
             </HoloFrame>
-
-            {/* External Project Info (Active Only) */}
-            {/* Note: In fast scroll, we might want to hide this until settled. For now keep simple. */}
-            {isActive && <ProjectInfo project={project} />}
         </MotionDiv>
     );
 };
+

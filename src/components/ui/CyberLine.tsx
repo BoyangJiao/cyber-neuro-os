@@ -12,13 +12,13 @@ export const CyberLine = ({ className, variant = 'surface' }: CyberLineProps) =>
         return (
             <div className={twMerge("h-[3px] flex items-center justify-between", baseStyles, className)}>
                 {/* Left Cap - Bright white with cyan glow */}
-                <div className="w-2 h-1 bg-cyan-50 shadow-[0_0_6px_#00f0ff,0_0_8px_#00f0ff40]" />
+                <div className="w-4 h-[1px] bg-cyan-50 shadow-[0_0_6px_#00f0ff,0_0_8px_#00f0ff40]" />
 
                 {/* Main Line */}
                 <div className="h-[1px] bg-cyan-200/30 flex-grow mx-px" />
 
                 {/* Right Cap - Bright white with cyan glow */}
-                <div className="w-2 h-1 bg-cyan-50 shadow-[0_0_6px_#00f0ff,0_0_8px_#00f0ff40]" />
+                <div className="w-4 h-[1px] bg-cyan-50 shadow-[0_0_6px_#00f0ff,0_0_8px_#00f0ff40]" />
             </div>
         );
     }
@@ -42,7 +42,7 @@ export const CyberLine = ({ className, variant = 'surface' }: CyberLineProps) =>
                 <div className="flex items-end h-full w-[65%] shrink-0 relative">
                     {/* Left Slope: 45-degree angle down */}
                     <svg width="12" height="100%" viewBox="0 0 12 24" fill="none" className="shrink-0" preserveAspectRatio="none">
-                        <path d="M0 12 L12 24" stroke={strokeColor} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                        <path d="M0 12 L12 24" stroke={strokeColor} strokeWidth={1} style={{ vectorEffect: 'non-scaling-stroke' }} />
                     </svg>
 
                     {/* Bottom Line - no margin, directly connected */}
@@ -50,7 +50,7 @@ export const CyberLine = ({ className, variant = 'surface' }: CyberLineProps) =>
 
                     {/* Right Slope: 45-degree angle up */}
                     <svg width="12" height="100%" viewBox="0 0 12 24" fill="none" className="shrink-0" preserveAspectRatio="none">
-                        <path d="M0 24 L12 12" stroke={strokeColor} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                        <path d="M0 24 L12 12" stroke={strokeColor} strokeWidth={1} style={{ vectorEffect: 'non-scaling-stroke' }} />
                     </svg>
                 </div>
 

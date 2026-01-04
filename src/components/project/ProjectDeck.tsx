@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useSpring, useTransform } from 'framer-motion';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ProjectCard } from './ProjectCard';
+import { ProjectInfo } from './ProjectInfo';
 import { CyberButton } from '../ui/CyberButton';
-import { ProjectPagination } from './ProjectPagination';
 
 export const ProjectDeck = () => {
     const { projects, activeProjectId, setActiveProject, nextProject, prevProject } = useProjectStore();
@@ -31,19 +31,13 @@ export const ProjectDeck = () => {
     }, [nextProject, prevProject]);
 
     return (
-        <div className="w-full h-full relative flex items-center justify-center perspective-[1200px] group pb-32">
+        <div className="w-full h-full relative flex flex-col items-center perspective-[1200px] group overflow-hidden">
 
             {/* 3D Scene Container */}
-            <div className="relative w-full h-full flex items-center justify-center transform-style-3d">
+            <div className="relative flex-1 w-full flex items-center justify-center transform-style-3d">
                 {projects.map((project, index) => {
                     // Create relative MotionValue for each card
-                    // Note: In a dynamic list, this should be in a memoized wrapper, 
-                    // but for static project list this is acceptable.
                     const relativeIndex = useTransform(springIndex, (latest) => index - latest);
-
-                    // Optimization: We can't conditionally return null based on a MotionValue value easily 
-                    // without causing hook count errors or hydration mismatches if we want to animate out.
-                    // Instead, we will let CSS opacity handle the hiding (ProjectCard does this).
 
                     return (
                         <ProjectCard
@@ -57,35 +51,33 @@ export const ProjectDeck = () => {
                 })}
             </div>
 
-            {/* Navigation Areas (Clickable overlays or buttons) */}
-            <div className="absolute top-0 bottom-32 left-0 w-32 flex items-center justify-start pl-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {/* Project Info - Below Active Card */}
+            <div className="w-full flex justify-center py-2 lg:py-3 pointer-events-none z-40">
+                {projects.map(p => p.id === activeProjectId && (
+                    <ProjectInfo key={p.id} project={p} />
+                ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-4 lg:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
                 <CyberButton
                     variant="dot"
                     icon={<i className="ri-arrow-left-s-line"></i>}
                     onClick={prevProject}
-                    className="h-16 w-16 rounded-full"
+                    className="h-10 w-10 lg:h-12 lg:w-12 rounded-full"
                     iconOnly
                 />
             </div>
-            <div className="absolute top-0 bottom-32 right-0 w-32 flex items-center justify-end pr-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute top-1/2 -translate-y-1/2 right-4 lg:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
                 <CyberButton
                     variant="dot"
                     icon={<i className="ri-arrow-right-s-line"></i>}
                     onClick={nextProject}
-                    className="h-16 w-16 rounded-full"
+                    className="h-10 w-10 lg:h-12 lg:w-12 rounded-full"
                     iconOnly
                 />
             </div>
-
-            {/* Pagination Controls */}
-            <div className="absolute bottom-12 left-0 right-0 flex justify-center z-50">
-                <ProjectPagination
-                    projects={projects}
-                    activeProjectId={activeProjectId}
-                    onSelect={setActiveProject}
-                />
-            </div>
-
         </div>
     );
 };
+

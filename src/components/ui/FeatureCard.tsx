@@ -34,14 +34,14 @@ export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
             {/* Content Layer: fills container */}
             <MotionDiv layout className="relative flex-1 w-full" exit={{ opacity: 0, transition: { duration: 0.01 } }}>
 
-                {/* Title: 32px from top, absolutely positioned */}
-                <div className="absolute top-0 left-0 right-0 pt-8 font-display text-2xl font-bold tracking-wider text-cyan-100 z-10 text-center uppercase leading-none">
+                {/* Title: positioned at top */}
+                <div className="absolute top-0 left-0 right-0 pt-4 font-display text-lg lg:text-xl 2xl:text-2xl font-bold tracking-wider text-cyan-100 z-10 text-center uppercase leading-none">
                     {title}
                 </div>
 
                 {/* Icon: Fully centered in the container */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <i className={`${icon} text-[108px] text-cyan-50 leading-none`}></i>
+                    <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-cyan-50 leading-none`}></i>
                 </div>
             </MotionDiv>
         </HoloFrame>
