@@ -15,27 +15,27 @@ export const ProjectCard = ({ project, isActive, onClick, index }: ProjectCardPr
     // Active card: flat, centered
     // Inactive cards: rotated, skewed (trapezoid), pushed back
 
-    const xOffset = 200; // Horizontal spacing between cards
-    const zDepth = 120;  // How far back side cards go
-    const rotateAngle = 35; // Y-axis rotation for side cards
-    const skewAngle = 8;    // Trapezoid skew effect
+    const xOffset = 360; // Horizontal spacing
+    const zDepth = 300;  // Push back depth
+    const rotateAngle = 60; // Strong rotation for trapezoid effect
+    const skewAngle = 12; // Re-introduce skew for forced trapezoid
 
     // X position
     const x = useTransform(index, (i) => i * xOffset);
 
-    // Z depth (push back side cards)
+    // Z depth (push back)
     const z = useTransform(index, (i) => Math.min(0, -Math.abs(i) * zDepth));
 
-    // Y-axis rotation (face inward)
+    // Y-axis rotation
     const rotateY = useTransform(index, (i) => {
         if (i < -0.5) return rotateAngle;
         if (i > 0.5) return -rotateAngle;
         return i * -rotateAngle * 2;
     });
 
-    // Trapezoid skew (perspective distortion)
+    // Skew Y for trapezoid effect
     const skewY = useTransform(index, (i) => {
-        if (i < -0.5) return -skewAngle;
+        if (i < -0.5) return -skewAngle; // Skew inverse to rotation side usually
         if (i > 0.5) return skewAngle;
         return i * skewAngle * 2;
     });
@@ -47,12 +47,12 @@ export const ProjectCard = ({ project, isActive, onClick, index }: ProjectCardPr
         return 0.85;
     });
 
-    // Opacity
+    // Opacity - Only show n-1, n, n+1
     const opacity = useTransform(index, (i) => {
         const abs = Math.abs(i);
         if (abs < 0.5) return 1;
-        if (abs < 2) return 0.7;
-        return Math.max(0, 0.5 - (abs - 2) * 0.25);
+        if (abs < 1.5) return 0.5; // Visible side cards
+        return 0; // Hidden beyond
     });
 
     // Z-index
@@ -64,8 +64,8 @@ export const ProjectCard = ({ project, isActive, onClick, index }: ProjectCardPr
         <MotionDiv
             className={twMerge(
                 "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-                "w-[180px] lg:w-[220px] xl:w-[260px] 2xl:w-[305px]",
-                "h-[220px] lg:h-[270px] xl:h-[320px] 2xl:h-[375px]",
+                "w-[200px] lg:w-[240px] xl:w-[306px] 2xl:w-[306px]",
+                "h-[245px] lg:h-[294px] xl:h-[375px] 2xl:h-[375px]",
                 "cursor-pointer"
             )}
             style={{
@@ -100,4 +100,3 @@ export const ProjectCard = ({ project, isActive, onClick, index }: ProjectCardPr
         </MotionDiv>
     );
 };
-

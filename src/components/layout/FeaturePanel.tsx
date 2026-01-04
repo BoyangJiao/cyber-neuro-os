@@ -49,11 +49,11 @@ export const FeaturePanel = () => {
               Mobile: Horizontal Scroll List
             */}
             <div className="h-full w-full flex lg:items-center lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0 py-4 lg:py-0">
-                <div className="flex flex-row lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-6 2xl:gap-8 gap-4 min-w-full lg:min-w-0 h-full">
+                <div className="flex flex-row lg:grid lg:grid-cols-3 lg:w-3/4 lg:gap-4 xl:gap-6 2xl:gap-8 gap-4 min-w-full lg:min-w-0 h-full">
                     {features.map((item) => (
                         <div
                             key={item.title}
-                            className="feature-card snap-center shrink-0 w-[85vw] lg:w-[180px] xl:w-[220px] 2xl:w-[279px] h-[60vh] lg:h-full"
+                            className="feature-card snap-center shrink-0 w-[85vw] lg:w-full h-[60vh] lg:h-full"
                         >
                             {item.title === 'PROJECT' ? (
                                 <MotionDiv layoutId="project-expand" className="h-full">

@@ -2,6 +2,7 @@
 
 - **Response Language**: All responses to the user MUST be in Chinese (简体中文).
 - **Style**: Maintain a helpful, technical, and professional tone aligned with the Cyber Neuro OS project aesthetic.
+- **Design Baseline**: **All dimensions and design references provided by the user are based on a 1440px viewport width (standard laptop/desktop).** When implementing responsive styles, target the standard desktop breakpoint (usually `xl` in Tailwind) for these specific values.
 
 ## 协作准则 (Collaboration Guidelines)
 
@@ -20,4 +21,3 @@
 - **核心原则**：除非明确要求自定义或针对 `CyberButton` 等需要极致细腻效果的组件，否则应直接引用 `@arwes/react` 提供官方组件。
 - **动效考量**：直接引用官方组件是为了后续能更好地集成 Arwes 的动画系统。
 - **解耦声明**：`CyberButton` 目前保持相对独立和自定义，而其他框架类元素（如 `HoloFrame` 等）应优先使用官方原生实现。
-

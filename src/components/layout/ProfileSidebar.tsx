@@ -9,7 +9,7 @@ export const ProfileSidebar = () => {
                 </HoloFrame>
 
                 {/* Profile Details */}
-                <div className="flex flex-col gap-4 lg:gap-6 pl-2">
+                <div className="flex flex-col gap-4 lg:gap-6">
                     <div className="flex flex-col gap-1">
                         <span className="text-xs lg:text-sm font-semibold font-sans text-cyan-700 tracking-widest uppercase">NAME</span>
                         <div className="text-sm lg:text-base font-bold font-display text-cyan-50 tracking-wider">BOYANG JIAO</div>

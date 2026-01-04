@@ -37,13 +37,16 @@ export const ProjectPagination = ({ projects, activeProjectId, onSelect }: Proje
                             variant="chamfer"
                             className={twMerge(
                                 "h-8 transition-all duration-300 min-w-0 px-2",
-                                showExpanded ? "px-6" : "px-3 opacity-60 [&>div.absolute]:opacity-0"
+                                showExpanded ? "px-4" : "px-2 opacity-60 [&>div.absolute]:opacity-0"
                             )}
                             onClick={() => onSelect(project.id)}
                             chamferCorner="bottom-right"
                         >
                             {/* Content */}
-                            <div className="flex items-center gap-2 whitespace-nowrap">
+                            <div className={twMerge(
+                                "flex items-center whitespace-nowrap",
+                                showExpanded ? "gap-1.5" : "gap-0"
+                            )}>
                                 {/* Index indicator (always visible) */}
                                 <span className={twMerge(
                                     "font-mono text-xs",

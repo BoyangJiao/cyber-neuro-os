@@ -13,7 +13,7 @@ export const ProjectLanding = () => {
 
     return (
         <MotionDiv
-            className="absolute top-0 left-0 w-full h-full p-1 z-50"
+            className="absolute top-0 left-0 w-full h-full z-50"
             layoutId="project-expand"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -22,7 +22,7 @@ export const ProjectLanding = () => {
         >
             <HoloFrame
                 variant="lines"
-                className="w-full h-full bg-cyber-950/90 backdrop-blur-md relative overflow-hidden p-0"
+                className="w-full h-full bg-transparent relative overflow-hidden p-0"
             >
                 {/* Main Flex Layout - Full Width/Height */}
                 <div className="w-full h-full flex flex-col">

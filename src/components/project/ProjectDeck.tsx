@@ -31,7 +31,7 @@ export const ProjectDeck = () => {
     }, [nextProject, prevProject]);
 
     return (
-        <div className="w-full h-full relative flex flex-col items-center perspective-[1200px] group overflow-hidden">
+        <div className="w-full h-full relative flex flex-col items-center perspective-[800px] group overflow-hidden">
 
             {/* 3D Scene Container */}
             <div className="relative flex-1 w-full flex items-center justify-center transform-style-3d">
@@ -44,7 +44,10 @@ export const ProjectDeck = () => {
                             key={project.id}
                             project={project}
                             isActive={project.id === activeProjectId}
-                            onClick={() => setActiveProject(project.id)}
+                            onClick={() => {
+                                if (index < activeIndex) prevProject();
+                                else if (index > activeIndex) nextProject();
+                            }}
                             index={relativeIndex}
                         />
                     );
