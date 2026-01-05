@@ -28,7 +28,7 @@ export const ProjectLanding = () => {
                 <div className="w-full h-full flex flex-col">
 
                     {/* === HEADER SECTION === */}
-                    <div className="w-full shrink-0 flex items-center justify-between relative z-[60] p-4">
+                    <div className="w-full shrink-0 flex items-center justify-between relative z-[60] px-4 pt-4">
                         {/* Left Spacer to balance layout */}
                         <div className="w-16"></div>
 
@@ -60,7 +60,7 @@ export const ProjectLanding = () => {
                     {/* === FOOTER SECTION (PAGINATION) === */}
                     <div className="w-full shrink-0 flex items-center justify-center z-[60] p-4">
                         <ProjectPagination
-                            projects={projects}
+                            projects={projects.slice(0, 6)}
                             activeProjectId={activeProjectId}
                             onSelect={setActiveProject}
                         />

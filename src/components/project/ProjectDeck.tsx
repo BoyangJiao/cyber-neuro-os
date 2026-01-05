@@ -1,62 +1,219 @@
-import { useEffect } from 'react';
-import { useSpring, useTransform } from 'framer-motion';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ProjectCard } from './ProjectCard';
 import { ProjectInfo } from './ProjectInfo';
 import { CyberButton } from '../ui/CyberButton';
 
+// Limit to 6 cards for optimal 3D carousel effect
+const MAX_VISIBLE_CARDS = 6;
+
 export const ProjectDeck = () => {
-    const { projects, activeProjectId, setActiveProject, nextProject, prevProject } = useProjectStore();
-    const activeIndex = projects.findIndex(p => p.id === activeProjectId);
+    const { projects, activeProjectId, setActiveProject } = useProjectStore();
 
-    // Spring physics for smooth "Time Machine" scrolling
-    const springIndex = useSpring(activeIndex, {
-        stiffness: 200,
-        damping: 25,
-        mass: 1
-    });
+    // Only show first MAX_VISIBLE_CARDS projects for clean 3D effect
+    const visibleProjects = projects.slice(0, MAX_VISIBLE_CARDS);
+    const activeIndex = visibleProjects.findIndex(p => p.id === activeProjectId);
+    const effectiveActiveIndex = activeIndex >= 0 ? activeIndex : 0;
 
+    // Container ref and scale state for responsive sizing
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [deckScale, setDeckScale] = useState(1);
+
+    // 3D Carousel configuration
+    const totalCards = visibleProjects.length;
+    const anglePerCard = 360 / totalCards;
+    const radius = 380; // Distance from center (increased for wider cards)
+
+    // Current rotation angle - 根据当前 activeIndex 计算初始角度
+    // 这确保组件重新挂载时，rotation 与 store 中的 activeProjectId 保持同步
+    const initialRotation = -effectiveActiveIndex * anglePerCard;
+    const [rotation, setRotation] = useState(initialRotation);
+
+    // Track previous index for rotation calculation
+    const prevIndexRef = useRef(effectiveActiveIndex);
+
+    // Sync rotation when activeProjectId changes (from Pagination or other sources)
     useEffect(() => {
-        springIndex.set(activeIndex);
-    }, [activeIndex, springIndex]);
+        const prevIndex = prevIndexRef.current;
+
+        // Only rotate if index actually changed
+        if (effectiveActiveIndex !== prevIndex) {
+            // Calculate shortest path rotation
+            let diff = effectiveActiveIndex - prevIndex;
+            if (diff > totalCards / 2) {
+                diff -= totalCards;
+            } else if (diff < -totalCards / 2) {
+                diff += totalCards;
+            }
+            setRotation(prev => prev - diff * anglePerCard);
+        }
+
+        // Update ref after rotation calculation
+        prevIndexRef.current = effectiveActiveIndex;
+    }, [effectiveActiveIndex, totalCards, anglePerCard]);
+
+    // Base height expectation - 当容器高度低于此值时开始缩放
+    // 调整为 650 使得在 ProjectLanding 高度约 700 时就开始缩放
+    const BASE_CONTENT_HEIGHT = 650;
+    const MIN_SCALE = 0.5;
+    const MAX_SCALE = 1.5;
+
+    // Navigation handlers with useCallback to ensure stable references
+    // IMPORTANT: Update prevIndexRef BEFORE calling setActiveProject to prevent
+    // the useEffect from triggering a duplicate rotation
+    const handleNext = useCallback(() => {
+        const currentIdx = prevIndexRef.current;
+        const nextIdx = (currentIdx + 1) % totalCards;
+
+        // Update ref first to prevent useEffect double-rotation
+        prevIndexRef.current = nextIdx;
+
+        setRotation(prev => prev - anglePerCard);
+        setActiveProject(visibleProjects[nextIdx].id);
+    }, [totalCards, anglePerCard, visibleProjects, setActiveProject]);
+
+    const handlePrev = useCallback(() => {
+        const currentIdx = prevIndexRef.current;
+        const prevIdx = (currentIdx - 1 + totalCards) % totalCards;
+
+        // Update ref first to prevent useEffect double-rotation
+        prevIndexRef.current = prevIdx;
+
+        setRotation(prev => prev + anglePerCard);
+        setActiveProject(visibleProjects[prevIdx].id);
+    }, [totalCards, anglePerCard, visibleProjects, setActiveProject]);
+
+    const handleCardClick = useCallback((index: number) => {
+        const current = prevIndexRef.current;
+        if (index === current) return;
+
+        let diff = index - current;
+        if (diff > totalCards / 2) {
+            diff -= totalCards;
+        } else if (diff < -totalCards / 2) {
+            diff += totalCards;
+        }
+
+        // Update ref first to prevent useEffect double-rotation
+        prevIndexRef.current = index;
+
+        setRotation(prev => prev - diff * anglePerCard);
+        setActiveProject(visibleProjects[index].id);
+    }, [totalCards, anglePerCard, visibleProjects, setActiveProject]);
 
     // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft') prevProject();
-            if (e.key === 'ArrowRight') nextProject();
+            if (e.key === 'ArrowLeft') handlePrev();
+            if (e.key === 'ArrowRight') handleNext();
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [nextProject, prevProject]);
+    }, [handleNext, handlePrev]);
+
+    // Mouse wheel navigation with debounce
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        let isThrottled = false;
+        const throttleDelay = 500; // ms between wheel events (increased for smoother feel)
+
+        const handleWheel = (e: WheelEvent) => {
+            // Prevent page scrolling when inside the container
+            e.preventDefault();
+
+            if (isThrottled) return;
+            isThrottled = true;
+
+            // Fixed direction: scroll down = prev, scroll up = next
+            if (e.deltaY > 0 || e.deltaX > 0) {
+                handlePrev();
+            } else if (e.deltaY < 0 || e.deltaX < 0) {
+                handleNext();
+            }
+
+            setTimeout(() => {
+                isThrottled = false;
+            }, throttleDelay);
+        };
+
+        container.addEventListener('wheel', handleWheel, { passive: false });
+        return () => container.removeEventListener('wheel', handleWheel);
+    }, [handleNext, handlePrev]);
+
+    // Dynamic scaling based on container height
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const updateScale = () => {
+            const containerHeight = container.clientHeight;
+            const scaleFactor = containerHeight / BASE_CONTENT_HEIGHT;
+            const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleFactor));
+            setDeckScale(clampedScale);
+        };
+
+        updateScale();
+        const resizeObserver = new ResizeObserver(updateScale);
+        resizeObserver.observe(container);
+
+        return () => resizeObserver.disconnect();
+    }, []);
 
     return (
-        <div className="w-full h-full relative flex flex-col items-center perspective-[800px] group overflow-hidden">
+        <div
+            ref={containerRef}
+            className="w-full h-full relative flex flex-col items-center group overflow-hidden"
+        >
+            {/* 3D Scene Container with perspective */}
+            <div
+                className="relative flex-1 w-full flex items-center justify-center"
+                style={{
+                    perspective: '1000px',
+                    perspectiveOrigin: '50% 50%',
+                }}
+            >
+                {/* Scale wrapper */}
+                <div
+                    style={{
+                        transform: `scale(${deckScale})`,
+                        transformStyle: 'preserve-3d',
+                    }}
+                >
+                    {/* Rotating Carousel Container */}
+                    <div
+                        style={{
+                            position: 'relative',
+                            width: '400px',
+                            height: '240px',
+                            transformStyle: 'preserve-3d',
+                            transform: `rotateY(${rotation}deg)`,
+                            transition: 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                        }}
+                    >
+                        {visibleProjects.map((project, index) => {
+                            const cardAngle = index * anglePerCard;
+                            const isActive = index === effectiveActiveIndex;
 
-            {/* 3D Scene Container */}
-            <div className="relative flex-1 w-full flex items-center justify-center transform-style-3d">
-                {projects.map((project, index) => {
-                    // Create relative MotionValue for each card
-                    const relativeIndex = useTransform(springIndex, (latest) => index - latest);
-
-                    return (
-                        <ProjectCard
-                            key={project.id}
-                            project={project}
-                            isActive={project.id === activeProjectId}
-                            onClick={() => {
-                                if (index < activeIndex) prevProject();
-                                else if (index > activeIndex) nextProject();
-                            }}
-                            index={relativeIndex}
-                        />
-                    );
-                })}
+                            return (
+                                <ProjectCard
+                                    key={project.id}
+                                    project={project}
+                                    isActive={isActive}
+                                    onClick={() => handleCardClick(index)}
+                                    angle={cardAngle}
+                                    radius={radius}
+                                />
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
 
             {/* Project Info - Below Active Card */}
             <div className="w-full flex justify-center py-2 lg:py-3 pointer-events-none z-40">
-                {projects.map(p => p.id === activeProjectId && (
+                {visibleProjects.map(p => p.id === activeProjectId && (
                     <ProjectInfo key={p.id} project={p} />
                 ))}
             </div>
@@ -64,18 +221,18 @@ export const ProjectDeck = () => {
             {/* Navigation Arrows */}
             <div className="absolute top-1/2 -translate-y-1/2 left-4 lg:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
                 <CyberButton
-                    variant="dot"
+                    variant="ghost"
                     icon={<i className="ri-arrow-left-s-line"></i>}
-                    onClick={prevProject}
+                    onClick={handlePrev}
                     className="h-10 w-10 lg:h-12 lg:w-12 rounded-full"
                     iconOnly
                 />
             </div>
             <div className="absolute top-1/2 -translate-y-1/2 right-4 lg:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
                 <CyberButton
-                    variant="dot"
+                    variant="ghost"
                     icon={<i className="ri-arrow-right-s-line"></i>}
-                    onClick={nextProject}
+                    onClick={handleNext}
                     className="h-10 w-10 lg:h-12 lg:w-12 rounded-full"
                     iconOnly
                 />
@@ -83,4 +240,3 @@ export const ProjectDeck = () => {
         </div>
     );
 };
-

@@ -15,7 +15,7 @@ export const ProjectPagination = ({ projects, activeProjectId, onSelect }: Proje
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
     return (
-        <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-4 pointer-events-auto">
             {projects.map((project, index) => {
                 const isActive = project.id === activeProjectId;
                 const isHovered = hoveredId === project.id;
@@ -36,8 +36,8 @@ export const ProjectPagination = ({ projects, activeProjectId, onSelect }: Proje
                         <CyberButton
                             variant="chamfer"
                             className={twMerge(
-                                "h-8 transition-all duration-300 min-w-0 px-2",
-                                showExpanded ? "px-4" : "px-2 opacity-60 [&>div.absolute]:opacity-0"
+                                "h-8 transition-all duration-300 min-w-0 px-1",
+                                showExpanded ? "px-3" : "px-1 opacity-60 [&>div.absolute]:opacity-0"
                             )}
                             onClick={() => onSelect(project.id)}
                             chamferCorner="bottom-right"
@@ -45,7 +45,7 @@ export const ProjectPagination = ({ projects, activeProjectId, onSelect }: Proje
                             {/* Content */}
                             <div className={twMerge(
                                 "flex items-center whitespace-nowrap",
-                                showExpanded ? "gap-1.5" : "gap-0"
+                                showExpanded ? "gap-1" : "gap-0"
                             )}>
                                 {/* Index indicator (always visible) */}
                                 <span className={twMerge(
