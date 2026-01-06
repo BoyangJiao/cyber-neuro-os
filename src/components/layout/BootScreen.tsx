@@ -31,9 +31,11 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         return () => clearInterval(timer);
     }, [onComplete]);
 
-    // Cast motion components to any to avoid strict type checking issues with className
-    const MotionDiv = motion.div as any;
-    const MotionH1 = motion.h1 as any;
+    // Cast motion components to bypass strict type checking issues between React 19 and older framer-motion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MotionDiv = motion.div as React.ComponentType<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MotionH1 = motion.h1 as React.ComponentType<any>;
 
     return (
         <MotionDiv

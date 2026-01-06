@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ProjectCard } from './ProjectCard';
 import { ProjectInfo } from './ProjectInfo';
@@ -9,6 +10,7 @@ const MAX_VISIBLE_CARDS = 6;
 
 export const ProjectDeck = () => {
     const { projects, activeProjectId, setActiveProject } = useProjectStore();
+    const navigate = useNavigate();
 
     // Only show first MAX_VISIBLE_CARDS projects for clean 3D effect
     const visibleProjects = projects.slice(0, MAX_VISIBLE_CARDS);
@@ -85,7 +87,12 @@ export const ProjectDeck = () => {
 
     const handleCardClick = useCallback((index: number) => {
         const current = prevIndexRef.current;
-        if (index === current) return;
+
+        // If clicking on active card, navigate to detail page
+        if (index === current) {
+            navigate(`/projects/${visibleProjects[index].id}`);
+            return;
+        }
 
         let diff = index - current;
         if (diff > totalCards / 2) {
@@ -99,7 +106,7 @@ export const ProjectDeck = () => {
 
         setRotation(prev => prev - diff * anglePerCard);
         setActiveProject(visibleProjects[index].id);
-    }, [totalCards, anglePerCard, visibleProjects, setActiveProject]);
+    }, [totalCards, anglePerCard, visibleProjects, setActiveProject, navigate]);
 
     // Keyboard navigation
     useEffect(() => {

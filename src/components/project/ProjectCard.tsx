@@ -24,20 +24,24 @@ export const ProjectCard = ({
     // 延迟激活状态 - 用于 corner deco 的变化
     // 当 isActive 变为 true 时，延迟一段时间后 delayedActive 才变为 true
     // 这样 corner deco 会在卡片旋转接近完成时再变长变亮
+    // Use a derived state for immediate deactivation if preferred, 
+    // but since we need a manual delay for 'true', we'll keep the effect 
+    // and just fix the synchronous update.
     const [delayedActive, setDelayedActive] = useState(isActive);
 
+    // Sync state during render to avoid synchronous setState in useEffect
+    if (!isActive && delayedActive) {
+        setDelayedActive(false);
+    }
+
     useEffect(() => {
-        if (isActive) {
-            // 激活时延迟变化
+        if (isActive && !delayedActive) {
             const timer = setTimeout(() => {
                 setDelayedActive(true);
             }, DECO_DELAY_MS);
             return () => clearTimeout(timer);
-        } else {
-            // 取消激活时立即变化（不延迟）
-            setDelayedActive(false);
         }
-    }, [isActive]);
+    }, [isActive, delayedActive]);
 
     // Arwes FrameCorners CSS variables - 使用项目 color tokens
     // 使用 delayedActive 控制 corner deco 的样式

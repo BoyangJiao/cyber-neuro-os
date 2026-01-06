@@ -10,7 +10,8 @@ export interface FeatureCardProps {
 
 export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
     const { playHover, playClick } = useSoundSystem();
-    const MotionDiv = motion.div as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MotionDiv = motion.div as React.ComponentType<any>;
 
     return (
         <HoloFrame

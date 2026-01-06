@@ -11,7 +11,8 @@ interface ProjectPaginationProps {
 }
 
 export const ProjectPagination = ({ projects, activeProjectId, onSelect }: ProjectPaginationProps) => {
-    const MotionDiv = motion.div as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MotionDiv = motion.div as React.ComponentType<any>;
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
     return (

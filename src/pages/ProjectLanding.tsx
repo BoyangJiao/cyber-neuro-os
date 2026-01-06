@@ -7,7 +7,8 @@ import { useProjectStore } from '../store/useProjectStore';
 import { useNavigate } from 'react-router-dom';
 
 export const ProjectLanding = () => {
-    const MotionDiv = motion.div as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MotionDiv = motion.div as React.ComponentType<any>;
     const navigate = useNavigate();
     const { projects, activeProjectId, setActiveProject } = useProjectStore();
 

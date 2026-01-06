@@ -7,6 +7,7 @@ import { ProfileSidebar } from './components/layout/ProfileSidebar'
 import { StatusSidebar } from './components/layout/StatusSidebar'
 import { FeaturePanel } from './components/layout/FeaturePanel'
 import { ProjectLanding } from './pages/ProjectLanding'
+import { ProjectDetail } from './pages/ProjectDetail'
 import { useAppStore } from './store/useAppStore'
 import { AnimatePresence } from 'framer-motion'
 
@@ -49,6 +50,13 @@ function App() {
           <StatusSidebar />
 
         </div>
+
+        {/* Project Detail - Full Width Overlay (covers entire main area, hides sidebars) */}
+        <AnimatePresence>
+          <Routes location={location} key={`detail-${location.pathname}`}>
+            <Route path="/projects/:projectId" element={<ProjectDetail />} />
+          </Routes>
+        </AnimatePresence>
       </MainLayout>
     </div>
   )
