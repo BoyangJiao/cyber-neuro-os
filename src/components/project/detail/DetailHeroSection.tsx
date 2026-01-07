@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { MotionDiv, MotionH1, MotionP } from '../../motion/MotionWrappers';
 import type { Project } from '../../../data/projects';
 import type { ProjectDetail } from '../../../data/projectDetails';
 
@@ -8,12 +8,6 @@ interface DetailHeroSectionProps {
 }
 
 export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionH1 = motion.h1 as React.ComponentType<any>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionP = motion.p as React.ComponentType<any>;
 
     return (
         <section className="w-full relative">

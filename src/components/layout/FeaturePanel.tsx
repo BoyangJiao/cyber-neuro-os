@@ -3,7 +3,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { FeatureCard } from '../ui/FeatureCard';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { MotionDiv } from '../motion/MotionWrappers';
 
 interface FeatureItem {
     title: string;
@@ -22,8 +22,6 @@ const features: FeatureItem[] = [
 
 export const FeaturePanel = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
 
     useGSAP(() => {
         const timeline = gsap.timeline({ defaults: { ease: "power2.out", duration: 0.5 } });

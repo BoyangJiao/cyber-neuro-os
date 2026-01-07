@@ -39,7 +39,6 @@ export const useSoundSystem = () => {
         clickSynth.current.volume.value = -10;
 
         isInitialized.current = true;
-        console.log('Audio System Initialized');
     }, []);
 
     const playHover = useCallback(() => {

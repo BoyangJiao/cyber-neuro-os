@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { MotionDiv } from '../../motion/MotionWrappers';
 
 interface HighlightStatementProps {
     content: string;
@@ -11,8 +11,6 @@ interface HighlightStatementProps {
  * can be placed anywhere to emphasize important messages (not an anchor point).
  */
 export const HighlightStatement = ({ content, className = '' }: HighlightStatementProps) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
 
     return (
         <MotionDiv

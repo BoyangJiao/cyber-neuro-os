@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { MotionDiv, MotionH1 } from '../motion/MotionWrappers';
 
 export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
     const [progress, setProgress] = useState(0);
@@ -30,12 +30,6 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
 
         return () => clearInterval(timer);
     }, [onComplete]);
-
-    // Cast motion components to bypass strict type checking issues between React 19 and older framer-motion
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionH1 = motion.h1 as React.ComponentType<any>;
 
     return (
         <MotionDiv

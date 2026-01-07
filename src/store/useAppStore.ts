@@ -6,6 +6,6 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-    isBootSequenceActive: true,
+    isBootSequenceActive: false, // Set to true for production
     setBootSequence: (active) => set({ isBootSequenceActive: active }),
 }));

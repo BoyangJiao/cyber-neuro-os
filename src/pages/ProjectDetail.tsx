@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { MotionDiv } from '../components/motion/MotionWrappers';
 import { useProjectStore } from '../store/useProjectStore';
 import { getProjectDetail } from '../data/projectDetails';
 import { DetailHeroSection } from '../components/project/detail/DetailHeroSection';
@@ -18,8 +19,6 @@ const SECTIONS = [
 ];
 
 export const ProjectDetail = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
 
     const { projectId } = useParams<{ projectId: string }>();
     const navigate = useNavigate();
@@ -125,7 +124,8 @@ export const ProjectDetail = () => {
                     }}
                 />
 
-                {/* Close Button - Fixed Position */}
+                {/* Close Button - Positioned inside container (Top Right) */}
+                {/* 这里的 top-4 right-4 对应 16px，与容器 padding 对齐 */}
                 <div className="absolute top-4 right-4 z-[100]">
                     <CyberButton
                         variant="ghost"
@@ -222,7 +222,7 @@ export const ProjectDetail = () => {
                 {/* Scroll Container - Full Page Scroll */}
                 <div
                     ref={scrollContainerRef}
-                    className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden"
+                    className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden scrollbar-hide"
                     style={{
                         scrollBehavior: 'smooth',
                     }}
@@ -232,35 +232,33 @@ export const ProjectDetail = () => {
                         <DetailHeroSection project={project} detail={detail} />
                     </div>
 
-                    {/* Main Content Section - Two Column Layout */}
-                    <div className="w-full px-6 lg:px-10 pb-20">
-                        {/* 12-column grid */}
-                        <div
-                            className="grid gap-6 lg:gap-10"
-                            style={{
-                                gridTemplateColumns: 'repeat(12, 1fr)',
-                            }}
-                        >
-                            {/* Sidebar - Dynamic columns based on collapse state */}
+                    {/* Main Content Section - Flex Layout for smooth animation */}
+                    <div className="w-full px-4 pb-20">
+                        {/* Flex container for sidebar + content */}
+                        <div className="flex gap-6 lg:gap-10">
+                            {/* Sidebar - Animated width */}
                             <MotionDiv
                                 animate={{
                                     opacity: isSidebarCollapsed ? 0 : (isHeroVisible ? 0 : 1),
-                                    x: isSidebarCollapsed ? -100 : 0,
-                                    gridColumn: isSidebarCollapsed ? 'span 0' : 'span 2',
+                                    width: isSidebarCollapsed ? 0 : 'auto',
+                                    marginRight: isSidebarCollapsed ? 0 : undefined,
                                 }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                transition={{
+                                    duration: 0.5,
+                                    ease: [0.4, 0, 0.2, 1],
+                                    opacity: { duration: 0.3 }
+                                }}
                                 style={{
-                                    gridColumn: isSidebarCollapsed ? 'span 0' : 'span 2',
                                     position: 'sticky',
                                     top: '24px',
                                     height: 'fit-content',
-                                    alignSelf: 'start',
+                                    alignSelf: 'flex-start',
                                     pointerEvents: (isHeroVisible || isSidebarCollapsed) ? 'none' : 'auto',
                                     overflow: 'hidden',
-                                    width: isSidebarCollapsed ? 0 : 'auto',
-                                    minWidth: isSidebarCollapsed ? 0 : undefined,
+                                    flexShrink: 0,
+                                    minWidth: isSidebarCollapsed ? 0 : '180px',
+                                    maxWidth: isSidebarCollapsed ? 0 : '220px',
                                 }}
-                                className={isSidebarCollapsed ? '' : 'col-span-12 lg:col-span-2'}
                             >
                                 <HUDSidebar
                                     detail={detail}
@@ -270,15 +268,18 @@ export const ProjectDetail = () => {
                                 />
                             </MotionDiv>
 
-                            {/* Content Feed - Dynamic columns based on sidebar state */}
+                            {/* Content Feed - Flex grow to fill remaining space */}
                             <MotionDiv
-                                animate={{
-                                    gridColumn: isSidebarCollapsed ? 'span 12' : 'span 10',
+                                layout
+                                transition={{
+                                    duration: 0.5,
+                                    ease: [0.4, 0, 0.2, 1]
                                 }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
                                 style={{
-                                    gridColumn: isSidebarCollapsed ? 'span 12' : 'span 10',
+                                    flex: 1,
+                                    minWidth: 0,
                                 }}
+                                className="px-4"
                             >
                                 {/* Highlight Statement - Flexible emphasis element (not an anchor) */}
                                 <HighlightStatement content={detail.sections.hook.content} />

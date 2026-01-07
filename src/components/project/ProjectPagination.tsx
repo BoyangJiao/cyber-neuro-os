@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { MotionDiv } from '../motion/MotionWrappers';
 import type { Project } from '../../data/projects';
 import { CyberButton } from '../ui/CyberButton';
 import { twMerge } from 'tailwind-merge';
@@ -11,8 +11,6 @@ interface ProjectPaginationProps {
 }
 
 export const ProjectPagination = ({ projects, activeProjectId, onSelect }: ProjectPaginationProps) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
     return (

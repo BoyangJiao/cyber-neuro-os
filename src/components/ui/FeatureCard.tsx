@@ -1,6 +1,6 @@
 import { HoloFrame } from './HoloFrame';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
-import { motion } from 'framer-motion';
+import { MotionDiv } from '../motion/MotionWrappers';
 
 export interface FeatureCardProps {
     title: string;
@@ -10,8 +10,6 @@ export interface FeatureCardProps {
 
 export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
     const { playHover, playClick } = useSoundSystem();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
 
     return (
         <HoloFrame

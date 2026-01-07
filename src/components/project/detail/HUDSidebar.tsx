@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import type { ProjectDetail } from '../../../data/projectDetails';
 
 interface HUDSidebarProps {
@@ -8,9 +7,7 @@ interface HUDSidebarProps {
     onNavigate: (sectionId: string) => void;
 }
 
-export const HUDSidebar = ({ detail, activeSection, sections, onNavigate }: HUDSidebarProps) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MotionDiv = motion.div as React.ComponentType<any>;
+export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
     const { sidebar } = detail;
 
@@ -116,86 +113,7 @@ export const HUDSidebar = ({ detail, activeSection, sections, onNavigate }: HUDS
                 </ul>
             </SidebarSection>
 
-            {/* Section Navigation - Collapsible */}
-            <div className="relative px-4 py-4 border-t border-cyan-900/30 group/nav">
-                <div className="text-[12px] font-mono text-cyan-700 tracking-widest uppercase mb-3">
-                    Sections
-                </div>
-                <nav className="relative">
-                    {/* Active Section Display (always visible) */}
-                    {sections.map((section) => {
-                        const isActive = activeSection === section.id;
-                        if (!isActive) return null;
 
-                        return (
-                            <div
-                                key={`active-${section.id}`}
-                                className="flex items-center gap-3 py-2 px-2 group-hover/nav:hidden cursor-pointer"
-                                style={{
-                                    background: 'rgba(0, 240, 255, 0.1)',
-                                    borderLeft: '2px solid rgba(0, 240, 255, 0.8)',
-                                }}
-                            >
-                                <div
-                                    className="w-1.5 h-1.5"
-                                    style={{
-                                        background: '#00f0ff',
-                                        boxShadow: '0 0 8px rgba(0, 240, 255, 0.8)',
-                                    }}
-                                />
-                                <span
-                                    className="text-[12px] font-mono tracking-wider"
-                                    style={{ color: '#00f0ff' }}
-                                >
-                                    {section.title}
-                                </span>
-                                <i className="ri-arrow-down-s-line text-cyan-600 ml-auto text-sm" />
-                            </div>
-                        );
-                    })}
-
-                    {/* Expanded List (visible on hover) */}
-                    <div className="hidden group-hover/nav:block space-y-1">
-                        {sections.map((section, index) => {
-                            const isActive = activeSection === section.id;
-                            return (
-                                <button
-                                    key={section.id}
-                                    onClick={() => onNavigate(section.id)}
-                                    className="w-full text-left"
-                                >
-                                    <MotionDiv
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.03 * index }}
-                                        className="flex items-center gap-3 py-2 px-2 transition-all duration-200 hover:bg-cyan-900/20"
-                                        style={{
-                                            background: isActive ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
-                                            borderLeft: isActive ? '2px solid rgba(0, 240, 255, 0.8)' : '2px solid transparent',
-                                        }}
-                                    >
-                                        <div
-                                            className="w-1.5 h-1.5 transition-all duration-300"
-                                            style={{
-                                                background: isActive ? '#00f0ff' : 'rgba(0, 240, 255, 0.3)',
-                                                boxShadow: isActive ? '0 0 8px rgba(0, 240, 255, 0.8)' : 'none',
-                                            }}
-                                        />
-                                        <span
-                                            className="text-[12px] font-mono tracking-wider transition-colors duration-200"
-                                            style={{
-                                                color: isActive ? '#00f0ff' : 'rgba(148, 163, 184, 0.7)',
-                                            }}
-                                        >
-                                            {section.title}
-                                        </span>
-                                    </MotionDiv>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </nav>
-            </div>
         </aside>
     );
 };
