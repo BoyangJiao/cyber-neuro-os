@@ -47,7 +47,7 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     transition={{ delay: 0.4, duration: 0.5 }}
                     className="flex flex-wrap gap-8 mb-10"
                 >
-                    {detail.coreMetrics.map((metric, index) => (
+                    {(detail.coreMetrics || []).map((metric, index) => (
                         <div key={index} className="flex flex-col">
                             <div className="flex items-baseline gap-1">
                                 <span
@@ -109,22 +109,30 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-cyan-500/50" />
                     <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-cyan-500/50" />
 
-                    {/* Center Icon Placeholder */}
+                    {/* Center Icon or Image */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div
-                            className="w-20 h-20 flex items-center justify-center opacity-30"
-                            style={{
-                                background: 'rgba(0, 240, 255, 0.05)',
-                                border: '1px solid rgba(0, 240, 255, 0.2)',
-                            }}
-                        >
-                            <i
-                                className={`${project.thumbnail} text-4xl`}
-                                style={{
-                                    color: 'rgba(0, 240, 255, 0.5)',
-                                }}
+                        {project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/') ? (
+                            <img
+                                src={project.thumbnail}
+                                alt={project.title}
+                                className="w-full h-full object-cover opacity-60"
                             />
-                        </div>
+                        ) : (
+                            <div
+                                className="w-20 h-20 flex items-center justify-center opacity-30"
+                                style={{
+                                    background: 'rgba(0, 240, 255, 0.05)',
+                                    border: '1px solid rgba(0, 240, 255, 0.2)',
+                                }}
+                            >
+                                <i
+                                    className={`${project.thumbnail} text-4xl`}
+                                    style={{
+                                        color: 'rgba(0, 240, 255, 0.5)',
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
                 </MotionDiv>
             </div>

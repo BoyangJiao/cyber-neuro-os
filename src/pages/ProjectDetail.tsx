@@ -2,39 +2,83 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { MotionDiv } from '../components/motion/MotionWrappers';
+import { useQuery } from '../sanity/client';
 import { useProjectStore } from '../store/useProjectStore';
-import { getProjectDetail } from '../data/projectDetails';
+import { PROJECT_DETAIL_QUERY } from '../sanity/queries';
 import { DetailHeroSection } from '../components/project/detail/DetailHeroSection';
 import { HUDSidebar } from '../components/project/detail/HUDSidebar';
-import { NarrativeSection } from '../components/project/detail/NarrativeSection';
-import { HighlightStatement } from '../components/project/detail/HighlightQuote';
 import { CyberButton } from '../components/ui/CyberButton';
-
-// Section configuration for navigation (highlight quote is not a navigation anchor)
-const SECTIONS = [
-    { id: 'context', title: 'CONTEXT' },
-    { id: 'strategy', title: 'STRATEGY' },
-    { id: 'highlights', title: 'HIGHLIGHTS' },
-    { id: 'outcome', title: 'OUTCOME' },
-];
+import { SectionRenderer } from '../components/project/detail/SectionRenderer';
+import type { SanityProjectDetail } from '../data/projectDetails';
+import { getProjectDetail } from '../data/projectDetails';
 
 export const ProjectDetail = () => {
-
     const { projectId } = useParams<{ projectId: string }>();
     const navigate = useNavigate();
     const { projects } = useProjectStore();
 
-    const [activeSection, setActiveSection] = useState('context');
+    // Data State
+    const [detail, setDetail] = useState<SanityProjectDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // UI State
+    const [activeSection, setActiveSection] = useState('');
     const [isHeroVisible, setIsHeroVisible] = useState(true);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    // Refs
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const heroRef = useRef<HTMLDivElement>(null);
 
-    // Find project and detail data
+    // Find basic project info from store (for error checking / title fallback)
     const project = projects.find(p => p.id === projectId);
-    const detail = projectId ? getProjectDetail(projectId) : undefined;
 
-    // Handle scroll to detect when hero leaves viewport
+    // Live Query for Real-time Preview
+    // We import useQuery from our configured client.ts
+    // The initial data can be passed if we had server-side props, but here we start null/loading.
+    const { data: sanityData, loading: isSanityLoading, error: sanityError } = useQuery<SanityProjectDetail>(
+        PROJECT_DETAIL_QUERY,
+        { slug: projectId },
+        { initial: undefined }
+    );
+
+    // Sync state
+    useEffect(() => {
+        if (sanityData) {
+            setDetail(sanityData);
+            setIsLoading(false);
+        } else if (!isSanityLoading && !sanityData) {
+            // Failed to find or load
+            // Fallback strategy remains similar to before
+            const legacyData = getProjectDetail(projectId || '');
+            if (legacyData) {
+                console.warn(`Project ${projectId} not found in Sanity. Falling back to legacy mock if available.`);
+                // For now, simple error or leave detail null
+                setError("Project not found in CMS.");
+            } else {
+                setError("Project not found.");
+            }
+            setIsLoading(false);
+        }
+    }, [sanityData, isSanityLoading, projectId]);
+
+    // Error handling from hook
+    useEffect(() => {
+        if (sanityError) {
+            console.error("Sanity live query error:", sanityError);
+            setError("Failed to load project content.");
+            setIsLoading(false);
+        }
+    }, [sanityError]);
+
+    // Construct Sidebar Sections from Modules
+    const sidebarSections = (detail?.contentModules || []).map(module => ({
+        id: module.title ? module.title.toLowerCase().replace(/\s+/g, '-') : module._key,
+        title: module.title || 'Untitled'
+    }));
+
+    // Handle scroll spy
     useEffect(() => {
         const container = scrollContainerRef.current;
         const hero = heroRef.current;
@@ -49,9 +93,9 @@ export const ProjectDetail = () => {
 
         observer.observe(hero);
         return () => observer.disconnect();
-    }, []);
+    }, [isLoading]);
 
-    // Handle section navigation
+    // Handle Layout Logic
     const handleNavigate = useCallback((sectionId: string) => {
         const element = document.getElementById(sectionId);
         if (element && scrollContainerRef.current) {
@@ -64,23 +108,24 @@ export const ProjectDetail = () => {
         }
     }, []);
 
-    // Handle section visibility change (scroll spy)
-    const handleSectionVisible = useCallback((sectionId: string) => {
-        setActiveSection(sectionId);
-    }, []);
-
-    // Handle close/back navigation
     const handleClose = useCallback(() => {
         navigate('/projects');
     }, [navigate]);
 
-    // Toggle sidebar
     const toggleSidebar = useCallback(() => {
         setIsSidebarCollapsed(prev => !prev);
     }, []);
 
-    // 404 state
-    if (!project || !detail) {
+    // Render Logic
+    if (isLoading) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-black">
+                <div className="text-cyan-500 font-mono animate-pulse">LOADING NEURAL LINK...</div>
+            </div>
+        );
+    }
+
+    if (error || !project || !detail) {
         return (
             <MotionDiv
                 className="w-full h-full flex items-center justify-center"
@@ -91,20 +136,19 @@ export const ProjectDetail = () => {
                     <div className="text-6xl mb-4 opacity-30">
                         <i className="ri-error-warning-line" />
                     </div>
-                    <h1 className="text-2xl font-display text-cyan-500 mb-2">PROJECT NOT FOUND</h1>
-                    <p className="text-neutral-400 mb-6">The requested project data is unavailable.</p>
-                    <CyberButton
-                        variant="ghost"
-                        onClick={() => navigate('/projects')}
-                    >
+                    <h1 className="text-2xl font-display text-cyan-500 mb-2">
+                        {error || "PROJECT NOT FOUND"}
+                    </h1>
+                    <p className="text-neutral-400 mb-6">
+                        The requested project data is unavailable.
+                    </p>
+                    <CyberButton variant="ghost" onClick={() => navigate('/projects')}>
                         Return to Directory
                     </CyberButton>
                 </div>
             </MotionDiv>
         );
     }
-
-
 
     return (
         <AnimatePresence>
@@ -117,15 +161,9 @@ export const ProjectDetail = () => {
                 transition={{ duration: 0.4, ease: 'easeOut' }}
             >
                 {/* Background Overlay */}
-                <div
-                    className="absolute inset-0 z-0"
-                    style={{
-                        background: 'rgba(5, 5, 5, 0.98)',
-                    }}
-                />
+                <div className="absolute inset-0 z-0 bg-[#050505]/98" />
 
-                {/* Close Button - Positioned inside container (Top Right) */}
-                {/* 这里的 top-4 right-4 对应 16px，与容器 padding 对齐 */}
+                {/* Close Button */}
                 <div className="absolute top-4 right-4 z-[100]">
                     <CyberButton
                         variant="ghost"
@@ -136,7 +174,7 @@ export const ProjectDetail = () => {
                     />
                 </div>
 
-                {/* Sidebar Toggle - Cyberpunk Energy Bar */}
+                {/* HUD Toggle */}
                 <MotionDiv
                     initial={{ opacity: 0 }}
                     animate={{
@@ -145,196 +183,96 @@ export const ProjectDetail = () => {
                     }}
                     transition={{ duration: 0.3 }}
                     className="fixed left-0 top-1/2 -translate-y-1/2 z-[100]"
-                    style={{
-                        pointerEvents: isHeroVisible ? 'none' : 'auto',
-                    }}
+                    style={{ pointerEvents: isHeroVisible ? 'none' : 'auto' }}
                 >
-                    {/* Energy Bar Toggle Button */}
                     <button
                         onClick={toggleSidebar}
-                        className="group relative flex items-center cursor-pointer"
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            padding: 0,
-                        }}
+                        className="group relative flex items-center cursor-pointer bg-transparent border-none p-0"
                     >
-                        {/* Glowing Edge Line */}
                         <div
-                            className="w-[3px] h-[120px] transition-all duration-300"
-                            style={{
-                                background: isSidebarCollapsed
-                                    ? 'linear-gradient(to bottom, transparent 0%, rgba(0, 240, 255, 0.4) 10%, rgba(0, 240, 255, 1) 50%, rgba(0, 240, 255, 0.4) 90%, transparent 100%)'
-                                    : 'linear-gradient(to bottom, transparent 0%, rgba(0, 240, 255, 0.15) 20%, rgba(0, 240, 255, 0.3) 50%, rgba(0, 240, 255, 0.15) 80%, transparent 100%)',
-                                boxShadow: isSidebarCollapsed
-                                    ? '0 0 15px rgba(0, 240, 255, 0.6), 0 0 30px rgba(0, 240, 255, 0.3)'
-                                    : '0 0 5px rgba(0, 240, 255, 0.2)',
-                            }}
+                            className={`w-[3px] h-[120px] transition-all duration-300 ${isSidebarCollapsed ? 'hud-toggle-bar--active' : 'hud-toggle-bar--inactive'}`}
                         />
-
-                        {/* Expandable Panel */}
                         <MotionDiv
                             animate={{
                                 width: isSidebarCollapsed ? 48 : 40,
                                 opacity: 1,
                             }}
                             transition={{ duration: 0.2 }}
-                            className="h-[100px] flex flex-col items-center justify-center gap-2 overflow-hidden"
-                            style={{
-                                background: 'linear-gradient(90deg, rgba(6, 18, 26, 0.95), rgba(6, 18, 26, 0.8))',
-                                borderTop: '1px solid rgba(0, 240, 255, 0.2)',
-                                borderRight: '1px solid rgba(0, 240, 255, 0.2)',
-                                borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
-                            }}
+                            className="h-[100px] flex flex-col items-center justify-center gap-2 overflow-hidden bg-gradient-to-r from-[#06121ae6] to-[#06121acc] border-y border-r border-[#00f0ff33]"
                         >
-                            {/* Toggle Icon */}
-                            <i
-                                className={`${isSidebarCollapsed ? 'ri-layout-left-2-line' : 'ri-layout-left-2-fill'} text-xl transition-all duration-200`}
-                                style={{
-                                    color: isSidebarCollapsed ? '#00f0ff' : 'rgba(0, 240, 255, 0.5)',
-                                    filter: isSidebarCollapsed ? 'drop-shadow(0 0 8px rgba(0, 240, 255, 0.8))' : 'none',
-                                }}
-                            />
-
-                            {/* Vertical Label */}
-                            <span
-                                className="text-[10px] font-mono tracking-[0.15em] uppercase transition-colors duration-200"
-                                style={{
-                                    writingMode: 'vertical-rl',
-                                    textOrientation: 'mixed',
-                                    color: isSidebarCollapsed ? '#00f0ff' : 'rgba(0, 240, 255, 0.4)',
-                                }}
-                            >
+                            <i className={`${isSidebarCollapsed ? 'ri-layout-left-2-line' : 'ri-layout-left-2-fill'} text-xl transition-all duration-200 text-[#00f0ff]`} />
+                            <span className="text-[10px] font-mono tracking-[0.15em] uppercase text-[#00f0ff66] [writing-mode:vertical-rl] [text-orientation:mixed]">
                                 HUD
                             </span>
                         </MotionDiv>
-
-                        {/* Hover Glow Effect */}
-                        <div
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                            style={{
-                                background: 'linear-gradient(90deg, rgba(0, 240, 255, 0.1), transparent)',
-                            }}
-                        />
                     </button>
                 </MotionDiv>
 
-                {/* Scroll Container - Full Page Scroll */}
+                {/* Main Content Area */}
                 <div
                     ref={scrollContainerRef}
-                    className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden scrollbar-hide"
-                    style={{
-                        scrollBehavior: 'smooth',
-                    }}
+                    className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden scrollbar-hide scroll-smooth"
                 >
-                    {/* Hero Section - Full Width */}
                     <div ref={heroRef}>
-                        <DetailHeroSection project={project} detail={detail} />
+                        {/* Pass project (basic info) and detail (Sanity enhanced info) */}
+                        {/* Note: DetailHeroSection types might warn about mismatch but we are passing superset/compatible structure */}
+                        <DetailHeroSection project={project} detail={detail as any} />
                     </div>
 
-                    {/* Main Content Section - Flex Layout for smooth animation */}
                     <div className="w-full px-4 pb-20">
-                        {/* Flex container for sidebar + content */}
                         <div className="flex gap-6 lg:gap-10">
-                            {/* Sidebar - Animated width */}
+                            {/* Sticky Sidebar */}
                             <MotionDiv
                                 animate={{
                                     opacity: isSidebarCollapsed ? 0 : (isHeroVisible ? 0 : 1),
                                     width: isSidebarCollapsed ? 0 : 'auto',
-                                    marginRight: isSidebarCollapsed ? 0 : undefined,
                                 }}
-                                transition={{
-                                    duration: 0.5,
-                                    ease: [0.4, 0, 0.2, 1],
-                                    opacity: { duration: 0.3 }
-                                }}
-                                style={{
-                                    position: 'sticky',
-                                    top: '24px',
-                                    height: 'fit-content',
-                                    alignSelf: 'flex-start',
-                                    pointerEvents: (isHeroVisible || isSidebarCollapsed) ? 'none' : 'auto',
-                                    overflow: 'hidden',
-                                    flexShrink: 0,
-                                    minWidth: isSidebarCollapsed ? 0 : '180px',
-                                    maxWidth: isSidebarCollapsed ? 0 : '220px',
-                                }}
+                                transition={{ duration: 0.5 }}
+                                className="sticky top-6 h-fit self-start overflow-hidden flex-shrink-0 min-w-[180px] max-w-[220px]"
+                                style={{ pointerEvents: (isHeroVisible || isSidebarCollapsed) ? 'none' : 'auto' }}
                             >
                                 <HUDSidebar
                                     detail={detail}
                                     activeSection={activeSection}
-                                    sections={SECTIONS}
+                                    sections={sidebarSections}
                                     onNavigate={handleNavigate}
                                 />
                             </MotionDiv>
 
-                            {/* Content Feed - Flex grow to fill remaining space */}
+                            {/* Dynamic Content Feed */}
                             <MotionDiv
                                 layout
-                                transition={{
-                                    duration: 0.5,
-                                    ease: [0.4, 0, 0.2, 1]
-                                }}
-                                style={{
-                                    flex: 1,
-                                    minWidth: 0,
-                                }}
-                                className="px-4"
+                                className="flex-1 min-w-0 px-4"
                             >
-                                {/* Highlight Statement - Flexible emphasis element (not an anchor) */}
-                                <HighlightStatement content={detail.sections.hook.content} />
+                                <div className="space-y-12">
+                                    {(detail.contentModules || []).map((module) => (
+                                        <SectionRenderer
+                                            key={module._key}
+                                            module={module}
+                                            onVisible={() => setActiveSection(module.title ? module.title.toLowerCase().replace(/\s+/g, '-') : '')}
+                                        />
+                                    ))}
+                                </div>
 
-                                {/* Narrative Sections */}
-                                {SECTIONS.map((section) => (
-                                    <NarrativeSection
-                                        key={section.id}
-                                        id={section.id}
-                                        detail={detail}
-                                        onVisible={handleSectionVisible}
-                                    />
-                                ))}
-
-                                {/* End Section - Call to Action */}
-                                <div className="py-20 flex flex-col items-center justify-center border-t border-cyan-900/30">
-                                    <MotionDiv
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        className="text-center"
-                                    >
-                                        <div className="text-[12px] font-mono text-cyan-600 tracking-[0.3em] uppercase mb-4">
-                                            End of Case Study
-                                        </div>
-                                        <h3 className="text-2xl font-display text-cyan-400 mb-6">
-                                            Explore More Projects
-                                        </h3>
-                                        <CyberButton
-                                            variant="chamfer"
-                                            onClick={handleClose}
-                                        >
-                                            <i className="ri-arrow-left-line mr-2" />
-                                            Back to Directory
-                                        </CyberButton>
-                                    </MotionDiv>
+                                {/* Back Button Footer */}
+                                <div className="py-20 flex flex-col items-center justify-center border-t border-cyan-900/30 mt-20">
+                                    <h3 className="text-2xl font-display text-cyan-400 mb-6">
+                                        End of Case Study
+                                    </h3>
+                                    <CyberButton variant="chamfer" onClick={handleClose}>
+                                        <i className="ri-arrow-left-line mr-2" />
+                                        Back to Directory
+                                    </CyberButton>
                                 </div>
                             </MotionDiv>
                         </div>
                     </div>
                 </div>
 
-                {/* Ambient Glow Effects */}
-                <div
-                    className="absolute top-0 left-0 w-1/3 h-1/3 pointer-events-none z-0"
-                    style={{
-                        background: 'radial-gradient(ellipse at top left, rgba(0, 240, 255, 0.05), transparent 60%)',
-                    }}
-                />
-                <div
-                    className="absolute bottom-0 right-0 w-1/3 h-1/3 pointer-events-none z-0"
-                    style={{
-                        background: 'radial-gradient(ellipse at bottom right, rgba(0, 240, 255, 0.03), transparent 60%)',
-                    }}
-                />
+                {/* Background Glows */}
+                <div className="absolute top-0 left-0 w-1/3 h-1/3 pointer-events-none z-0 bg-glow-top-left" />
+                <div className="absolute bottom-0 right-0 w-1/3 h-1/3 pointer-events-none z-0 bg-glow-bottom-right" />
+
             </MotionDiv>
         </AnimatePresence>
     );

@@ -173,3 +173,141 @@ body {
         transform: scaleY(1);
     }
 }
+
+/* ========================================
+   Project Card Styles
+   ======================================== */
+
+/* Card gradient background - Death Stranding style */
+.card-gradient-bg {
+    background: linear-gradient(135deg,
+            rgba(15, 23, 35, 1) 0%,
+            rgba(25, 35, 50, 1) 30%,
+            rgba(35, 45, 60, 1) 60%,
+            rgba(20, 30, 45, 1) 100%);
+}
+
+/* Card content overlay gradient */
+.card-content-overlay {
+    background: linear-gradient(90deg,
+            rgba(6, 18, 26, 0.9) 0%,
+            rgba(6, 18, 26, 0.5) 50%,
+            transparent 100%);
+}
+
+/* Icon container base style */
+.icon-container {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Status badge base */
+.status-badge {
+    padding: 3px 10px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    align-self: flex-start;
+}
+
+.status-badge--deployed {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.status-badge--development {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.5);
+}
+
+.status-badge--classified {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.status-badge--default {
+    background: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+/* Active glow effects */
+.glow-text {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+}
+
+.glow-icon {
+    filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.8));
+}
+
+.glow-image {
+    filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.5));
+}
+
+/* ========================================
+   Project Detail Styles
+   ======================================== */
+
+/* HUD Toggle bar gradient - active state */
+.hud-toggle-bar--active {
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            rgba(0, 240, 255, 0.4) 10%,
+            rgba(0, 240, 255, 1) 50%,
+            rgba(0, 240, 255, 0.4) 90%,
+            transparent 100%);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.6), 0 0 30px rgba(0, 240, 255, 0.3);
+}
+
+/* HUD Toggle bar gradient - inactive state */
+.hud-toggle-bar--inactive {
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            rgba(0, 240, 255, 0.15) 20%,
+            rgba(0, 240, 255, 0.3) 50%,
+            rgba(0, 240, 255, 0.15) 80%,
+            transparent 100%);
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
+}
+
+/* Background glow effects for detail page */
+.bg-glow-top-left {
+    background: radial-gradient(ellipse at top left, rgba(0, 240, 255, 0.05), transparent 60%);
+}
+
+.bg-glow-bottom-right {
+    background: radial-gradient(ellipse at bottom right, rgba(0, 240, 255, 0.03), transparent 60%);
+}
+
+/* ========================================
+   3D Carousel Styles
+   ======================================== */
+
+.carousel-perspective {
+    perspective: 1000px;
+    perspective-origin: 50% 50%;
+}
+
+.carousel-preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.carousel-transition {
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Frame corner glow effect */
+.frame-glow {
+    filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 4px rgba(0, 255, 255, 0.35)) drop-shadow(0 0 3px rgba(0, 255, 255, 0.3)) drop-shadow(0 0 2px rgba(0, 255, 255, 0.25));
+}

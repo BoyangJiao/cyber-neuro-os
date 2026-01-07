@@ -12,11 +12,6 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
         <Animator>
             <div className="relative w-screen h-screen bg-neutral-950 overflow-hidden font-sans text-cyan-50 selection:bg-cyan-500/30 flex flex-col">
 
-                {/* --- BACKGROUND LAYERS --- */}
-                {/* Removed GridLines and Puffs */}
-
-                {/* --- FOREGROUND CONTENT --- */}
-
                 {/* 3. Header: Fixed height at top */}
                 <Header />
 

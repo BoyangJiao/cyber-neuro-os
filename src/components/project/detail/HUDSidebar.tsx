@@ -1,7 +1,7 @@
-import type { ProjectDetail } from '../../../data/projectDetails';
+import type { ProjectDetail, SanityProjectDetail } from '../../../data/projectDetails';
 
 interface HUDSidebarProps {
-    detail: ProjectDetail;
+    detail: ProjectDetail | SanityProjectDetail;
     activeSection: string;
     sections: { id: string; title: string }[];
     onNavigate: (sectionId: string) => void;
@@ -80,7 +80,7 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             {/* Tech Stack */}
             <SidebarSection label="Tech Stack">
                 <div className="flex flex-wrap gap-1.5">
-                    {sidebar.techStack.map((tech, index) => (
+                    {(sidebar.techStack || []).map((tech, index) => (
                         <span
                             key={index}
                             className="px-2 py-0.5 text-[12px] font-mono text-cyan-400/80"
@@ -98,7 +98,7 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             {/* Core Contributions */}
             <SidebarSection label="Core Contributions">
                 <ul className="space-y-1.5">
-                    {sidebar.coreContributions.map((contribution, index) => (
+                    {(sidebar.coreContributions || []).map((contribution, index) => (
                         <li key={index} className="flex items-start gap-2">
                             <div
                                 className="w-1 h-1 mt-2 flex-shrink-0"

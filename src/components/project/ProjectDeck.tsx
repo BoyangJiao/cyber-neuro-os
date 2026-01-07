@@ -5,15 +5,22 @@ import { ProjectCard } from './ProjectCard';
 import { ProjectInfo } from './ProjectInfo';
 import { CyberButton } from '../ui/CyberButton';
 
-// Limit to 6 cards for optimal 3D carousel effect
-const MAX_VISIBLE_CARDS = 6;
+// Carousel Configuration
+const CAROUSEL_CONFIG = {
+    MAX_VISIBLE_CARDS: 6,        // Limit cards for optimal 3D effect
+    RADIUS: 380,                 // Distance from center (px)
+    BASE_CONTENT_HEIGHT: 650,    // Height threshold for scaling
+    MIN_SCALE: 0.5,
+    MAX_SCALE: 1.5,
+    WHEEL_THROTTLE_MS: 500,      // Delay between wheel events
+};
 
 export const ProjectDeck = () => {
     const { projects, activeProjectId, setActiveProject } = useProjectStore();
     const navigate = useNavigate();
 
-    // Only show first MAX_VISIBLE_CARDS projects for clean 3D effect
-    const visibleProjects = projects.slice(0, MAX_VISIBLE_CARDS);
+    // Only show first configured number of projects for clean 3D effect
+    const visibleProjects = projects.slice(0, CAROUSEL_CONFIG.MAX_VISIBLE_CARDS);
     const activeIndex = visibleProjects.findIndex(p => p.id === activeProjectId);
     const effectiveActiveIndex = activeIndex >= 0 ? activeIndex : 0;
 
@@ -23,11 +30,11 @@ export const ProjectDeck = () => {
 
     // 3D Carousel configuration
     const totalCards = visibleProjects.length;
-    const anglePerCard = 360 / totalCards;
-    const radius = 380; // Distance from center (increased for wider cards)
+    const anglePerCard = totalCards > 0 ? 360 / totalCards : 0;
+    const radius = CAROUSEL_CONFIG.RADIUS;
 
-    // Current rotation angle - 根据当前 activeIndex 计算初始角度
-    // 这确保组件重新挂载时，rotation 与 store 中的 activeProjectId 保持同步
+    // Current rotation angle - calculated from activeIndex
+    // Ensures rotation syncs with store's activeProjectId on remount
     const initialRotation = -effectiveActiveIndex * anglePerCard;
     const [rotation, setRotation] = useState(initialRotation);
 
@@ -54,11 +61,8 @@ export const ProjectDeck = () => {
         prevIndexRef.current = effectiveActiveIndex;
     }, [effectiveActiveIndex, totalCards, anglePerCard]);
 
-    // Base height expectation - 当容器高度低于此值时开始缩放
-    // 调整为 650 使得在 ProjectLanding 高度约 700 时就开始缩放
-    const BASE_CONTENT_HEIGHT = 650;
-    const MIN_SCALE = 0.5;
-    const MAX_SCALE = 1.5;
+    // Destructure scaling constants for readability
+    const { BASE_CONTENT_HEIGHT, MIN_SCALE, MAX_SCALE } = CAROUSEL_CONFIG;
 
     // Navigation handlers with useCallback to ensure stable references
     // IMPORTANT: Update prevIndexRef BEFORE calling setActiveProject to prevent

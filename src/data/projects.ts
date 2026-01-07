@@ -3,7 +3,7 @@ export interface Project {
     title: string;
     description: string;
     techStack: string[];
-    status: 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
+    status: string | 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
     thumbnail: string; // Placeholder for now
 }
 
