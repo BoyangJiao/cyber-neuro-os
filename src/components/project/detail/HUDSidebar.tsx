@@ -11,6 +11,11 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
     const { sidebar } = detail;
 
+    // Guard clause: if sidebar data is not available, don't render
+    if (!sidebar) {
+        return null;
+    }
+
     return (
         <aside
             className="w-full h-fit"
