@@ -100,49 +100,57 @@ export const ProjectCard = ({
                         />
                     </div>
 
-                    {/* Gradient background */}
-                    <div className="absolute inset-0 z-0 card-gradient-bg" />
-
-                    {/* Card Content */}
-                    <div className="relative w-full h-full flex flex-row items-center p-6 gap-6 z-[1] card-content-overlay">
-                        {/* Project Icon */}
-                        <div className="icon-container">
-                            {project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/') ? (
+                    {/* Background Layer: Image or Gradient + Icon Watermark */}
+                    <div className="absolute inset-0 z-0 overflow-hidden bg-neutral-900">
+                        {project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/') ? (
+                            // Image Background
+                            <div className="absolute inset-0">
+                                <div className="absolute inset-0 bg-neutral-900/20 z-0" />
                                 <img
                                     src={project.thumbnail}
                                     alt={project.title}
                                     className={twMerge(
-                                        "w-full h-full object-cover transition-[filter] duration-300",
-                                        isActive ? "glow-image" : "grayscale"
+                                        "w-full h-full object-cover transition-all duration-500",
+                                        isActive ? "grayscale-0 brightness-75 scale-105" : "grayscale brightness-50 scale-100"
                                     )}
                                 />
-                            ) : (
+                                {/* Overlay Gradient for text readability */}
+                                <div className="absolute inset-x-0 bottom-0 h-4/5 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+                            </div>
+                        ) : (
+                            // Fallback: Gradient + Icon Watermark
+                            <div className="absolute inset-0 card-gradient-bg">
                                 <i
                                     className={twMerge(
                                         project.thumbnail || 'ri-code-s-slash-line',
-                                        "text-[40px] transition-all duration-300",
-                                        isActive ? "text-cyan-500 glow-icon" : "text-cyan-500/60"
+                                        "absolute -bottom-4 -right-4 text-[120px] text-cyan-500/10 pointer-events-none transition-transform duration-500",
+                                        isActive ? "scale-110 translate-x-2 translate-y-2" : "scale-100"
                                     )}
                                 />
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
 
-                        {/* Text Content */}
-                        <div className="flex-1 flex flex-col justify-center gap-2">
+                    {/* Card Content */}
+                    <div className="relative w-full h-full flex flex-col justify-end p-6 z-[1]">
+                        <div className="flex flex-col gap-2 transform transition-transform duration-300 translate-z-10">
+                            {/* Title */}
                             <h3
                                 className={twMerge(
-                                    "text-xl font-semibold tracking-[2px] m-0 transition-all duration-300",
-                                    isActive ? "text-cyan-500 glow-text" : "text-cyan-500/70"
+                                    "text-2xl font-bold tracking-[2px] m-0 transition-all duration-300",
+                                    isActive ? "text-cyan-400 glow-text" : "text-white/80"
                                 )}
                             >
                                 {project.title}
                             </h3>
 
-                            <p className="text-neutral-400/80 text-[13px] m-0 leading-[1.4] line-clamp-2">
+                            {/* Description */}
+                            <p className="text-gray-300 text-sm m-0 leading-relaxed line-clamp-2 max-w-[95%] text-shadow-sm">
                                 {project.description}
                             </p>
 
-                            <div className={twMerge("status-badge mt-1", getStatusBadgeClass(project.status))}>
+                            {/* Status Badge */}
+                            <div className={twMerge("status-badge mt-2", getStatusBadgeClass(project.status))}>
                                 {project.status.replace('_', ' ')}
                             </div>
                         </div>
