@@ -311,3 +311,30 @@ body {
 .frame-glow {
     filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 4px rgba(0, 255, 255, 0.35)) drop-shadow(0 0 3px rgba(0, 255, 255, 0.3)) drop-shadow(0 0 2px rgba(0, 255, 255, 0.25));
 }
+
+/* ========================================
+   Holographic Avatar Styles
+   ======================================== */
+
+.holographic-glow {
+    filter: drop-shadow(0 0 8px rgba(255, 50, 50, 0.6)) drop-shadow(0 0 16px rgba(255, 50, 50, 0.4));
+}
+
+@keyframes holoScanline {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+.holo-scanline {
+    animation: holoScanline 3s linear infinite;
+}
+
+/* Radial gradient for holographic background */
+.bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+}

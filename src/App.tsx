@@ -8,6 +8,7 @@ import { StatusSidebar } from './components/layout/StatusSidebar'
 import { FeaturePanel } from './components/layout/FeaturePanel'
 import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
+import { AboutMePage } from './pages/AboutMePage'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
 import { AnimatePresence } from 'framer-motion'
@@ -15,7 +16,7 @@ import { VisualEditing } from '@sanity/visual-editing/react'
 import { SanityErrorBoundary } from './components/error/SanityErrorBoundary'
 
 function App() {
-  const { isBootSequenceActive, setBootSequence } = useAppStore();
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen } = useAppStore();
   const location = useLocation();
 
   // Simulate boot sequence completion
@@ -56,7 +57,7 @@ function App() {
                  Else render Landing/Feature.
                */}
               <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<FeaturePanel />} />
+                <Route path="/" element={isAboutMeOpen ? <AboutMePage /> : <FeaturePanel />} />
                 <Route path="/projects" element={<ProjectLanding />} />
                 <Route path="/projects/:projectId" element={<ProjectDetail />} />
               </Routes>
