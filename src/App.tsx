@@ -9,6 +9,7 @@ import { FeaturePanel } from './components/layout/FeaturePanel'
 import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { AboutMePage } from './pages/AboutMePage'
+import { ConnectionLine } from './components/about/ConnectionLine'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
 import { AnimatePresence } from 'framer-motion'
@@ -68,6 +69,9 @@ function App() {
           {!isDetailPage && <StatusSidebar />}
 
         </div>
+
+        {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪 */}
+        <ConnectionLine />
       </MainLayout>
       {/* Visual Editing Overlay for Sanity Presentation */}
       {/* Only render when inside an iframe (Sanity Studio) to avoid UI clutter on main site */}

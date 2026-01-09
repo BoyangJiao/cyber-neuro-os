@@ -34,6 +34,7 @@ export const AboutMePage = () => {
             <HoloFrame
                 variant="lines"
                 className="w-full h-full bg-transparent relative overflow-hidden p-0"
+                active={true}  // 触发 Arwes FrameLines 入场动效
             >
                 {/* 主容器布局 */}
                 <div className="w-full h-full flex flex-col">
@@ -45,7 +46,8 @@ export const AboutMePage = () => {
 
                         {/* 中间标题 */}
                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                            {/* 连接线终点矩形 - 由 ConnectionLine 组件渲染 */}
+                            <div id="about-title-dot" className="w-2 h-2 shrink-0"></div>
                             <h1 className="text-[16px] font-bold text-cyan-400 tracking-[0.3em]">
                                 WHO IS BOYANG JIAO
                             </h1>
@@ -66,8 +68,8 @@ export const AboutMePage = () => {
                     {/* === 内容区域 === */}
                     <div className="flex-1 w-full relative min-h-0 flex p-6 gap-8 overflow-hidden">
 
-                        {/* 左侧：文字内容 */}
-                        <div className="flex-1 flex flex-col gap-8 overflow-y-auto pr-4 scrollbar-hide">
+                        {/* 左侧：文字内容 - 占 5/8 */}
+                        <div className="flex-[5] flex flex-col gap-8 overflow-y-auto pr-4 scrollbar-hide">
                             {/* 工作经历 */}
                             <div className="flex gap-6">
                                 <div className="w-48 shrink-0">
@@ -111,8 +113,8 @@ export const AboutMePage = () => {
                             </div>
                         </div>
 
-                        {/* 右侧：3D 全息形象 */}
-                        <div className="w-[320px] xl:w-[380px] 2xl:w-[420px] h-full shrink-0">
+                        {/* 右侧：3D 全息形象 - 占 3/8 */}
+                        <div className="flex-[3] h-full min-w-[200px] max-w-[320px]">
                             <HolographicAvatar className="w-full h-full" />
                         </div>
                     </div>
