@@ -41,7 +41,7 @@ function App() {
   const isDetailPage = location.pathname.startsWith('/projects/') && location.pathname.split('/').length > 2;
 
   return (
-    <div className="bg-cyber-950 min-h-screen w-full overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
+    <div className="bg-neutral-950 min-h-screen w-full overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
       <MainLayout footer={<Footer />}>
         {/* Dashboard Container - Grid System */}
         <div className="cyber-grid h-full items-stretch relative">
@@ -58,10 +58,15 @@ function App() {
                  Else render Landing/Feature.
                */}
               <Routes location={location} key={location.pathname}>
-                <Route path="/" element={isAboutMeOpen ? <AboutMePage /> : <FeaturePanel />} />
+                <Route path="/" element={<FeaturePanel />} />
                 <Route path="/projects" element={<ProjectLanding />} />
                 <Route path="/projects/:projectId" element={<ProjectDetail />} />
               </Routes>
+            </AnimatePresence>
+
+            {/* About Me Modal - 覆盖在 main-mid 区域内 */}
+            <AnimatePresence>
+              {isAboutMeOpen && <AboutMePage />}
             </AnimatePresence>
           </div>
 

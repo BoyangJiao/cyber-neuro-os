@@ -33,7 +33,7 @@ export const AboutMePage = () => {
         >
             <HoloFrame
                 variant="lines"
-                className="w-full h-full bg-transparent relative overflow-hidden p-0"
+                className="w-full h-full bg-neutral-950 relative overflow-hidden p-0"
                 active={true}  // 触发 Arwes FrameLines 入场动效
             >
                 {/* 主容器布局 */}
