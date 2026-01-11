@@ -12,13 +12,13 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
     return (
         <section className="w-full relative">
             {/* Content Container */}
-            <div className="w-full px-6 lg:px-10 py-12">
+            <div className="w-full px-6 lg:px-10 2xl:px-14 py-12 2xl:py-16">
                 {/* Project Title */}
                 <MotionH1
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.6, ease: 'easeOut' }}
-                    className="text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-wider mb-4"
+                    className="text-4xl md:text-5xl lg:text-6xl 2xl:text-7xl font-display font-bold tracking-wider mb-4 2xl:mb-6"
                     style={{
                         color: '#00f0ff',
                         textShadow: `
@@ -35,7 +35,7 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.6 }}
-                    className="text-lg md:text-xl text-neutral-300 max-w-3xl mb-8 leading-relaxed"
+                    className="text-lg md:text-xl 2xl:text-2xl text-neutral-300 max-w-3xl 2xl:max-w-4xl mb-8 2xl:mb-10 leading-relaxed 2xl:leading-loose"
                 >
                     {detail.tagline}
                 </MotionP>
@@ -45,13 +45,13 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    className="flex flex-wrap gap-8 mb-10"
+                    className="flex flex-wrap gap-8 2xl:gap-12 mb-10 2xl:mb-14"
                 >
                     {(detail.coreMetrics || []).map((metric, index) => (
                         <div key={index} className="flex flex-col">
                             <div className="flex items-baseline gap-1">
                                 <span
-                                    className="text-3xl md:text-4xl font-display font-bold"
+                                    className="text-3xl md:text-4xl 2xl:text-5xl font-display font-bold"
                                     style={{
                                         color: '#00f0ff',
                                         textShadow: '0 0 15px rgba(0, 240, 255, 0.6)',
@@ -60,10 +60,10 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                                     {metric.value}
                                 </span>
                                 {metric.unit && (
-                                    <span className="text-lg text-cyan-500">{metric.unit}</span>
+                                    <span className="text-lg 2xl:text-xl text-cyan-500">{metric.unit}</span>
                                 )}
                             </div>
-                            <span className="text-[12px] font-mono text-neutral-400 uppercase tracking-wider mt-1">
+                            <span className="text-[12px] 2xl:text-[14px] font-mono text-neutral-400 uppercase tracking-wider mt-1">
                                 {metric.label}
                             </span>
                         </div>
@@ -104,10 +104,10 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     />
 
                     {/* Corner Decorations */}
-                    <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-cyan-500/50" />
-                    <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-cyan-500/50" />
-                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-cyan-500/50" />
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-cyan-500/50" />
+                    <div className="absolute top-0 left-0 w-8 h-8 2xl:w-10 2xl:h-10 border-l-2 border-t-2 border-cyan-500/50" />
+                    <div className="absolute top-0 right-0 w-8 h-8 2xl:w-10 2xl:h-10 border-r-2 border-t-2 border-cyan-500/50" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 2xl:w-10 2xl:h-10 border-l-2 border-b-2 border-cyan-500/50" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 2xl:w-10 2xl:h-10 border-r-2 border-b-2 border-cyan-500/50" />
 
                     {/* Center Icon or Image */}
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -119,14 +119,14 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                             />
                         ) : (
                             <div
-                                className="w-20 h-20 flex items-center justify-center opacity-30"
+                                className="w-20 h-20 2xl:w-24 2xl:h-24 flex items-center justify-center opacity-30"
                                 style={{
                                     background: 'rgba(0, 240, 255, 0.05)',
                                     border: '1px solid rgba(0, 240, 255, 0.2)',
                                 }}
                             >
                                 <i
-                                    className={`${project.thumbnail} text-4xl`}
+                                    className={`${project.thumbnail} text-4xl 2xl:text-5xl`}
                                     style={{
                                         color: 'rgba(0, 240, 255, 0.5)',
                                     }}

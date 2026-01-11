@@ -10,14 +10,20 @@ import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { AboutMePage } from './pages/AboutMePage'
 import { ConnectionLine } from './components/about/ConnectionLine'
+import { SettingsModal } from './components/ui/SettingsModal'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
+import { LanguageProvider } from './i18n'
 import { AnimatePresence } from 'framer-motion'
 import { VisualEditing } from '@sanity/visual-editing/react'
+import { useLiveMode } from './sanity/client'
 import { SanityErrorBoundary } from './components/error/SanityErrorBoundary'
 
 function App() {
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen } = useAppStore();
+  // Enable live mode for Sanity drafts
+  useLiveMode({ allowStudioOrigin: 'http://localhost:3333' });
+
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen } = useAppStore();
   const location = useLocation();
 
   // Simulate boot sequence completion
@@ -34,60 +40,72 @@ function App() {
   }, [setBootSequence]);
 
   if (isBootSequenceActive) {
-    return <BootScreen onComplete={() => setBootSequence(false)} />;
+    return (
+      <LanguageProvider>
+        <BootScreen onComplete={() => setBootSequence(false)} />
+      </LanguageProvider>
+    );
   }
 
   // Check if we are on a project detail page
   const isDetailPage = location.pathname.startsWith('/projects/') && location.pathname.split('/').length > 2;
 
   return (
-    <div className="bg-neutral-950 min-h-screen w-full overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
-      <MainLayout footer={<Footer />}>
-        {/* Dashboard Container - Grid System */}
-        <div className="cyber-grid h-full items-stretch relative">
+    <LanguageProvider>
+      <div className="bg-neutral-950 min-h-screen w-full overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
+        <MainLayout footer={<Footer />}>
+          {/* Dashboard Container - Grid System */}
+          <div className="cyber-grid h-full items-stretch relative">
 
-          {/* LEFT PROFILE COLUMN (static) - Hidden on Detail Page */}
-          {!isDetailPage && <ProfileSidebar />}
+            {/* LEFT PROFILE COLUMN (static) - Hidden on Detail Page */}
+            {!isDetailPage && <ProfileSidebar />}
 
-          {/* CENTER MAIN GRID (dynamic) - Expands to full width on Detail Page */}
-          <div className={`${isDetailPage ? 'col-span-12' : 'col-span-1 md:col-span-3 lg:col-span-8'} h-full relative overflow-hidden`}>
-            <AnimatePresence mode='wait'>
-              {/* 
-                 Consolidated Routing:
-                 If we are at /projects/:id, render ProjectDetail.
-                 Else render Landing/Feature.
-               */}
-              <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<FeaturePanel />} />
-                <Route path="/projects" element={<ProjectLanding />} />
-                <Route path="/projects/:projectId" element={<ProjectDetail />} />
-              </Routes>
-            </AnimatePresence>
+            {/* CENTER MAIN GRID (dynamic) - Expands to full width on Detail Page */}
+            <div className={`${isDetailPage ? 'col-span-12' : 'col-span-1 md:col-span-3 lg:col-span-8'} h-full relative overflow-hidden`}>
+              <AnimatePresence mode='wait'>
+                {/* 
+                   Consolidated Routing:
+                   If we are at /projects/:id, render ProjectDetail.
+                   Else render Landing/Feature.
+                 */}
+                <Routes location={location} key={location.pathname}>
+                  <Route path="/" element={<FeaturePanel />} />
+                  <Route path="/projects" element={<ProjectLanding />} />
+                  <Route path="/projects/:projectId" element={<ProjectDetail />} />
+                </Routes>
+              </AnimatePresence>
 
-            {/* About Me Modal - 覆盖在 main-mid 区域内 */}
-            <AnimatePresence>
-              {isAboutMeOpen && <AboutMePage />}
-            </AnimatePresence>
+              {/* About Me Modal - 覆盖在 main-mid 区域内 */}
+              <AnimatePresence>
+                {isAboutMeOpen && <AboutMePage />}
+              </AnimatePresence>
+            </div>
+
+            {/* RIGHT EMPTY COLUMN (static) - Hidden on Detail Page */}
+            {!isDetailPage && <StatusSidebar />}
+
           </div>
 
-          {/* RIGHT EMPTY COLUMN (static) - Hidden on Detail Page */}
-          {!isDetailPage && <StatusSidebar />}
+          {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪 */}
+          <ConnectionLine />
+        </MainLayout>
 
-        </div>
+        {/* Settings Modal */}
+        <AnimatePresence>
+          {isSettingsOpen && <SettingsModal />}
+        </AnimatePresence>
 
-        {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪 */}
-        <ConnectionLine />
-      </MainLayout>
-      {/* Visual Editing Overlay for Sanity Presentation */}
-      {/* Only render when inside an iframe (Sanity Studio) to avoid UI clutter on main site */}
-      {window.self !== window.top && (
-        <div className="z-[9999] pointer-events-none fixed inset-0">
-          <SanityErrorBoundary>
-            <VisualEditing portal />
-          </SanityErrorBoundary>
-        </div>
-      )}
-    </div>
+        {/* Visual Editing Overlay for Sanity Presentation */}
+        {/* Only render when inside an iframe (Sanity Studio) to avoid UI clutter on main site */}
+        {window.self !== window.top && (
+          <div className="z-[9999] pointer-events-none fixed inset-0">
+            <SanityErrorBoundary>
+              <VisualEditing portal />
+            </SanityErrorBoundary>
+          </div>
+        )}
+      </div>
+    </LanguageProvider>
   )
 }
 

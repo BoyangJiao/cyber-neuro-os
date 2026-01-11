@@ -3,25 +3,11 @@ import { CyberButton } from '../components/ui/CyberButton';
 import { MotionDiv } from '../components/motion/MotionWrappers';
 import { HolographicAvatar } from '../components/about/HolographicAvatar';
 import { useAppStore } from '../store/useAppStore';
-
-// 硬编码的个人信息内容
-const aboutContent = {
-    workExperience: {
-        label: 'THE SHORT INTRODUCTION OF JOURNEY IN ANT GROUP',
-        content: 'I have tackled challenges for both consumer products Alipay+ Digital Wallet and Alipay+ Rewards, which provide accessible, customizable, and sustainable inclusive finance solutions in APAC and African markets.'
-    },
-    careerAndDesign: {
-        label: 'CAREER AND DESIGN',
-        content: 'I have experience across a large spectrum of projects ranging from mobile apps, websites, and new retail services for consumers, SMEs, corporations, and nonprofits. Areas include Fintech, social media, gaming, e-commerce, education, and automobile.'
-    },
-    educationAndPassions: {
-        label: 'BRIEF OF EDUCATION AND PERSONAL PASSIONS',
-        content: "I'm originally from Hangzhou, China, and I have a bachelor's degree in Psychology from the University of Missouri and a master's degree in Human-Computer Interaction design from California College of the Arts (CCA). My Passions are social Impact, systems thinking, accessibility, and lifetime learning."
-    }
-};
+import { useTranslation } from '../i18n';
 
 export const AboutMePage = () => {
     const { setAboutMeOpen } = useAppStore();
+    const { t } = useTranslation();
 
     return (
         <MotionDiv
@@ -40,24 +26,24 @@ export const AboutMePage = () => {
                 <div className="w-full h-full flex flex-col">
 
                     {/* === 顶部标题栏 === */}
-                    <div className="w-full shrink-0 flex items-center justify-between relative z-[60] px-4 pt-4">
+                    <div className="w-full shrink-0 flex items-center justify-between relative z-[60] px-4 2xl:px-6 pt-4 2xl:pt-6">
                         {/* 左侧占位 */}
-                        <div className="w-16"></div>
+                        <div className="w-16 2xl:w-20"></div>
 
                         {/* 中间标题 */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 2xl:gap-4">
                             {/* 连接线终点矩形 - 由 ConnectionLine 组件渲染 */}
-                            <div id="about-title-dot" className="w-2 h-2 shrink-0"></div>
-                            <h1 className="text-[16px] font-bold text-cyan-400 tracking-[0.3em]">
-                                WHO IS BOYANG JIAO
+                            <div id="about-title-dot" className="w-2 h-2 2xl:w-2.5 2xl:h-2.5 shrink-0"></div>
+                            <h1 className="text-[16px] 2xl:text-[20px] font-bold text-cyan-400 tracking-[0.3em]">
+                                {t('about.title')}
                             </h1>
                         </div>
 
                         {/* 右侧关闭按钮 */}
-                        <div className="flex justify-end w-16">
+                        <div className="flex justify-end w-16 2xl:w-20">
                             <CyberButton
                                 variant="ghost"
-                                icon={<i className="ri-close-line text-2xl"></i>}
+                                icon={<i className="ri-close-line text-2xl 2xl:text-3xl"></i>}
                                 onClick={() => setAboutMeOpen(false)}
                                 className="text-cyan-500 hover:text-cyan-300 transition-colors"
                                 iconOnly
@@ -66,55 +52,55 @@ export const AboutMePage = () => {
                     </div>
 
                     {/* === 内容区域 === */}
-                    <div className="flex-1 w-full relative min-h-0 flex p-6 gap-8 overflow-hidden">
+                    <div className="flex-1 w-full relative min-h-0 flex p-6 2xl:p-10 gap-8 2xl:gap-12 overflow-hidden">
 
                         {/* 左侧：文字内容 - 占 5/8 */}
-                        <div className="flex-[5] flex flex-col gap-8 overflow-y-auto pr-4 scrollbar-hide">
+                        <div className="flex-[5] flex flex-col gap-8 2xl:gap-12 overflow-y-auto pr-4 2xl:pr-6 scrollbar-hide">
                             {/* 工作经历 */}
-                            <div className="flex gap-6">
-                                <div className="w-48 shrink-0">
-                                    <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
-                                        {aboutContent.workExperience.label}
+                            <div className="flex gap-6 2xl:gap-10">
+                                <div className="w-48 2xl:w-64 shrink-0">
+                                    <span className="text-xs 2xl:text-sm font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
+                                        {t('about.workExperience.label')}
                                     </span>
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm text-cyan-50 leading-relaxed">
-                                        {aboutContent.workExperience.content}
+                                    <p className="text-sm 2xl:text-base text-cyan-50 leading-relaxed 2xl:leading-loose">
+                                        {t('about.workExperience.content')}
                                     </p>
                                 </div>
                             </div>
 
                             {/* 职业与设计 */}
-                            <div className="flex gap-6">
-                                <div className="w-48 shrink-0">
-                                    <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
-                                        {aboutContent.careerAndDesign.label}
+                            <div className="flex gap-6 2xl:gap-10">
+                                <div className="w-48 2xl:w-64 shrink-0">
+                                    <span className="text-xs 2xl:text-sm font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
+                                        {t('about.careerAndDesign.label')}
                                     </span>
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm text-cyan-50 leading-relaxed">
-                                        {aboutContent.careerAndDesign.content}
+                                    <p className="text-sm 2xl:text-base text-cyan-50 leading-relaxed 2xl:leading-loose">
+                                        {t('about.careerAndDesign.content')}
                                     </p>
                                 </div>
                             </div>
 
                             {/* 教育背景与热情 */}
-                            <div className="flex gap-6">
-                                <div className="w-48 shrink-0">
-                                    <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
-                                        {aboutContent.educationAndPassions.label}
+                            <div className="flex gap-6 2xl:gap-10">
+                                <div className="w-48 2xl:w-64 shrink-0">
+                                    <span className="text-xs 2xl:text-sm font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
+                                        {t('about.educationAndPassions.label')}
                                     </span>
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm text-cyan-50 leading-relaxed">
-                                        {aboutContent.educationAndPassions.content}
+                                    <p className="text-sm 2xl:text-base text-cyan-50 leading-relaxed 2xl:leading-loose">
+                                        {t('about.educationAndPassions.content')}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 右侧：3D 全息形象 - 占 3/8 */}
-                        <div className="flex-[3] h-full min-w-[200px] max-w-[320px]">
+                        {/* 右侧：3D 全息形象 - 占 3/8，自适应 */}
+                        <div className="flex-[3] h-full min-w-[200px] 2xl:min-w-[280px]">
                             <HolographicAvatar className="w-full h-full" />
                         </div>
                     </div>

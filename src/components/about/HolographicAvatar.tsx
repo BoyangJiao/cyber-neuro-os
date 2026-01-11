@@ -1,9 +1,10 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Animator, FrameCorners } from '@arwes/react';
 import * as THREE from 'three';
 import type { CSSProperties } from 'react';
+import { BodyModel } from '../three/models/BodyModel';
 
 /**
  * ProceduralHumanoid - 程序化生成的人形轮廓
@@ -191,8 +192,10 @@ export const HolographicAvatar = ({ className = '' }: HolographicAvatarProps) =>
                     <directionalLight position={[5, 5, 5]} intensity={0.5} color="#ff6666" />
                     <directionalLight position={[-5, 3, -5]} intensity={0.3} color="#ff4444" />
 
-                    {/* 人形模型 */}
-                    <ProceduralHumanoid />
+                    {/* 人形模型 - 使用 GLB 模型 */}
+                    <Suspense fallback={null}>
+                        <BodyModel />
+                    </Suspense>
 
                     {/* 轨道控制 - 可旋转，不可缩放 */}
                     <OrbitControls

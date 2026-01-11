@@ -4,7 +4,6 @@ export const PROJECTS_QUERY = `*[_type == "project"] | order(_createdAt desc) {
   title,
   "slug": slug.current,
   description,
-  projectType,
   "status": sidebar.status,
   "techStack": sidebar.techStack,
   "heroImage": heroImage.asset->url
@@ -16,7 +15,6 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
   title,
   "slug": slug.current,
   description,
-  projectType,
   heroImage,
   coreMetrics,
   sidebar,

@@ -26,14 +26,7 @@ export default {
             type: 'text',
             rows: 2,
         },
-        {
-            name: 'projectType',
-            title: 'Project Type',
-            type: 'string', // e.g. "Web3", "AI", "System"
-            options: {
-                list: ['Web3', 'AI', 'System', 'VR', 'Security', 'Data'],
-            },
-        },
+
         {
             name: 'heroImage',
             title: 'Hero Image',
@@ -76,7 +69,7 @@ export default {
                 { name: 'liveLink', type: 'url', title: 'Live Link' },
                 {
                     name: 'techStack',
-                    title: 'Tech Stack',
+                    title: 'Project Type',
                     type: 'array',
                     of: [{ type: 'string' }],
                 },

@@ -29,11 +29,11 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
     // Portable Text Components customization
     const ptComponents = {
         block: {
-            normal: ({ children }: any) => <p className="text-lg text-neutral-300 leading-relaxed max-w-2xl">{children}</p>,
-            h4: ({ children }: any) => <h4 className="text-xl font-display text-cyan-400 mb-4">{children}</h4>,
+            normal: ({ children }: any) => <p className="text-lg 2xl:text-xl text-neutral-300 leading-relaxed 2xl:leading-loose max-w-2xl 2xl:max-w-3xl">{children}</p>,
+            h4: ({ children }: any) => <h4 className="text-xl 2xl:text-2xl font-display text-cyan-400 mb-4 2xl:mb-5">{children}</h4>,
         },
         list: {
-            bullet: ({ children }: any) => <ul className="list-disc pl-5 mb-4 text-neutral-300 space-y-2">{children}</ul>,
+            bullet: ({ children }: any) => <ul className="list-disc pl-5 mb-4 2xl:mb-5 text-neutral-300 space-y-2 2xl:space-y-3 text-base 2xl:text-lg">{children}</ul>,
         },
     };
 
@@ -64,7 +64,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
         return (
             <section
                 id={sectionId}
-                className="py-20 border-b border-cyan-900/10 min-h-[60vh] flex flex-col justify-center"
+                className="py-20 2xl:py-28 border-b border-cyan-900/10 min-h-[60vh] flex flex-col justify-center"
             >
                 <MotionDiv
                     initial={{ opacity: 0, y: 30 }}
@@ -73,18 +73,18 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
                     onViewportEnter={handleViewportEnter}
                     className="w-full"
                 >
-                    <div className="mb-8">
-                        <span className="text-xs font-mono text-cyan-500 tracking-widest uppercase mb-2 block">
+                    <div className="mb-8 2xl:mb-10">
+                        <span className="text-xs 2xl:text-sm font-mono text-cyan-500 tracking-widest uppercase mb-2 block">
                             {module.theme.toUpperCase()}
                         </span>
-                        <h2 className="text-3xl md:text-4xl font-display text-white mb-6">
+                        <h2 className="text-3xl md:text-4xl 2xl:text-5xl font-display text-white mb-6 2xl:mb-8">
                             {module.title}
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-10">
+                    <div className="grid grid-cols-1 gap-10 2xl:gap-14">
                         {renderMedia()}
-                        <div className="max-w-4xl mx-auto w-full">
+                        <div className="max-w-4xl 2xl:max-w-5xl mx-auto w-full">
                             {renderContent()}
                         </div>
                     </div>
@@ -97,20 +97,20 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
         return (
             <section
                 id={sectionId}
-                className="py-20 border-b border-cyan-900/10"
+                className="py-20 2xl:py-28 border-b border-cyan-900/10"
             >
                 <MotionDiv
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={viewportConfig}
                     onViewportEnter={handleViewportEnter}
-                    className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+                    className="grid grid-cols-1 lg:grid-cols-2 gap-12 2xl:gap-16 items-center"
                 >
                     <div>
-                        <span className="text-xs font-mono text-cyan-500 tracking-widest uppercase mb-2 block">
+                        <span className="text-xs 2xl:text-sm font-mono text-cyan-500 tracking-widest uppercase mb-2 block">
                             {module.theme.toUpperCase()}
                         </span>
-                        <h2 className="text-3xl font-display text-white mb-6">
+                        <h2 className="text-3xl 2xl:text-4xl font-display text-white mb-6 2xl:mb-8">
                             {module.title}
                         </h2>
                         {renderContent()}
@@ -132,30 +132,30 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
     return (
         <section
             id={sectionId}
-            className="py-20 border-b border-cyan-900/10"
+            className="py-20 2xl:py-28 border-b border-cyan-900/10"
         >
             <MotionDiv
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={viewportConfig}
                 onViewportEnter={handleViewportEnter}
-                className="grid grid-cols-1 md:grid-cols-12 gap-8"
+                className="grid grid-cols-1 md:grid-cols-12 gap-8 2xl:gap-12"
             >
                 {/* Section Header / Left Column */}
                 <div className="md:col-span-4">
-                    <div className="sticky top-32">
-                        <h2 className="text-2xl font-display text-white mb-2">
+                    <div className="sticky top-32 2xl:top-40">
+                        <h2 className="text-2xl 2xl:text-3xl font-display text-white mb-2 2xl:mb-3">
                             {module.title}
                         </h2>
-                        <div className="h-1 w-12 bg-cyan-500 mb-4" />
-                        <span className="text-xs font-mono text-cyan-500/60 tracking-widest uppercase block">
+                        <div className="h-1 w-12 2xl:w-16 bg-cyan-500 mb-4 2xl:mb-5" />
+                        <span className="text-xs 2xl:text-sm font-mono text-cyan-500/60 tracking-widest uppercase block">
                             {module.theme.toUpperCase()}
                         </span>
                     </div>
                 </div>
 
                 {/* Content / Right Column */}
-                <div className="md:col-span-8 space-y-8">
+                <div className="md:col-span-8 space-y-8 2xl:space-y-10">
                     {renderContent()}
                     {renderMedia()}
                 </div>

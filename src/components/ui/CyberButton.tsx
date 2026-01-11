@@ -1,5 +1,5 @@
 import React, { type ReactNode, useState, useRef, useEffect } from 'react';
-import { ANIMATIONS, combineAnimations } from '../../utils/animations';
+
 import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 
@@ -247,11 +247,7 @@ export const CyberButton = ({
     const variants = {
         corner: "text-cyan-500 hover:text-cyan-400",
         chamfer: "text-cyan-400 hover:text-cyan-300",
-        ghost: combineAnimations(
-            "text-cyber-200 hover:text-cyan-400 active:text-cyan-300 bg-transparent",
-            ANIMATIONS.HOVER.SCALE_UP,
-            `hover:${ANIMATIONS.GLITCH.GHOST}`
-        ),
+        ghost: "text-cyber-200 hover:text-cyan-400 active:text-cyan-300 bg-transparent hover:scale-[1.15] active:scale-100 transition-all duration-200 hover:animate-[glitchGhost_0.3s_ease-in-out]",
         dot: "text-cyan-50 hover:text-white font-bold tracking-[0.2em]", // High contrast text for dot
     };
 

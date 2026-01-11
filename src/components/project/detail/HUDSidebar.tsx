@@ -41,14 +41,14 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
             {/* My Role */}
             <SidebarSection label="My Role">
-                <span className="text-sm text-cyan-400 font-semibold">
+                <span className="text-sm 2xl:text-base text-cyan-400 font-semibold">
                     {sidebar.role}
                 </span>
             </SidebarSection>
 
             {/* Team */}
             <SidebarSection label="Team">
-                <span className="text-sm text-neutral-300">
+                <span className="text-sm 2xl:text-base text-neutral-300">
                     {sidebar.team}
                 </span>
             </SidebarSection>
@@ -56,12 +56,12 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             {/* Timeline & Status */}
             <SidebarSection label="Timeline & Status">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-neutral-300">
+                    <span className="text-sm 2xl:text-base text-neutral-300">
                         {sidebar.timeline}
                     </span>
                     <span className="text-neutral-600">•</span>
                     <span
-                        className="text-sm font-medium"
+                        className="text-sm 2xl:text-base font-medium"
                         style={{
                             color: sidebar.status === 'Live' ? '#22c55e' :
                                 sidebar.status === 'In Development' ? '#fbbf24' : '#94a3b8',
@@ -76,7 +76,7 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
                             rel="noopener noreferrer"
                             className="text-cyan-500 hover:text-cyan-400 transition-colors"
                         >
-                            <i className="ri-external-link-line text-sm" />
+                            <i className="ri-external-link-line text-sm 2xl:text-base" />
                         </a>
                     )}
                 </div>
@@ -84,11 +84,11 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
             {/* Tech Stack */}
             <SidebarSection label="Tech Stack">
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 2xl:gap-2">
                     {(sidebar.techStack || []).map((tech, index) => (
                         <span
                             key={index}
-                            className="px-2 py-0.5 text-[12px] font-mono text-cyan-400/80"
+                            className="px-2 py-0.5 text-[12px] 2xl:text-[14px] font-mono text-cyan-400/80"
                             style={{
                                 background: 'rgba(0, 240, 255, 0.05)',
                                 border: '1px solid rgba(0, 240, 255, 0.15)',
@@ -102,17 +102,17 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
             {/* Core Contributions */}
             <SidebarSection label="Core Contributions">
-                <ul className="space-y-1.5">
+                <ul className="space-y-1.5 2xl:space-y-2">
                     {(sidebar.coreContributions || []).map((contribution, index) => (
                         <li key={index} className="flex items-start gap-2">
                             <div
-                                className="w-1 h-1 mt-2 flex-shrink-0"
+                                className="w-1 h-1 2xl:w-1.5 2xl:h-1.5 mt-2 flex-shrink-0"
                                 style={{
                                     background: '#00f0ff',
                                     boxShadow: '0 0 4px rgba(0, 240, 255, 0.6)',
                                 }}
                             />
-                            <span className="text-sm text-neutral-300">{contribution}</span>
+                            <span className="text-sm 2xl:text-base text-neutral-300">{contribution}</span>
                         </li>
                     ))}
                 </ul>
@@ -125,8 +125,8 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
 // Helper component for sidebar sections
 const SidebarSection = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="relative px-4 py-3 border-b border-cyan-900/30">
-        <div className="text-[12px] font-mono text-cyan-700 tracking-widest uppercase mb-2">
+    <div className="relative px-4 2xl:px-5 py-3 2xl:py-4 border-b border-cyan-900/30">
+        <div className="text-[12px] 2xl:text-[14px] font-mono text-cyan-700 tracking-widest uppercase mb-2 2xl:mb-3">
             {label}
         </div>
         {children}

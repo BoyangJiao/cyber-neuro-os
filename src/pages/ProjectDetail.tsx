@@ -53,7 +53,9 @@ export const ProjectDetail = () => {
             // Fallback strategy remains similar to before
             const legacyData = getProjectDetail(projectId || '');
             if (legacyData) {
-                console.warn(`Project ${projectId} not found in Sanity. Falling back to legacy mock if available.`);
+                if (import.meta.env.DEV) {
+                    console.warn(`Project ${projectId} not found in Sanity. Falling back to legacy mock if available.`);
+                }
                 // For now, simple error or leave detail null
                 setError("Project not found in CMS.");
             } else {
@@ -120,7 +122,7 @@ export const ProjectDetail = () => {
     if (isLoading) {
         return (
             <div className="w-full h-full flex items-center justify-center bg-black">
-                <div className="text-cyan-500 font-mono animate-pulse">LOADING NEURAL LINK...</div>
+                <div className="text-cyan-500 font-mono text-sm 2xl:text-base animate-pulse">LOADING NEURAL LINK...</div>
             </div>
         );
     }
@@ -136,10 +138,10 @@ export const ProjectDetail = () => {
                     <div className="text-6xl mb-4 opacity-30">
                         <i className="ri-error-warning-line" />
                     </div>
-                    <h1 className="text-2xl font-display text-cyan-500 mb-2">
+                    <h1 className="text-2xl 2xl:text-3xl font-display text-cyan-500 mb-2">
                         {error || "PROJECT NOT FOUND"}
                     </h1>
-                    <p className="text-neutral-400 mb-6">
+                    <p className="text-neutral-400 mb-6 2xl:text-lg">
                         The requested project data is unavailable.
                     </p>
                     <CyberButton variant="ghost" onClick={() => navigate('/projects')}>
@@ -219,8 +221,8 @@ export const ProjectDetail = () => {
                         <DetailHeroSection project={project} detail={detail as any} />
                     </div>
 
-                    <div className="w-full px-4 pb-20">
-                        <div className="flex gap-6 lg:gap-10">
+                    <div className="w-full px-4 2xl:px-6 pb-20 2xl:pb-28">
+                        <div className="flex gap-6 lg:gap-10 2xl:gap-14">
                             {/* Sticky Sidebar */}
                             <MotionDiv
                                 animate={{
@@ -244,7 +246,7 @@ export const ProjectDetail = () => {
                                 layout
                                 className="flex-1 min-w-0 px-4"
                             >
-                                <div className="space-y-12">
+                                <div className="space-y-12 2xl:space-y-16">
                                     {(detail.contentModules || []).map((module) => (
                                         <SectionRenderer
                                             key={module._key}
@@ -255,8 +257,8 @@ export const ProjectDetail = () => {
                                 </div>
 
                                 {/* Back Button Footer */}
-                                <div className="py-20 flex flex-col items-center justify-center border-t border-cyan-900/30 mt-20">
-                                    <h3 className="text-2xl font-display text-cyan-400 mb-6">
+                                <div className="py-20 2xl:py-28 flex flex-col items-center justify-center border-t border-cyan-900/30 mt-20 2xl:mt-28">
+                                    <h3 className="text-2xl 2xl:text-3xl font-display text-cyan-400 mb-6 2xl:mb-8">
                                         End of Case Study
                                     </h3>
                                     <CyberButton variant="chamfer" onClick={handleClose}>

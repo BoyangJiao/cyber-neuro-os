@@ -10,7 +10,7 @@ export interface SanityProjectRaw {
     title: string;
     slug: string;
     description?: string;
-    projectType?: string;
+
     status?: string;
     techStack?: string[];
     heroImage?: string;

@@ -17,20 +17,7 @@ interface ProjectCardProps {
     radius: number;
 }
 
-// Helper to get status badge CSS class
-const getStatusBadgeClass = (status: string): string => {
-    const normalized = status.toUpperCase();
-    if (normalized === 'DEPLOYED' || normalized === 'LIVE') {
-        return 'status-badge--deployed';
-    }
-    if (normalized === 'IN_DEVELOPMENT' || normalized === 'IN DEVELOPMENT') {
-        return 'status-badge--development';
-    }
-    if (normalized === 'CLASSIFIED' || normalized === 'ARCHIVED') {
-        return 'status-badge--classified';
-    }
-    return 'status-badge--default';
-};
+
 
 export const ProjectCard = ({
     project,
@@ -143,16 +130,6 @@ export const ProjectCard = ({
                             >
                                 {project.title}
                             </h3>
-
-                            {/* Description */}
-                            <p className="text-gray-300 text-sm m-0 leading-relaxed line-clamp-2 max-w-[95%] text-shadow-sm">
-                                {project.description}
-                            </p>
-
-                            {/* Status Badge */}
-                            <div className={twMerge("status-badge mt-2", getStatusBadgeClass(project.status))}>
-                                {project.status.replace('_', ' ')}
-                            </div>
                         </div>
                     </div>
                 </div>

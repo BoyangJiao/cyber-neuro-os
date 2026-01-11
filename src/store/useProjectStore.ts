@@ -37,8 +37,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 id: p.slug,
                 title: p.title,
                 description: p.description || '',
-                // Use sidebar techStack if available, otherwise use projectType as a tag, or empty
-                techStack: p.techStack || (p.projectType ? [p.projectType] : []),
+                // Use sidebar techStack if available
+                techStack: p.techStack || [],
                 status: p.status || 'In Development',
                 thumbnail: p.heroImage || 'ri-code-s-slash-line'
             }));
