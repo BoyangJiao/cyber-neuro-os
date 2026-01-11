@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { FeatureCard } from '../ui/FeatureCard';
+import { HoloFeatureCard } from '../ui/HoloFeatureCard';
 import { Link } from 'react-router-dom';
 import { MotionDiv } from '../motion/MotionWrappers';
 import { useTranslation } from '../../i18n';
@@ -59,7 +60,7 @@ export const FeaturePanel = () => {
                             {item.titleKey === 'features.project' ? (
                                 <MotionDiv layoutId="project-expand" className="h-full">
                                     <Link to={item.link!} className="block h-full">
-                                        <FeatureCard
+                                        <HoloFeatureCard
                                             title={t(item.titleKey)}
                                             icon={item.icon}
                                         />
