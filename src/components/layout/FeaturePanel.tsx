@@ -3,9 +3,12 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { FeatureCard } from '../ui/FeatureCard';
 import { HoloFeatureCard } from '../ui/HoloFeatureCard';
+import { CyberSlotCard } from '../ui/CyberSlotCard';
 import { Link } from 'react-router-dom';
 import { MotionDiv } from '../motion/MotionWrappers';
 import { useTranslation } from '../../i18n';
+
+import rockThreeIcon from '../../assets/icons/rock-three.svg';
 
 interface FeatureItem {
     titleKey: string;
@@ -14,7 +17,7 @@ interface FeatureItem {
 }
 
 const features: FeatureItem[] = [
-    { titleKey: 'features.project', icon: 'ri-rocket-2-line', link: '/projects' },
+    { titleKey: 'features.project', icon: rockThreeIcon, link: '/projects' },
     { titleKey: 'features.video', icon: 'ri-movie-2-line' },
     { titleKey: 'features.game', icon: 'ri-gamepad-line' },
     { titleKey: 'features.sound', icon: 'ri-voiceprint-line' },
@@ -51,7 +54,7 @@ export const FeaturePanel = () => {
               Mobile: Horizontal Scroll List
             */}
             <div className="h-full w-full flex lg:items-center lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0 py-4 lg:py-0">
-                <div className="flex flex-row lg:grid lg:grid-cols-3 lg:w-3/4 lg:gap-4 xl:gap-6 2xl:gap-8 gap-4 min-w-full lg:min-w-0 h-full">
+                <div className="flex flex-row lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:w-3/4 lg:gap-4 xl:gap-6 2xl:gap-8 gap-4 min-w-full lg:min-w-0 h-full">
                     {features.map((item) => (
                         <div
                             key={item.titleKey}
@@ -66,6 +69,12 @@ export const FeaturePanel = () => {
                                         />
                                     </Link>
                                 </MotionDiv>
+                            ) : item.titleKey === 'features.lab' ? (
+                                <CyberSlotCard
+                                    title={t(item.titleKey)}
+                                    inactiveImage="/images/features/Lab_inactive.png"
+                                    activeImage="/images/features/Lab_active.png"
+                                />
                             ) : (
                                 item.link ? (
                                     <Link to={item.link} className="block h-full">

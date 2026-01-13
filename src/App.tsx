@@ -11,6 +11,7 @@ import { ProjectDetail } from './pages/ProjectDetail'
 import { AboutMePage } from './pages/AboutMePage'
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { SettingsModal } from './components/ui/SettingsModal'
+import { CyberDebugPanel } from './components/ui/debug'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
 import { LanguageProvider } from './i18n'
@@ -23,7 +24,7 @@ function App() {
   // Enable live mode for Sanity drafts
   useLiveMode({ allowStudioOrigin: 'http://localhost:3333' });
 
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen } = useAppStore();
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode } = useAppStore();
   const location = useLocation();
 
   // Simulate boot sequence completion
@@ -90,9 +91,13 @@ function App() {
           <ConnectionLine />
         </MainLayout>
 
-        {/* Settings Modal */}
         <AnimatePresence>
           {isSettingsOpen && <SettingsModal />}
+        </AnimatePresence>
+
+        {/* Debug Panel - Only visible in debug mode */}
+        <AnimatePresence>
+          {debugMode && <CyberDebugPanel />}
         </AnimatePresence>
 
         {/* Visual Editing Overlay for Sanity Presentation */}

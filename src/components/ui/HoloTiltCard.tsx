@@ -1,4 +1,4 @@
-import { useState, useRef, ReactNode, MouseEvent } from 'react';
+import { useState, useRef, type ReactNode, type MouseEvent } from 'react';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -44,15 +44,15 @@ export const HoloTiltCard = ({
         const mouseY = (e.clientY - rect.top - height / 2) / (height / 2);
 
         // Gyroscope Intensity
-        const tiltIntensity = 10; // degrees
-        const parallaxIntensity = 20; // px for 3D content
+        const tiltIntensity = 18; // degrees (increased for more dramatic effect)
+        const parallaxIntensity = 30; // px for 3D content
 
         // Animate the Tilt Layer (Background)
         // Using gsap.to with overwrite: 'auto' ensures smooth updates without lag
         gsap.to(tiltRef.current, {
-            rotationX: 25 + (-mouseY * tiltIntensity), // Base 25 + Gyro
+            rotationX: 35 + (-mouseY * tiltIntensity), // Base 35 + Gyro (increased base tilt)
             rotationY: mouseX * tiltIntensity,
-            transformPerspective: 900,
+            transformPerspective: 800,
             duration: 0.5,
             ease: "power2.out",
             overwrite: 'auto'
@@ -164,7 +164,15 @@ export const HoloTiltCard = ({
             <div
                 className={`absolute inset-0 flex items-center justify-center transition-all duration-300 delay-200 pointer-events-none z-10 ${isHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`}
             >
-                <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-cyan-50 leading-none`}></i>
+                {icon?.includes('/') || icon?.includes('data:') ? (
+                    <img
+                        src={icon}
+                        alt=""
+                        className="w-[72px] h-[72px] xl:w-[90px] xl:h-[90px] 2xl:w-[108px] 2xl:h-[108px] object-contain opacity-90"
+                    />
+                ) : (
+                    <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-cyan-50 leading-none`}></i>
+                )}
             </div>
 
             {/* 4. 3D Content (Popup) - Fades IN */}

@@ -40,7 +40,15 @@ export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
 
                 {/* Icon: Fully centered in the container */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-cyan-50 leading-none`}></i>
+                    {icon?.includes('/') || icon?.includes('data:') ? (
+                        <img
+                            src={icon}
+                            alt=""
+                            className="w-[72px] h-[72px] xl:w-[90px] xl:h-[90px] 2xl:w-[108px] 2xl:h-[108px] object-contain opacity-90"
+                        />
+                    ) : (
+                        <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-cyan-50 leading-none`}></i>
+                    )}
                 </div>
             </MotionDiv>
         </HoloFrame>

@@ -18,7 +18,7 @@ const languages: LanguageOption[] = [
 ];
 
 export const SettingsModal = () => {
-    const { setSettingsOpen } = useAppStore();
+    const { setSettingsOpen, debugMode, setDebugMode } = useAppStore();
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
 
@@ -132,13 +132,32 @@ export const SettingsModal = () => {
                             </div>
                         </div>
 
-                        {/* Future Settings Placeholder */}
-                        <div className="border-t border-cyan-900/30 pt-4">
-                            <div className="flex items-center gap-2 opacity-40">
-                                <i className="ri-settings-3-line text-cyan-700" />
-                                <span className="text-xs text-cyan-700 tracking-wider">
-                                    MORE SETTINGS COMING SOON...
-                                </span>
+                        {/* Debug Mode Section */}
+                        <div className="border-t border-cyan-900/30 pt-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <i className="ri-bug-line text-cyan-600" />
+                                    <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase">
+                                        DEBUG MODE
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => setDebugMode(!debugMode)}
+                                    className={`
+                                        w-12 h-6 relative rounded-none border transition-all duration-300
+                                        ${debugMode
+                                            ? 'border-cyan-500 bg-cyan-500/30'
+                                            : 'border-cyan-800/50 bg-cyan-950/30'
+                                        }
+                                    `}
+                                >
+                                    <div
+                                        className={`
+                                            absolute top-1 w-4 h-4 bg-cyan-400 transition-all duration-300
+                                            ${debugMode ? 'left-7' : 'left-1'}
+                                        `}
+                                    />
+                                </button>
                             </div>
                         </div>
                     </div>

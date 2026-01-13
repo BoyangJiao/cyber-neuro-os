@@ -159,6 +159,95 @@ body {
     }
 }
 
+/* Cyberpunk unstable glitch - 不规则抖动，大部分时间静止 */
+@keyframes cyberGlitch {
+
+    /* 0-5%: 静止 */
+    0%,
+    5% {
+        transform: translate(0) skewX(0);
+        filter: none;
+        opacity: 1;
+    }
+
+    /* 5.1-5.3%: 突然剧烈抖动 */
+    5.1% {
+        transform: translate(-3px, 1px) skewX(-2deg);
+        filter: drop-shadow(3px 0 0 rgba(255, 0, 100, 0.9)) drop-shadow(-3px 0 0 rgba(0, 255, 255, 0.9));
+    }
+
+    5.2% {
+        transform: translate(3px, -2px) skewX(3deg);
+        filter: drop-shadow(-4px 0 0 rgba(255, 0, 100, 0.8)) drop-shadow(4px 0 0 rgba(0, 255, 255, 0.8));
+        opacity: 0.9;
+    }
+
+    5.3% {
+        transform: translate(-2px, 0) skewX(-1deg);
+        filter: drop-shadow(2px 0 0 rgba(255, 0, 100, 0.6)) drop-shadow(-2px 0 0 rgba(0, 255, 255, 0.6));
+    }
+
+    /* 5.4-35%: 恢复静止 */
+    5.4%,
+    35% {
+        transform: translate(0) skewX(0);
+        filter: none;
+        opacity: 1;
+    }
+
+    /* 35.1-35.2%: 微小抖动 */
+    35.1% {
+        transform: translate(1px, 0);
+        filter: drop-shadow(1px 0 0 rgba(0, 255, 255, 0.5));
+    }
+
+    35.2%,
+    60% {
+        transform: translate(0) skewX(0);
+        filter: none;
+    }
+
+    /* 60.1-60.5%: 又一次不稳定 */
+    60.1% {
+        transform: translate(-4px, 2px) skewX(4deg);
+        filter: drop-shadow(5px 0 0 rgba(255, 0, 100, 1)) drop-shadow(-5px 0 0 rgba(0, 255, 255, 1));
+        opacity: 0.85;
+    }
+
+    60.2% {
+        transform: translate(2px, -3px) skewX(-3deg);
+        filter: drop-shadow(-3px 0 0 rgba(255, 0, 100, 0.7)) drop-shadow(3px 0 0 rgba(0, 255, 255, 0.7));
+    }
+
+    60.3% {
+        opacity: 0.6;
+    }
+
+    60.4% {
+        opacity: 1;
+    }
+
+    60.5%,
+    85% {
+        transform: translate(0) skewX(0);
+        filter: none;
+        opacity: 1;
+    }
+
+    /* 85.1%: 轻微闪烁 */
+    85.1% {
+        opacity: 0.8;
+        transform: translate(1px, 0);
+    }
+
+    85.2%,
+    100% {
+        transform: translate(0) skewX(0);
+        filter: none;
+        opacity: 1;
+    }
+}
+
 /* Energy Pulse animation for sidebar toggle */
 @keyframes energyPulse {
 

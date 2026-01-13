@@ -1,24 +1,33 @@
 import { Canvas } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
-import { TechGeometry } from '../three/ui/TechGeometry';
+import { HoloGeometry, type GeometryType } from '../three/ui/HoloGeometry';
 import { HoloTiltCard } from './HoloTiltCard';
+import { useAppStore } from '../../store/useAppStore';
 
 export interface HoloFeatureCardProps {
     title: string;
     icon?: string;
-    imageFlatUrl?: string; // Kept for API compat
+    geometryType?: GeometryType;
     onClick?: () => void;
 }
 
 /**
  * HoloFeatureCard
- * Now strictly a composition of the generic HoloTiltCard and the specific TechGeometry.
+ * 
+ * 支持通过 geometryType 切换不同的 3D 几何体
+ * Debug Mode 开启时使用 store 中的 debugGeometryType
  */
 export const HoloFeatureCard = ({
     title,
     icon,
+    geometryType = 'project',
     onClick,
 }: HoloFeatureCardProps) => {
+    const { debugMode, debugGeometryType } = useAppStore();
+
+    // Debug mode 时使用 store 中的几何体类型
+    const activeGeometryType = debugMode ? debugGeometryType : geometryType;
+
     return (
         <HoloTiltCard
             title={title}
@@ -31,7 +40,7 @@ export const HoloFeatureCard = ({
                 >
                     <ambientLight intensity={0.5} />
                     <pointLight position={[10, 10, 10]} intensity={1} color="#00f0ff" />
-                    <TechGeometry />
+                    <HoloGeometry type={activeGeometryType} />
                     <Environment preset="city" />
                 </Canvas>
             }
