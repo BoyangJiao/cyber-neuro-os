@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useFrame, extend } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 /**
@@ -82,7 +82,7 @@ export const BodyModel = () => {
 
 
     // 动画：旋转 + 更新时间uniform
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         if (groupRef.current) {
             groupRef.current.rotation.y += delta * 0.15;
         }
