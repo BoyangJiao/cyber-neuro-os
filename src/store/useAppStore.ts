@@ -20,9 +20,9 @@ export interface GlitchSettings {
 
 const defaultGlitchSettings: GlitchSettings = {
     enabled: true,
-    masterIntensity: 0.5,
+    masterIntensity: 0.27,
     rgbSplit: 0.3,
-    vertexDisplacement: 0.25,
+    vertexDisplacement: 0.05,
     glitchBands: 0.4,
     flickerBands: 0.3,
     colorInvert: 0,
@@ -50,16 +50,16 @@ export interface CyberRgbSettings {
 }
 
 const defaultCyberRgbSettings: CyberRgbSettings = {
-    enabled: false,
-    colorCount: 2,
+    enabled: true,
+    colorCount: 3,
     colorA: '#00ffff',
     colorB: '#ff00ff',
     colorC: '#ffff00',
-    colorSpeed: 0.5,
-    colorMixIntensity: 0.7,
-    scanlineSpeed: 0.5,
-    scanlineWidth: 0.5,
-    scanlineDirection: 'both',
+    colorSpeed: 0.19,
+    colorMixIntensity: 0.67,
+    scanlineSpeed: 0.53,
+    scanlineWidth: 0.64,
+    scanlineDirection: 'vertical',
 };
 
 // ============================================================

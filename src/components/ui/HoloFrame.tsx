@@ -40,8 +40,8 @@ export const HoloFrame = ({
                 style={arwesThemeStyles}
                 {...props}
             >
-                {/* Frame Layer */}
-                <div className="absolute inset-0 z-0">
+                {/* Frame Layer - z-10 to stay above background but below children */}
+                <div className="absolute inset-0 z-10 pointer-events-none">
                     {variant === 'corner' && (
                         <FrameCorners
                             padding={0}
@@ -70,7 +70,7 @@ export const HoloFrame = ({
                 </div>
 
                 {/* Content Layer - fills container for children to use h-full */}
-                <div className="relative z-10 h-full flex flex-col">
+                <div className="relative z-20 h-full flex flex-col">
                     {children}
                 </div>
             </div>
