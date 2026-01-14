@@ -10,6 +10,7 @@ interface HoloTiltCardProps {
     content3d?: ReactNode;
     onClick?: () => void;
     className?: string;
+    onHoverChange?: (isHovered: boolean) => void;
 }
 
 /**
@@ -21,7 +22,8 @@ export const HoloTiltCard = ({
     icon,
     content3d,
     onClick,
-    className
+    className,
+    onHoverChange
 }: HoloTiltCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -73,6 +75,7 @@ export const HoloTiltCard = ({
 
     const handleMouseLeave = contextSafe(() => {
         setIsHovered(false);
+        if (onHoverChange) onHoverChange(false);
 
         // Reset Tilt Layer
         if (tiltRef.current) {
@@ -102,6 +105,7 @@ export const HoloTiltCard = ({
 
     const handleMouseEnter = contextSafe(() => {
         setIsHovered(true);
+        if (onHoverChange) onHoverChange(true);
         playHover();
 
         // Initial Pop Animation

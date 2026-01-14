@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { Canvas } from '@react-three/fiber';
+import { View } from '@react-three/drei';
 import { FeatureCard } from '../ui/FeatureCard';
 import { HoloFeatureCard } from '../ui/HoloFeatureCard';
 import { CyberSlotCard } from '../ui/CyberSlotCard';
@@ -49,11 +51,22 @@ export const FeaturePanel = () => {
 
     return (
         <div ref={containerRef} className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden">
+            {/* Shared Canvas for all 3D Views */}
+            <div className="absolute inset-0 z-[100] pointer-events-none">
+                <Canvas
+                    className="w-full h-full"
+                    eventSource={containerRef as any}
+                    gl={{ alpha: true, antialias: true }}
+                >
+                    <View.Port />
+                </Canvas>
+            </div>
+
             {/* 
               Desktop: Centered Grid 
               Mobile: Horizontal Scroll List
             */}
-            <div className="h-full w-full flex lg:items-center lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0 py-4 lg:py-0">
+            <div className="relative z-10 h-full w-full flex lg:items-center lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0 py-4 lg:py-0">
                 <div className="flex flex-row lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:w-3/4 lg:gap-4 xl:gap-6 2xl:gap-8 gap-4 min-w-full lg:min-w-0 h-full">
                     {features.map((item) => (
                         <div

@@ -32,10 +32,10 @@
     --color-cyber-900: #134E4A;
     --color-cyber-950: #042F2E;
 
-    --font-display: "Chakra Petch", sans-serif;
-    --font-sans: "Bai Jamjuree", sans-serif;
-    --font-mono: "Share Tech Mono", monospace;
-    --font-code: "Share Tech Mono", monospace;
+    --font-display: "Orbitron", "Noto Sans SC", sans-serif;
+    --font-sans: "Bai Jamjuree", "Noto Sans SC", sans-serif;
+    --font-mono: "Share Tech Mono", "Noto Sans SC", monospace;
+    --font-code: "Share Tech Mono", "Noto Sans SC", monospace;
 }
 
 @utility cyber-grid {
@@ -398,7 +398,12 @@ body {
 
 /* Frame corner glow effect */
 .frame-glow {
-    filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 4px rgba(0, 255, 255, 0.35)) drop-shadow(0 0 3px rgba(0, 255, 255, 0.3)) drop-shadow(0 0 2px rgba(0, 255, 255, 0.25));
+    filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 4px rgba(0, 255, 255, 0.35)) drop-shadow(0 0 3px rgba(0, 255, 255, 0.3)) drop-shadow(0 0 2px rgba(0, 255, 255, 0.25)) !important;
+}
+
+/* Ensure SVG doesn't clip the glow */
+svg.frame-glow {
+    overflow: visible !important;
 }
 
 /* ========================================

@@ -1,4 +1,4 @@
-import { type ReactNode, type CSSProperties, type HTMLAttributes } from 'react';
+import { type ReactNode, type CSSProperties, type HTMLAttributes, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import {
     Animator,
@@ -25,6 +25,8 @@ export const HoloFrame = ({
     active,
     ...props
 }: HoloFrameProps) => {
+    const [isHovered, setIsHovered] = useState(false);
+
     // Official Arwes frames use CSS variables for customization
     // We map our theme colors to Arwes tokens
     const arwesThemeStyles = {
@@ -38,15 +40,18 @@ export const HoloFrame = ({
             <div
                 className={twMerge("relative p-8 transition-all duration-300 group", className)}
                 style={arwesThemeStyles}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 {...props}
             >
                 {/* Frame Layer - z-10 to stay above background but below children */}
-                <div className="absolute inset-0 z-10 pointer-events-none">
+                <div className="absolute inset-0 z-10 pointer-events-none transition-all duration-300 overflow-visible">
                     {variant === 'corner' && (
                         <FrameCorners
                             padding={0}
                             strokeWidth={2}
-                            style={{ filter: 'drop-shadow(0 0 4px rgba(0, 240, 255, 0.8))' }}
+                            style={{ filter: isHovered ? 'none' : 'drop-shadow(0 0 3px rgba(0, 240, 255, 0.4))' }}
+                            className={twMerge("transition-all duration-300", isHovered && "frame-glow")}
                         />
                     )}
                     {variant === 'lines' && (
