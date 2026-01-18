@@ -1,19 +1,23 @@
-import { type ReactNode, type CSSProperties, type HTMLAttributes, useState } from 'react';
+import { type ReactNode, type CSSProperties, type HTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
-import {
-    Animator,
-    FrameCorners,
-    FrameLines,
-    FrameNefrex
-} from '@arwes/react';
+import { CornerFrame } from './frames/CornerFrame';
+import { ChamferFrame } from './frames/ChamferFrame';
+import { DotsFrame } from './frames/DotsFrame';
+import { LinesFrame } from './frames/LinesFrame';
 
 export interface HoloFrameProps extends HTMLAttributes<HTMLDivElement> {
     children?: ReactNode;
     className?: string;
-    variant?: 'corner' | 'lines' | 'outline';
+    variant?: 'corner' | 'lines' | 'chamfer' | 'dots';
     filled?: boolean;
     background?: ReactNode;
     active?: boolean;
+    showAtmosphere?: boolean;
+    showMask?: boolean;
+    showGhost?: boolean;
+    ghostOffset?: string;
+    // For Corner variant interactions
+    isPressed?: boolean;
 }
 
 export const HoloFrame = ({
@@ -23,62 +27,97 @@ export const HoloFrame = ({
     filled = false,
     background,
     active,
+    showAtmosphere = false,
+    showMask = false,
+    showGhost = false,
+    ghostOffset = "-translate-x-[3px] -translate-y-[2px]",
+    isPressed = false,
     ...props
 }: HoloFrameProps) => {
-    const [isHovered, setIsHovered] = useState(false);
 
-    // Official Arwes frames use CSS variables for customization
-    // We map our theme colors to Arwes tokens
-    const arwesThemeStyles = {
-        '--arwes-frames-bg-color': filled ? 'rgba(6, 18, 26, 1)' : 'rgba(6, 18, 26, 0)',
-        '--arwes-frames-line-color': 'rgba(0, 240, 255, 0.5)',
-        '--arwes-frames-deco-color': 'rgba(0, 240, 255, 0.8)',
+    // Theme styles for frame customization
+    const frameStyles = {
+        '--frame-bg-color': filled ? 'var(--color-bg-panel)' : 'transparent',
+        '--frame-line-color': 'var(--color-brand-primary)',
+        '--frame-deco-color': 'var(--color-brand-secondary)',
     } as CSSProperties;
 
-    return (
-        <Animator active={active}>
-            <div
-                className={twMerge("relative p-8 transition-all duration-300 group", className)}
-                style={arwesThemeStyles}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                {...props}
-            >
-                {/* Frame Layer - z-10 to stay above background but below children */}
-                <div className="absolute inset-0 z-10 pointer-events-none transition-all duration-300 overflow-visible">
-                    {variant === 'corner' && (
-                        <FrameCorners
-                            padding={0}
-                            strokeWidth={2}
-                            style={{ filter: isHovered ? 'none' : 'drop-shadow(0 0 3px rgba(0, 240, 255, 0.4))' }}
-                            className={twMerge("transition-all duration-300", isHovered && "frame-glow")}
-                        />
-                    )}
-                    {variant === 'lines' && (
-                        <FrameLines
-                            padding={0}
-                            largeLineWidth={1}
-                            smallLineWidth={1}
-                        />
-                    )}
-                    {variant === 'outline' && (
-                        <FrameNefrex
-                            padding={0}
-                            strokeWidth={1}
-                        />
-                    )}
-                </div>
+    // Helper to render the specific frame component
+    const renderFrame = (isGhost = false) => {
+        const extraClass = isGhost
+            ? twMerge("absolute inset-0 opacity-40 blur-[1px] pointer-events-none", ghostOffset)
+            : "h-full w-full";
 
-                {/* Background Layer: Custom background content (optional) */}
+        switch (variant) {
+            case 'corner':
+                return (
+                    <div className={extraClass}>
+                        <CornerFrame
+                            isActive={active}
+                            isPressed={isPressed}
+                            className={!isGhost ? "opacity-50 group-hover:opacity-100 transition-opacity duration-300" : ""}
+                        />
+                    </div>
+                );
+            case 'lines':
+                return <div className={extraClass}><LinesFrame /></div>;
+            case 'dots':
+                return <div className={extraClass}><DotsFrame /></div>;
+            case 'chamfer':
+                return <div className={extraClass}><ChamferFrame /></div>;
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div
+            className={twMerge(
+                "relative p-8 transition-all duration-300 group",
+                className
+            )}
+            style={frameStyles}
+            {...props}
+        >
+            {/* 1. MASKED DECORATION LAYER (Atmosphere + Borders) */}
+            <div className={twMerge(
+                "absolute inset-0 pointer-events-none z-0",
+                showMask && "cyber-mask-h"
+            )}>
+                {/* Custom Background */}
                 <div className="absolute inset-0 z-0">
                     {background}
                 </div>
 
-                {/* Content Layer - fills container for children to use h-full */}
-                <div className="relative z-20 h-full flex flex-col">
-                    {children}
+                {/* Atmosphere Glow */}
+                {showAtmosphere && (
+                    <div className="absolute inset-0 cyber-glow z-1" />
+                )}
+
+                {/* Frame Decorative Lines (Purely visual here) */}
+                <div className="absolute inset-0 z-2">
+                    {showGhost && renderFrame(true)}
+                    {renderFrame(false)}
                 </div>
             </div>
-        </Animator>
+
+            {/* 2. CONTENT LAYER (Unmasked) */}
+            <div className="relative z-10 h-full flex flex-col">
+                {/* Primary Content */}
+                <div className="relative z-10 h-full flex flex-col">
+                    {children}
+                </div>
+
+                {/* Ghost Content Overlay - Sycned with frame ghost */}
+                {showGhost && (
+                    <div className={twMerge(
+                        "absolute inset-0 z-0 opacity-40 blur-[1px] select-none pointer-events-none flex flex-col",
+                        ghostOffset
+                    )} aria-hidden="true">
+                        {children}
+                    </div>
+                )}
+            </div>
+        </div>
     );
 };

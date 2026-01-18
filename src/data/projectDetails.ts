@@ -46,8 +46,8 @@ export interface SanityProjectDetail {
 }
 
 /**
- * @deprecated Legacy interface - kept for backward compatibility during migration
- * Use SanityProjectDetail instead
+ * @deprecated Legacy interface - Use SanityProjectDetail instead.
+ * Kept for backward compatibility only.
  */
 export interface ProjectDetail {
     projectId: string;
@@ -64,12 +64,10 @@ export interface ProjectDetail {
     };
 }
 
-// Legacy mock data storage - kept as fallback only
-// TODO: Remove once Sanity data migration is complete
+/** @deprecated Legacy fallback storage - All data should now come from Sanity. */
 const legacyProjectDetails: Record<string, ProjectDetail> = {};
 
 /**
- * Get project detail by ID
  * @deprecated Use Sanity query instead: PROJECT_DETAIL_QUERY from sanity/queries.ts
  */
 export const getProjectDetail = (projectId: string): ProjectDetail | undefined => {

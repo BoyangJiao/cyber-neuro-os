@@ -22,9 +22,17 @@ export const HoloFeatureCard = ({
     geometryType = 'project',
     onClick,
 }: HoloFeatureCardProps) => {
-    const { debugMode, debugGeometryType } = useAppStore();
+    const { debugMode, debugGeometryType, brandTheme } = useAppStore();
     const activeGeometryType = debugMode ? debugGeometryType : geometryType;
     const [isHovered, setIsHovered] = useState(false);
+
+    // Theme color mapping for Three.js (hex required)
+    const themeColors = {
+        cyan: '#00F0FF',
+        green: '#00FF88',
+        red: '#FF0055'
+    };
+    const activeColor = themeColors[brandTheme] || themeColors.cyan;
 
     return (
         <HoloTiltCard
@@ -36,7 +44,7 @@ export const HoloFeatureCard = ({
                 <View className="w-full h-full">
                     <group>
                         <ambientLight intensity={0.5} />
-                        <pointLight position={[10, 10, 10]} intensity={1} color="#00f0ff" />
+                        <pointLight position={[10, 10, 10]} intensity={1} color={activeColor} />
                         <HoloGeometry type={activeGeometryType} />
                         <Environment preset="city" />
                     </group>

@@ -101,8 +101,8 @@ export const CyberSlotCard = ({
                     className={twMerge(
                         "absolute inset-0 transition-colors duration-300",
                         isActive
-                            ? "bg-cyan-400"
-                            : "bg-cyan-800/50"
+                            ? "bg-[var(--color-brand-primary)]"
+                            : "bg-[var(--color-brand-primary)]/30"
                     )}
                 />
 
@@ -133,7 +133,7 @@ export const CyberSlotCard = ({
                     <div
                         className={twMerge(
                             "absolute inset-0 transition-opacity duration-300",
-                            "bg-[linear-gradient(to_bottom,rgba(6,182,212,0.15)_80%,transparent)]",
+                            "bg-[linear-gradient(to_bottom,var(--color-brand-dim)_80%,transparent)]",
                             "[mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)]",
                             "[mask-size:4px_4px]",
                             isActive ? "opacity-100" : "opacity-0"
@@ -143,7 +143,7 @@ export const CyberSlotCard = ({
                     {/* 扫描线 */}
                     {scanProgress > 0 && scanProgress < 100 && (
                         <div
-                            className="absolute inset-x-0 h-[2px] bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.9)] pointer-events-none z-10"
+                            className="absolute inset-x-0 h-[2px] bg-[var(--color-brand-secondary)] shadow-[0_0_15px_var(--color-brand-glow)] pointer-events-none z-10"
                             style={{ top: `${scanProgress}%` }}
                         />
                     )}
@@ -155,7 +155,7 @@ export const CyberSlotCard = ({
                 <div
                     className={twMerge(
                         "font-display text-lg lg:text-xl 2xl:text-2xl font-bold tracking-wider text-center uppercase leading-none transition-colors duration-300",
-                        isActive ? "text-cyan-300" : "text-cyan-100"
+                        isActive ? "text-[var(--color-brand-secondary)]" : "text-[var(--color-text-secondary)]"
                     )}
                 >
                     {title}

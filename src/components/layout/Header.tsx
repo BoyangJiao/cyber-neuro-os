@@ -31,19 +31,39 @@ export const Header = () => {
                     className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => navigate('/')}
                 >
-                    <h1 className="text-[18px] 2xl:text-[22px] font-display font-bold tracking-[0.2em] text-cyan-50">
-                        {t('header.brand')} <span className="text-cyan-400">{t('header.brandHighlight')}</span>
+                    <h1 className="relative text-[18px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
+                        {/* Main Text Layer */}
+                        <span className="relative z-10 text-brand-primary">
+                            {t('header.brand')} <span className="text-brand-primary">{t('header.brandHighlight')}</span>
+                        </span>
+
+                        {/* Ghost / Afterimage Layer */}
+                        <span className="absolute bottom-[3px] right-[4px] blur-[1px] select-none pointer-events-none opacity-50 whitespace-nowrap w-max" aria-hidden="true">
+                            <span className="text-brand-primary">{t('header.brand')} </span>
+                            <span className="text-brand-primary">{t('header.brandHighlight')}</span>
+                        </span>
                     </h1>
                 </div>
 
                 {/* Right: Status Info - Single Row */}
-                <div className="hidden lg:flex items-center justify-end gap-4 2xl:gap-5 font-display tracking-wider">
-                    <span className="relative inline-block text-emerald-400 font-bold text-sm 2xl:text-base drop-shadow-[0_0_5px_rgba(52,211,153,0.5)] group">
-                        <span className="block">{t('header.online')}</span>
-                        <span className="absolute top-0 left-0 opacity-0 group-hover:opacity-60 text-red-400 translate-x-[1px] animate-pulse">{t('header.online')}</span>
-                        <span className="absolute top-0 left-0 opacity-0 group-hover:opacity-60 text-cyan-400 -translate-x-[1px] animate-pulse delay-75">{t('header.online')}</span>
+                <div className="hidden lg:flex items-center justify-end gap-4 2xl:gap-6 font-display tracking-widest">
+                    {/* ONLINE Status with Ghost Effect */}
+                    <span className="relative inline-block text-status-success font-bold text-sm 2xl:text-base">
+                        <span className="relative z-10">{t('header.online')}</span>
+                        {/* Ghost / Afterimage Layer */}
+                        <span className="absolute bottom-[3px] left-[4px] text-status-success/50 blur-[1px] select-none pointer-events-none" aria-hidden="true">
+                            {t('header.online')}
+                        </span>
                     </span>
-                    <span className="text-cyan-300 font-bold text-sm 2xl:text-base font-mono">{formatTime(time)}</span>
+
+                    {/* Time with Ghost Effect */}
+                    <span className="relative inline-block text-[var(--color-text-primary)] font-bold text-sm 2xl:text-base font-sans">
+                        <span className="relative z-10">{formatTime(time)}</span>
+                        {/* Ghost / Afterimage Layer - Energy Color */}
+                        <span className="absolute bottom-[3px] left-[4px] text-[var(--color-brand-primary)]/40 blur-[1px] select-none pointer-events-none" aria-hidden="true">
+                            {formatTime(time)}
+                        </span>
+                    </span>
                 </div>
             </div>
 

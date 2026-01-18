@@ -33,7 +33,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
 
     return (
         <MotionDiv
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cyber-950 text-cyan-500 font-mono select-none"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg-app text-brand-primary font-mono select-none"
             exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
             transition={{ duration: 0.8, ease: "circIn" }}
         >
@@ -41,15 +41,15 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
             <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiAvPgo8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjMDA0Q0ZGIiAvPgo8L3N2Zz4=')]"></div>
 
             {/* Main Container */}
-            <div className="relative w-full max-w-md p-8 border-2 border-cyan-500/30 bg-cyber-900/50 backdrop-blur-sm">
+            <div className="relative w-full max-w-md p-8 border-2 border-brand-primary/30 bg-bg-surface/50 backdrop-blur-sm">
                 {/* Corner Decorators */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500"></div>
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500"></div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500"></div>
+                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-primary"></div>
+                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-primary"></div>
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-primary"></div>
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-primary"></div>
 
                 <MotionH1
-                    className="text-4xl font-display font-bold text-center mb-8 tracking-widest text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]"
+                    className="text-4xl font-display font-bold text-center mb-8 tracking-widest text-brand-secondary drop-shadow-[0_0_10px_var(--color-brand-glow)]"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -58,22 +58,22 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                 </MotionH1>
 
                 {/* Progress Bar */}
-                <div className="relative h-2 bg-cyber-800 mb-4 overflow-hidden">
+                <div className="relative h-2 bg-bg-elevated mb-4 overflow-hidden">
                     <MotionDiv
-                        className="absolute top-0 left-0 h-full bg-cyan-500 shadow-[0_0_15px_rgba(0,240,255,0.8)]"
+                        className="absolute top-0 left-0 h-full bg-brand-primary shadow-[0_0_15px_var(--color-brand-glow)]"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
 
                 {/* Status Text */}
-                <div className="flex justify-between items-center text-xs text-cyan-300/80">
+                <div className="flex justify-between items-center text-xs text-brand-secondary/80">
                     <span>{statusText}</span>
                     <span>{Math.floor(progress)}%</span>
                 </div>
             </div>
 
             {/* Footer System Info */}
-            <div className="absolute bottom-10 text-center text-cyber-700 text-[10px] tracking-widest">
+            <div className="absolute bottom-10 text-center text-text-secondary text-[10px] tracking-widest">
                 <p>SYSTEM VERSION 2.0.77</p>
                 <p>MEM: 64TB // CPU: QUANTUM CORE</p>
             </div>

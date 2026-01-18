@@ -26,6 +26,8 @@ export const ProjectLanding = () => {
             <HoloFrame
                 variant="lines"
                 className="w-full h-full bg-transparent relative overflow-hidden p-0"
+                showAtmosphere={true}
+                showMask={true}
             >
                 {/* Main Flex Layout - Full Width/Height */}
                 <div className="w-full h-full flex flex-col">
@@ -37,10 +39,10 @@ export const ProjectLanding = () => {
 
                         {/* Center Title */}
                         <div className="flex flex-col items-center">
-                            <h1 className="text-[16px] 2xl:text-[20px] font-bold text-cyan-400 tracking-[0.3em]">
+                            <h1 className="text-[16px] 2xl:text-[20px] font-bold text-brand-secondary tracking-[0.3em]">
                                 PROJECT DIRECTORY
                             </h1>
-                            <div className="w-32 2xl:w-40 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mt-1"></div>
+                            <div className="w-32 2xl:w-40 h-[1px] bg-gradient-to-r from-transparent via-brand-primary/50 to-transparent mt-1"></div>
                         </div>
 
                         {/* Right Close Button */}
@@ -49,7 +51,7 @@ export const ProjectLanding = () => {
                                 variant="ghost"
                                 icon={<i className="ri-close-line text-2xl 2xl:text-3xl"></i>}
                                 onClick={() => navigate('/')}
-                                className="text-cyan-500 hover:text-cyan-300 transition-colors"
+                                className="text-brand-primary hover:text-brand-secondary transition-colors"
                                 iconOnly
                             />
                         </div>

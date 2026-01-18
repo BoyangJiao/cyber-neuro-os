@@ -136,27 +136,27 @@ export const HoloTiltCard = ({
             {/* Removed css transitions FROM STYLE to let GSAP handle it */}
             <div
                 ref={tiltRef}
-                className="absolute inset-0 w-full h-full z-0 bg-cyan-950/20 border border-cyan-500/30 overflow-hidden"
+                className="absolute inset-0 w-full h-full z-0 bg-[var(--color-brand-dim)]/20 border border-[var(--color-brand-primary)]/30 overflow-hidden"
                 style={{
                     // Initial State
                     transformStyle: 'preserve-3d',
                 }}
             >
                 {/* 1.1 Pixel Grid Pattern */}
-                <div className={`absolute inset-0 transition-opacity duration-300 bg-[linear-gradient(to_bottom,rgba(6,182,212,0.15)_80%,transparent)] [mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)] [mask-size:4px_4px] ${isHovered ? 'opacity-100' : 'opacity-0'}`}></div>
+                <div className={`absolute inset-0 transition-opacity duration-300 bg-[linear-gradient(to_bottom,var(--color-brand-dim)_80%,transparent)] [mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)] [mask-size:4px_4px] ${isHovered ? 'opacity-100' : 'opacity-0'}`}></div>
 
                 {/* 1.2 Base Dark Background */}
-                <div className="absolute inset-0 bg-cyan-950/40 group-hover:bg-cyan-950/20 transition-colors" />
+                <div className="absolute inset-0 bg-[var(--color-brand-dim)]/40 group-hover:bg-[var(--color-brand-dim)]/20 transition-colors" />
 
                 {/* 1.3 Scanline Effect - Moved INSIDE tilt container for correct physics */}
                 {/* opacity-0 base, animate on hover. Removed explicit opacity-100 to allow animation to handle visibility fade */}
-                <div className="absolute inset-x-0 h-[2px] bg-cyan-400/50 shadow-[0_0_10px_rgba(34,211,238,0.8)] z-50 pointer-events-none opacity-0 group-hover:animate-[scanline_0.3s_linear_1]"></div>
+                <div className="absolute inset-x-0 h-[2px] bg-[var(--color-brand-secondary)]/50 shadow-[0_0_10px_var(--color-brand-glow)] z-50 pointer-events-none opacity-0 group-hover:animate-[scanline_0.3s_linear_1]"></div>
             </div>
 
             {/* 2. Title */}
             {/* Reduced offset from -50px to -30px to prevent overlap with 3D model */}
             <div
-                className={`absolute bottom-10 w-full text-center z-20 transition-transform duration-500 delay-200 font-display text-cyan-50 font-bold tracking-widest uppercase text-xl pointer-events-none ${isHovered ? 'translate-z-[100px]' : ''}`}
+                className={`absolute bottom-10 w-full text-center z-20 transition-transform duration-500 delay-200 font-display text-[var(--color-text-primary)] font-bold tracking-widest uppercase text-xl pointer-events-none ${isHovered ? 'translate-z-[100px]' : ''}`}
                 style={{
                     transform: isHovered ? 'translate3d(0%, -30px, 100px)' : 'translate3d(0%, 0%, 0)'
                 }}
@@ -175,7 +175,7 @@ export const HoloTiltCard = ({
                         className="w-[72px] h-[72px] xl:w-[90px] xl:h-[90px] 2xl:w-[108px] 2xl:h-[108px] object-contain opacity-90"
                     />
                 ) : (
-                    <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-cyan-50 leading-none`}></i>
+                    <i className={`${icon} text-[72px] xl:text-[90px] 2xl:text-[108px] text-[var(--color-text-primary)] leading-none`}></i>
                 )}
             </div>
 

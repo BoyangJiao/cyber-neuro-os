@@ -120,15 +120,25 @@ export const CyberDebugPanel = () => {
                         <div className="w-2 h-2 bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.8)] animate-pulse" />
                         <span className="text-[10px] font-bold text-cyan-400 tracking-[0.2em] uppercase">DEBUG PANEL</span>
                     </div>
-                    <CyberButton
-                        variant="ghost"
-                        size="sm"
-                        iconOnly
-                        onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="text-cyan-600 hover:text-cyan-400 !p-1"
-                    >
-                        <i className={`ri-${isCollapsed ? 'add' : 'subtract'}-line text-sm`} />
-                    </CyberButton>
+                    <div className="flex items-center gap-1">
+                        <CyberButton
+                            variant="ghost"
+                            size="sm"
+                            className="text-[10px] px-2 h-6 text-cyan-600 hover:text-cyan-400 border border-transparent hover:border-cyan-900/50"
+                            onClick={() => window.location.href = '/design-system'}
+                        >
+                            SYS
+                        </CyberButton>
+                        <CyberButton
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            className="text-cyan-600 hover:text-cyan-400 !p-1"
+                        >
+                            <i className={`ri-${isCollapsed ? 'add' : 'subtract'}-line text-sm`} />
+                        </CyberButton>
+                    </div>
                 </div>
 
                 <AnimatePresence>
@@ -147,8 +157,8 @@ export const CyberDebugPanel = () => {
                                         key={tab.key}
                                         onClick={() => setActiveSection(tab.key)}
                                         className={`flex-1 py-1.5 text-[9px] font-semibold tracking-wider uppercase transition-all ${activeSection === tab.key
-                                                ? 'text-cyan-300 bg-cyan-500/10 border-b border-cyan-500'
-                                                : 'text-cyan-700 hover:text-cyan-500'
+                                            ? 'text-cyan-300 bg-cyan-500/10 border-b border-cyan-500'
+                                            : 'text-cyan-700 hover:text-cyan-500'
                                             }`}
                                     >
                                         <i className={`${tab.icon} mr-1`} />

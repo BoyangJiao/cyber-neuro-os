@@ -5,6 +5,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { useLanguage } from '../../i18n';
 import { useTranslation } from '../../i18n';
 import type { Language } from '../../i18n';
+import type { BrandTheme } from '../../store/useAppStore';
 
 interface LanguageOption {
     code: Language;
@@ -12,13 +13,25 @@ interface LanguageOption {
     labelNative: string;
 }
 
+interface ThemeOption {
+    code: BrandTheme;
+    label: string;
+    color: string;
+}
+
 const languages: LanguageOption[] = [
     { code: 'en', label: 'English', labelNative: 'EN' },
     { code: 'zh', label: '中文', labelNative: '中' },
 ];
 
+const themes: ThemeOption[] = [
+    { code: 'cyan', label: '赛博青', color: '#00F0FF' },
+    { code: 'green', label: '赛博绿', color: '#00ff88' },
+    { code: 'red', label: '赛博红', color: '#FF0055' },
+];
+
 export const SettingsModal = () => {
-    const { setSettingsOpen, debugMode, setDebugMode } = useAppStore();
+    const { setSettingsOpen, debugMode, setDebugMode, brandTheme, setBrandTheme } = useAppStore();
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
 
@@ -30,9 +43,9 @@ export const SettingsModal = () => {
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
             transition={{ duration: 0.3, ease: "circOut" }}
         >
-            {/* Backdrop */}
+            {/* Backdrop for the "Force Field Bubble" effect */}
             <div
-                className="absolute inset-0 bg-neutral-950/80 backdrop-blur-sm"
+                className="absolute inset-0 bg-[var(--color-bg-overlay)] backdrop-blur-[2px]"
                 onClick={() => setSettingsOpen(false)}
             />
 
@@ -45,20 +58,16 @@ export const SettingsModal = () => {
                 transition={{ duration: 0.3, ease: "circOut" }}
             >
                 <HoloFrame
-                    variant="lines"
-                    className="bg-neutral-950 relative overflow-hidden"
+                    variant="dots"
+                    className="relative"
                     active={true}
+                // 'dots' variant already applies backdrop-blur-md and bg-black/60
                 >
-                    {/* Scanline Effect */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent animate-[scanline_3s_linear_infinite]" />
-                    </div>
-
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-cyan-500 shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
-                            <h2 className="text-base font-bold text-cyan-400 tracking-[0.3em] uppercase">
+                            <div className="w-1.5 h-5 bg-[var(--color-brand-primary)] shadow-[0_0_10px_var(--color-brand-primary)]" />
+                            <h2 className="text-base font-bold text-[var(--color-brand-secondary)] tracking-[0.3em] uppercase">
                                 {t('settings.title')}
                             </h2>
                         </div>
@@ -67,7 +76,7 @@ export const SettingsModal = () => {
                             size="sm"
                             iconOnly
                             onClick={() => setSettingsOpen(false)}
-                            className="text-cyan-500 hover:text-cyan-300"
+                            className="text-[var(--color-brand-primary)] hover:text-[var(--color-brand-secondary)]"
                         >
                             <i className="ri-close-line text-xl" />
                         </CyberButton>
@@ -78,12 +87,12 @@ export const SettingsModal = () => {
                         {/* Language Section */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
-                                <i className="ri-global-line text-cyan-600" />
-                                <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase">
+                                <i className="ri-global-line text-[var(--color-brand-primary)]/60" />
+                                <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
                                     {t('settings.language')}
                                 </span>
                             </div>
-                            <p className="text-xs text-cyan-800 mb-3">
+                            <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
                                 {t('settings.languageDesc')}
                             </p>
 
@@ -98,21 +107,21 @@ export const SettingsModal = () => {
                                             border transition-all duration-300
                                             group overflow-hidden
                                             ${language === lang.code
-                                                ? 'border-cyan-500 bg-cyan-500/20 text-cyan-50'
-                                                : 'border-cyan-800/50 bg-cyan-950/30 text-cyan-600 hover:border-cyan-600 hover:text-cyan-400'
+                                                ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/20 text-[var(--color-text-primary)]'
+                                                : 'border-[var(--color-text-secondary)]/30 bg-[var(--color-text-brand)]/5 text-[var(--color-text-brand)] hover:border-[var(--color-brand-primary)]/60 hover:text-[var(--color-text-primary)]'
                                             }
                                         `}
                                     >
                                         {/* Glow effect for active */}
                                         {language === lang.code && (
-                                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-cyan-400/20 to-cyan-500/10" />
+                                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-brand-primary)]/10 via-[var(--color-brand-secondary)]/20 to-[var(--color-brand-primary)]/10" />
                                         )}
 
                                         {/* Corner dots */}
-                                        <div className={`absolute top-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-cyan-400' : 'bg-cyan-700'}`} />
-                                        <div className={`absolute top-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-cyan-400' : 'bg-cyan-700'}`} />
-                                        <div className={`absolute bottom-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-cyan-400' : 'bg-cyan-700'}`} />
-                                        <div className={`absolute bottom-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-cyan-400' : 'bg-cyan-700'}`} />
+                                        <div className={`absolute top-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                        <div className={`absolute top-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                        <div className={`absolute bottom-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                        <div className={`absolute bottom-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
 
                                         <div className="relative z-10 flex flex-col items-center gap-1">
                                             <span className="text-lg font-bold tracking-wider">
@@ -125,7 +134,97 @@ export const SettingsModal = () => {
 
                                         {/* Active indicator */}
                                         {language === lang.code && (
-                                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.8)]" />
+                                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[var(--color-brand-secondary)] shadow-[0_0_8px_var(--color-brand-primary)]" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Theme Section */}
+                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
+                            <div className="flex items-center gap-2">
+                                <i className="ri-palette-line text-[var(--color-brand-primary)]/60" />
+                                <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                    品牌主题
+                                </span>
+                            </div>
+                            <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
+                                选择你喜欢的赛博主题色
+                            </p>
+
+                            {/* Theme Toggle */}
+                            <div className="flex gap-2">
+                                {themes.map((theme) => (
+                                    <button
+                                        key={theme.code}
+                                        onClick={() => setBrandTheme(theme.code)}
+                                        className={`
+                                            relative flex-1 py-3 px-4 
+                                            border transition-all duration-300
+                                            group overflow-hidden
+                                            ${brandTheme === theme.code
+                                                ? 'border-current bg-current/20'
+                                                : 'border-neutral-700 bg-neutral-900/50 hover:border-neutral-500'
+                                            }
+                                        `}
+                                        style={{
+                                            color: theme.color,
+                                            borderColor: brandTheme === theme.code ? theme.color : undefined,
+                                        }}
+                                    >
+                                        {/* Glow effect for active */}
+                                        {brandTheme === theme.code && (
+                                            <div
+                                                className="absolute inset-0 opacity-20"
+                                                style={{ backgroundColor: theme.color }}
+                                            />
+                                        )}
+
+                                        {/* Corner dots */}
+                                        <div
+                                            className="absolute top-0 left-0 w-[2px] h-[2px]"
+                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
+                                        />
+                                        <div
+                                            className="absolute top-0 right-0 w-[2px] h-[2px]"
+                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
+                                        />
+                                        <div
+                                            className="absolute bottom-0 left-0 w-[2px] h-[2px]"
+                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
+                                        />
+                                        <div
+                                            className="absolute bottom-0 right-0 w-[2px] h-[2px]"
+                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
+                                        />
+
+                                        <div className="relative z-10 flex flex-col items-center gap-1">
+                                            {/* Color swatch */}
+                                            <div
+                                                className="w-6 h-6 border border-white/20"
+                                                style={{
+                                                    backgroundColor: theme.color,
+                                                    boxShadow: brandTheme === theme.code ? `0 0 12px ${theme.color}` : 'none'
+                                                }}
+                                            />
+                                            <span
+                                                className="text-[10px] tracking-widest uppercase mt-1"
+                                                style={{ color: brandTheme === theme.code ? theme.color : '#888' }}
+                                            >
+                                                {theme.label}
+                                            </span>
+                                        </div>
+
+                                        {/* Active indicator */}
+                                        {brandTheme === theme.code && (
+                                            <div
+                                                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px]"
+                                                style={{
+                                                    backgroundColor: theme.color,
+                                                    boxShadow: `0 0 8px ${theme.color}`
+                                                }}
+                                            />
                                         )}
                                     </button>
                                 ))}
@@ -133,11 +232,11 @@ export const SettingsModal = () => {
                         </div>
 
                         {/* Debug Mode Section */}
-                        <div className="border-t border-cyan-900/30 pt-4 space-y-3">
+                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <i className="ri-bug-line text-cyan-600" />
-                                    <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase">
+                                    <i className="ri-bug-line text-[var(--color-brand-primary)]/60" />
+                                    <span className="text-xs font-semibold text-[var(--color-text-subtle)] tracking-widest uppercase">
                                         DEBUG MODE
                                     </span>
                                 </div>
@@ -146,14 +245,14 @@ export const SettingsModal = () => {
                                     className={`
                                         w-12 h-6 relative rounded-none border transition-all duration-300
                                         ${debugMode
-                                            ? 'border-cyan-500 bg-cyan-500/30'
-                                            : 'border-cyan-800/50 bg-cyan-950/30'
+                                            ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30'
+                                            : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'
                                         }
                                     `}
                                 >
                                     <div
                                         className={`
-                                            absolute top-1 w-4 h-4 bg-cyan-400 transition-all duration-300
+                                            absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300
                                             ${debugMode ? 'left-7' : 'left-1'}
                                         `}
                                     />

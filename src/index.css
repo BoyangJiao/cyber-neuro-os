@@ -1,45 +1,20 @@
 @import "tailwindcss";
-
-@theme {
-    --color-cyan-50: #E0FCFF;
-    --color-cyan-400: #2ED9FF;
-    --color-cyan-500: #00F0FF;
-    --color-cyan-600: #00D2E0;
-    --color-cyan-900: #064E57;
-    --color-cyan-950: #022E33;
-
-    --color-red-500: #FF0055;
-    --color-red-600: #D90048;
-    --color-red-900: #660022;
-
-    --color-neutral-50: #F8F7FA;
-    --color-neutral-100: #E1DFE6;
-    --color-neutral-200: #D6D0D0;
-    --color-neutral-300: #B8B2C2;
-    --color-neutral-400: #9890A6;
-    --color-neutral-500: #7A708A;
-    --color-neutral-600: #5C526E;
-    --color-neutral-700: #403652;
-    --color-neutral-800: #251C36;
-    --color-neutral-900: #0D0221;
-    --color-neutral-950: #050505;
-
-    --color-cyber-DEFAULT: #14B8A6;
-    --color-cyber-50: #F0FDFA;
-    --color-cyber-200: #99F6E4;
-    --color-cyber-700: #0F766E;
-    --color-cyber-800: #115E59;
-    --color-cyber-900: #134E4A;
-    --color-cyber-950: #042F2E;
-
-    --font-display: "Orbitron", "Noto Sans SC", sans-serif;
-    --font-sans: "Bai Jamjuree", "Noto Sans SC", sans-serif;
-    --font-mono: "Share Tech Mono", "Noto Sans SC", monospace;
-    --font-code: "Share Tech Mono", "Noto Sans SC", monospace;
-}
+@import "./styles/tokens.css";
 
 @utility cyber-grid {
     @apply grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4 lg:gap-6 2xl:gap-10;
+}
+
+@utility cyber-glow {
+    background: radial-gradient(ellipse at center,
+            color-mix(in srgb, var(--color-brand-primary), transparent 92%) 0%,
+            color-mix(in srgb, var(--color-brand-primary), transparent 96%) 40%,
+            transparent 90%);
+    box-shadow: inset 0 0 100px color-mix(in srgb, var(--color-brand-primary), transparent 96%);
+}
+
+@utility cyber-mask-h {
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
 /* Hide scrollbar utility */
@@ -61,8 +36,8 @@
     font-weight: 400;
 
     color-scheme: dark;
-    color: var(--color-cyan-50);
-    background-color: var(--color-cyber-950);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-app);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -79,6 +54,36 @@ body {
     /* Prevent scrolling for SPA feel */
 }
 
+/* Global Grid Background */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        linear-gradient(color-mix(in srgb, var(--color-brand-primary), transparent 96%) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--color-brand-primary), transparent 96%) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    background-position: center top;
+}
+
+/* Global Noise Overlay */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    /* Just above the grid (z-index: 0) */
+    opacity: 0.5;
+    /* Start subtle, you can increase this */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    filter: contrast(150%) brightness(100%);
+    mix-blend-mode: overlay;
+}
+
 /* Scrollbar Customization */
 ::-webkit-scrollbar {
     width: 6px;
@@ -86,15 +91,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--color-cyber-900);
+    background: var(--color-neutral-900);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--color-cyan-900);
+    background: var(--color-neutral-700);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-cyan-600);
+    background: var(--color-neutral-600);
 }
 
 /* Utility for removing rounded corners enforced by browser UA or libraries */
@@ -104,8 +109,8 @@ body {
 
 /* Selection */
 ::selection {
-    background: var(--color-cyan-900);
-    color: var(--color-cyan-50);
+    background: var(--color-brand-primary);
+    color: var(--color-text-inverse);
 }
 
 @keyframes scanline {
@@ -260,6 +265,41 @@ body {
     50% {
         opacity: 0.8;
         transform: scaleY(1);
+    }
+}
+
+/* Cyber Button - Scan Sweep Animation */
+@keyframes scanSweep {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Neuro Button - Signal Burst Animation */
+@keyframes signalBurst {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 240, 255, 0);
+        filter: brightness(1);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 2px rgba(0, 240, 255, 0.6);
+        filter: brightness(1.5);
+    }
+
+}
+
+@keyframes shine-slide {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(100%);
     }
 }
 

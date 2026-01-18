@@ -3,6 +3,25 @@ import { create } from 'zustand';
 export type GeometryType = 'project' | 'video' | 'game' | 'sound' | 'music' | 'lab';
 
 // ============================================================
+// Theme Settings - 主题品牌色配置
+// ============================================================
+export type BrandTheme = 'cyan' | 'green' | 'red';
+
+const THEME_SETTINGS_KEY = 'cyber-brand-theme';
+
+const loadSavedTheme = (): BrandTheme => {
+    try {
+        const saved = localStorage.getItem(THEME_SETTINGS_KEY);
+        if (saved && ['cyan', 'green', 'red'].includes(saved)) {
+            return saved as BrandTheme;
+        }
+    } catch (e) {
+        console.warn('Failed to load theme setting:', e);
+    }
+    return 'cyan'; // Default theme
+};
+
+// ============================================================
 // Glitch Effect Settings - 赛博故障效果配置
 // ============================================================
 export interface GlitchSettings {
@@ -104,6 +123,9 @@ interface AppState {
     setSettingsOpen: (open: boolean) => void;
     isAvatarScanning: boolean;
     startAvatarScan: () => void;
+    // Theme
+    brandTheme: BrandTheme;
+    setBrandTheme: (theme: BrandTheme) => void;
     // Debug Mode
     debugMode: boolean;
     setDebugMode: (mode: boolean) => void;
@@ -134,6 +156,17 @@ export const useAppStore = create<AppState>((set) => ({
         setTimeout(() => {
             set({ isAvatarScanning: false, isAboutMeOpen: true });
         }, 350);
+    },
+    // Theme
+    brandTheme: loadSavedTheme(),
+    setBrandTheme: (theme) => {
+        set({ brandTheme: theme });
+        try {
+            localStorage.setItem(THEME_SETTINGS_KEY, theme);
+            document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+            console.warn('Failed to save theme setting:', e);
+        }
     },
     // Debug Mode
     debugMode: false,

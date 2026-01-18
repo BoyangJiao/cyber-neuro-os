@@ -19,8 +19,10 @@ export const AboutMePage = () => {
         >
             <HoloFrame
                 variant="lines"
-                className="w-full h-full bg-neutral-950 relative overflow-hidden p-0"
+                className="w-full h-full bg-[var(--color-bg-app)] relative overflow-hidden p-0"
                 active={true}  // 触发 Arwes FrameLines 入场动效
+                showAtmosphere={true}
+                showMask={true}
             >
                 {/* 主容器布局 */}
                 <div className="w-full h-full flex flex-col">
@@ -34,7 +36,7 @@ export const AboutMePage = () => {
                         <div className="flex items-center gap-3 2xl:gap-4">
                             {/* 连接线终点矩形 - 由 ConnectionLine 组件渲染 */}
                             <div id="about-title-dot" className="w-2 h-2 2xl:w-2.5 2xl:h-2.5 shrink-0"></div>
-                            <h1 className="text-[16px] 2xl:text-[20px] font-bold text-cyan-400 tracking-[0.3em]">
+                            <h1 className="text-[16px] 2xl:text-[20px] font-bold text-brand-secondary tracking-[0.3em]">
                                 {t('about.title')}
                             </h1>
                         </div>
@@ -45,7 +47,7 @@ export const AboutMePage = () => {
                                 variant="ghost"
                                 icon={<i className="ri-close-line text-2xl 2xl:text-3xl"></i>}
                                 onClick={() => setAboutMeOpen(false)}
-                                className="text-cyan-500 hover:text-cyan-300 transition-colors"
+                                className="text-brand-primary hover:text-brand-secondary transition-colors"
                                 iconOnly
                             />
                         </div>

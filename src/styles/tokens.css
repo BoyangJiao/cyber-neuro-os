@@ -1,0 +1,237 @@
+/* ============================================================
+   Design Tokens - Cyber Neuro OS
+   ============================================================
+   This file defines all design tokens for the application.
+   - Primitive Palette: Raw color values (the "scale")
+   - Semantic Tokens: Contextual tokens that reference primitives
+   - Theme Overrides: Brand color switching via data-theme attribute
+   ============================================================ */
+
+@theme {
+    /* ================= PRIMITIVE COLORS ================= */
+    /* Base Black & White */
+    --color-white: #FFFFFF;
+    --color-black: #000000;
+
+    /* Cyan Scale (Primary Brand) */
+    --color-cyan-50: #E0FCFF;
+    --color-cyan-100: #B3F5FF;
+    --color-cyan-200: #80EFFF;
+    --color-cyan-300: #4DE8FF;
+    --color-cyan-400: #2ED9FF;
+    --color-cyan-500: #00F0FF;
+    --color-cyan-600: #00D2E0;
+    --color-cyan-700: #00A3B3;
+    --color-cyan-800: #007A86;
+    --color-cyan-900: #064E57;
+    --color-cyan-950: #022E33;
+
+    /* Red Scale (Danger / Alternate Theme) */
+    --color-red-50: #FFE0E8;
+    --color-red-100: #FFBDD0;
+    --color-red-200: #FF99B8;
+    --color-red-300: #FF6699;
+    --color-red-400: #FF3366;
+    --color-red-500: #FF0055;
+    --color-red-600: #D90048;
+    --color-red-700: #B3003B;
+    --color-red-800: #8C002E;
+    --color-red-900: #660022;
+    --color-red-950: #330011;
+
+    /* Green Scale (Success / Alternate Theme) */
+    --color-green-50: #E0FFE8;
+    --color-green-100: #B3FFCC;
+    --color-green-200: #80FFAA;
+    --color-green-300: #4DFF88;
+    --color-green-400: #33FF88;
+    --color-green-500: #00FF88;
+    --color-green-600: #00CC6A;
+    --color-green-700: #009950;
+    --color-green-800: #006636;
+    --color-green-900: #004D2A;
+    --color-green-950: #002914;
+
+    /* Neutral Scale (White Overlay - For Holographic Feel) */
+    --color-neutral-50: rgba(255, 255, 255, 0.98);
+    --color-neutral-100: rgba(255, 255, 255, 0.94);
+    --color-neutral-200: rgba(255, 255, 255, 0.88);
+    --color-neutral-300: rgba(255, 255, 255, 0.75);
+    --color-neutral-400: rgba(255, 255, 255, 0.63);
+    --color-neutral-500: rgba(255, 255, 255, 0.50);
+    --color-neutral-600: rgba(255, 255, 255, 0.38);
+    --color-neutral-700: rgba(255, 255, 255, 0.25);
+    --color-neutral-800: rgba(255, 255, 255, 0.13);
+    --color-neutral-900: rgba(255, 255, 255, 0.08);
+    --color-neutral-950: rgba(255, 255, 255, 0.04);
+
+    /* ================= SEMANTIC TOKENS ================= */
+
+    /* --- Backgrounds (Ambient Infiltrated) --- */
+    --color-bg-app: color-mix(in srgb, var(--color-brand-primary) 3%, var(--color-black));
+    --color-bg-surface: color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-black));
+    --color-bg-panel: color-mix(in srgb, var(--color-brand-primary) 12%, var(--color-black));
+    --color-bg-overlay: color-mix(in srgb, var(--color-brand-primary) 5%, rgba(0, 0, 0, 0.3));
+    --color-bg-elevated: color-mix(in srgb, var(--color-brand-primary) 15%, var(--color-black));
+
+    /* --- Text --- */
+    --color-text-primary: var(--color-neutral-100);
+    /* Main body text (Signal White) */
+    --color-text-secondary: var(--color-neutral-400);
+    /* Secondary/muted text (Signal Muted) */
+    --color-text-brand: var(--color-brand-primary);
+    /* Brand-colored text (Energy Path) */
+    --color-text-accent: var(--color-white);
+    /* High-impact highlight (Signal High) */
+    --color-text-highlight: var(--color-brand-secondary);
+    /* Highlighted/interactive text */
+    --color-text-inverse: var(--color-neutral-950);
+    /* Text on bright/system-colored backgrounds */
+
+    /* --- Brand --- */
+    --color-brand-primary: var(--color-cyan-500);
+    --color-brand-secondary: var(--color-cyan-400);
+    --color-brand-dim: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+    --color-brand-glow: color-mix(in srgb, var(--color-brand-primary) 50%, transparent);
+
+    /* --- Borders --- */
+    --color-border-default: var(--color-neutral-700);
+    --color-border-subtle: var(--color-neutral-800);
+    --color-border-focus: var(--color-brand-primary);
+    --color-border-accent: var(--color-brand-secondary);
+
+    /* --- Status --- */
+    --color-status-success: var(--color-green-500);
+    --color-status-warning: #FBBF24;
+    --color-status-danger: var(--color-red-500);
+    --color-status-info: var(--color-cyan-500);
+
+    /* ================= TYPOGRAPHY ================= */
+
+    /* Font Families */
+    --font-display: "Orbitron", "Noto Sans SC", sans-serif;
+    --font-sans: "Bai Jamjuree", "Noto Sans SC", sans-serif;
+    --font-mono: "Share Tech Mono", "Noto Sans SC", monospace;
+
+    /* Font Sizes */
+    --font-size-xs: 10px;
+    --font-size-sm: 12px;
+    --font-size-md: 14px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+    --font-size-3xl: 48px;
+    --font-size-4xl: 56px;
+
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Line Heights */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-loose: 1.8;
+
+    /* Letter Spacing */
+    --letter-spacing-tight: -0.02em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.1em;
+    --letter-spacing-wider: 0.2em;
+    --letter-spacing-widest: 0.4em;
+
+    /* ================= SPACING ================= */
+    --spacing-0: 0;
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+    --spacing-12: 48px;
+    --spacing-16: 64px;
+
+    /* Legacy Spacing Names (for compatibility) */
+    --spacing-xs: var(--spacing-1);
+    --spacing-sm: var(--spacing-2);
+    --spacing-md: var(--spacing-3);
+    --spacing-lg: var(--spacing-5);
+    --spacing-xl: var(--spacing-8);
+    --spacing-xxl: var(--spacing-16);
+
+    /* ================= BORDERS ================= */
+    --border-width-thin: 1px;
+    --border-width-default: 1px;
+    --border-width-thick: 2px;
+
+    --radius-none: 0;
+    --radius-sm: 2px;
+    --radius-md: 4px;
+
+    /* ================= EFFECTS ================= */
+
+    /* Transitions */
+    --duration-fast: 100ms;
+    --duration-normal: 200ms;
+    --duration-slow: 400ms;
+
+    --ease-default: ease;
+    --ease-in: ease-in;
+    --ease-out: ease-out;
+    --ease-in-out: ease-in-out;
+    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-out-cyber: cubic-bezier(0.77, 0, 0.175, 1);
+
+    --transition-fast: var(--duration-fast) var(--ease-default);
+    --transition-normal: var(--duration-normal) var(--ease-default);
+    --transition-slow: var(--duration-slow) var(--ease-default);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+    --shadow-glow-subtle: 0 0 8px var(--color-brand-dim);
+    --shadow-glow: 0 0 15px var(--color-brand-glow);
+    --shadow-glow-strong: 0 0 25px var(--color-brand-primary);
+
+    /* ================= Z-INDEX SCALE ================= */
+    --z-base: 0;
+    --z-dropdown: 10;
+    --z-sticky: 20;
+    --z-fixed: 30;
+    --z-modal-backdrop: 40;
+    --z-modal: 50;
+    --z-popover: 60;
+    --z-tooltip: 70;
+    --z-overlay: 100;
+}
+
+/* ============================================================
+   Theme Overrides - 主题品牌色覆盖
+   ============================================================
+   Only brand-related tokens need to be overridden per theme.
+   Text and other tokens automatically follow brand via references.
+   ============================================================ */
+
+/* Default: Cyber Cyan (赛博青色) */
+:root,
+[data-theme="cyan"] {
+    --color-brand-primary: var(--color-cyan-500);
+    --color-brand-secondary: var(--color-cyan-400);
+}
+
+/* Cyber Green (赛博绿色) */
+[data-theme="green"] {
+    --color-brand-primary: var(--color-green-500);
+    --color-brand-secondary: var(--color-green-400);
+}
+
+/* Cyber Red (赛博红色) */
+[data-theme="red"] {
+    --color-brand-primary: var(--color-red-500);
+    --color-brand-secondary: var(--color-red-400);
+}

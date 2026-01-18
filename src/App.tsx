@@ -9,6 +9,7 @@ import { FeaturePanel } from './components/layout/FeaturePanel'
 import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { AboutMePage } from './pages/AboutMePage'
+import { DesignSystemPage } from './pages/DesignSystemPage'
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
@@ -24,11 +25,14 @@ function App() {
   // Enable live mode for Sanity drafts
   useLiveMode({ allowStudioOrigin: 'http://localhost:3333' });
 
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode } = useAppStore();
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
   const location = useLocation();
 
-  // Simulate boot sequence completion
+  // Simulate boot sequence completion and initialize theme
   useEffect(() => {
+    // Initialize theme on first load
+    document.documentElement.setAttribute('data-theme', brandTheme);
+
     // Start boot sequence
     const timer = setTimeout(() => {
       setBootSequence(false);
@@ -38,7 +42,7 @@ function App() {
     useProjectStore.getState().fetchProjects();
 
     return () => clearTimeout(timer);
-  }, [setBootSequence]);
+  }, [setBootSequence, brandTheme]);
 
   if (isBootSequenceActive) {
     return (
@@ -48,21 +52,23 @@ function App() {
     );
   }
 
-  // Check if we are on a project detail page
+  // Check if we are on a project detail page OR design system page
   const isDetailPage = location.pathname.startsWith('/projects/') && location.pathname.split('/').length > 2;
+  const isDesignSystemPage = location.pathname === '/design-system';
+  const isFullWidth = isDetailPage || isDesignSystemPage;
 
   return (
     <LanguageProvider>
-      <div className="bg-neutral-950 min-h-screen w-full overflow-hidden text-cyan-500 font-sans selection:bg-cyan-500/30">
+      <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Grid System */}
           <div className="cyber-grid h-full items-stretch relative">
 
-            {/* LEFT PROFILE COLUMN (static) - Hidden on Detail Page */}
-            {!isDetailPage && <ProfileSidebar />}
+            {/* LEFT PROFILE COLUMN (static) - Hidden on Detail/FullWidth Page */}
+            {!isFullWidth && <ProfileSidebar />}
 
-            {/* CENTER MAIN GRID (dynamic) - Expands to full width on Detail Page */}
-            <div className={`${isDetailPage ? 'col-span-12' : 'col-span-1 md:col-span-3 lg:col-span-8'} h-full relative overflow-hidden`}>
+            {/* CENTER MAIN GRID (dynamic) - Expands to full width on Detail/FullWidth Page */}
+            <div className={`${isFullWidth ? 'col-span-12' : 'col-span-1 md:col-span-3 lg:col-span-8'} h-full relative overflow-hidden`}>
               <AnimatePresence mode='wait'>
                 {/* 
                    Consolidated Routing:
@@ -73,6 +79,7 @@ function App() {
                   <Route path="/" element={<FeaturePanel />} />
                   <Route path="/projects" element={<ProjectLanding />} />
                   <Route path="/projects/:projectId" element={<ProjectDetail />} />
+                  <Route path="/design-system" element={<DesignSystemPage />} />
                 </Routes>
               </AnimatePresence>
 
@@ -82,8 +89,8 @@ function App() {
               </AnimatePresence>
             </div>
 
-            {/* RIGHT EMPTY COLUMN (static) - Hidden on Detail Page */}
-            {!isDetailPage && <StatusSidebar />}
+            {/* RIGHT EMPTY COLUMN (static) - Hidden on Detail/FullWidth Page */}
+            {!isFullWidth && <StatusSidebar />}
 
           </div>
 
