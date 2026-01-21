@@ -21,9 +21,9 @@ export const DesignSystemPage = () => {
     const [testPressed, setTestPressed] = useState(false);
 
     return (
-        <div className="h-full w-full bg-neutral-950 text-cyan-500 font-sans p-8 overflow-y-auto custom-scrollbar">
+        <div className="h-full w-full bg-bg-app text-brand-primary font-sans p-8 overflow-y-auto custom-scrollbar">
             {/* Header */}
-            <div className="flex items-center justify-between mb-12 border-b border-cyan-900/50 pb-6">
+            <div className="flex items-center justify-between mb-12 border-b border-border-subtle pb-6">
                 <div className="flex items-center gap-6">
                     <CyberButton
                         variant="ghost"
@@ -43,7 +43,7 @@ export const DesignSystemPage = () => {
                     </div>
                 </div>
                 <div className="flex gap-4">
-                    <div className="px-4 py-2 border border-cyan-800/50 rounded bg-cyan-950/30 text-xs font-mono">
+                    <div className="px-4 py-2 border border-border-default rounded bg-brand-dim text-xs font-mono">
                         v2.0.0
                     </div>
                 </div>
@@ -54,19 +54,19 @@ export const DesignSystemPage = () => {
                 {/* ==================== BUTTONS SECTION ==================== */}
                 <section className="space-y-12">
                     <div className="flex items-center gap-4 mb-8">
-                        <div className="h-10 w-1 bg-cyan-500 shadow-[0_0_10px_cyan]" />
+                        <div className="h-10 w-1 bg-brand-primary shadow-glow" />
                         <h2 className="text-2xl font-bold tracking-widest text-white">BUTTON COMPONENTS</h2>
                     </div>
 
                     {/* 1. NeuroButton (Dot Variant) */}
                     <div className="space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-cyan-300">
                                 {"<NeuroButton />"} / variant="dot"
                             </h3>
                             <span className="text-xs text-cyan-700">Digital / Data-Driven / Matrix</span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-cyan-950/10 rounded-xl border border-cyan-900/30 relative overflow-hidden group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-brand-dim rounded-xl border border-border-subtle relative overflow-hidden group">
                             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(6,182,212,0.05)_50%,transparent_75%)] bg-[length:250%_250%] group-hover:animate-shine pointer-events-none" />
 
                             <div className="space-y-4">
@@ -91,13 +91,13 @@ export const DesignSystemPage = () => {
 
                     {/* 2. ChamferButton (Chamfer Variant) */}
                     <div className="space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-cyan-300">
                                 {"<ChamferButton />"} / variant="chamfer"
                             </h3>
                             <span className="text-xs text-cyan-700">Mechanical / Industrial / Strong</span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-cyan-950/10 rounded-xl border border-cyan-900/30">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-brand-dim rounded-xl border border-border-subtle">
                             <div className="flex flex-col gap-4">
                                 <ChamferButton>Cyan Default</ChamferButton>
                                 <ChamferButton color="green">Green (Cyber)</ChamferButton>
@@ -108,7 +108,7 @@ export const DesignSystemPage = () => {
                                     <ChamferButton color="green" className="flex-1">Approved</ChamferButton>
                                 </div>
                             </div>
-                            <div className="flex flex-col justify-center items-center gap-4 border-l border-cyan-900/30 pl-6">
+                            <div className="flex flex-col justify-center items-center gap-4 border-l border-border-subtle pl-6">
                                 <p className="text-xs text-center text-cyan-600">Supports custom sizing</p>
                                 <ChamferButton className="h-16 text-xl tracking-[0.2em] w-full">
                                     DEPLOY
@@ -119,13 +119,13 @@ export const DesignSystemPage = () => {
 
                     {/* 3. CornerButton (Corner Variant) */}
                     <div className="space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-cyan-300">
                                 {"<CornerButton />"} / variant="corner"
                             </h3>
                             <span className="text-xs text-cyan-700">HUD / Tactical / Minimal</span>
                         </div>
-                        <div className="p-8 bg-cyan-950/10 rounded-xl border border-cyan-900/30 flex flex-wrap gap-8 items-center justify-center">
+                        <div className="p-8 bg-brand-dim rounded-xl border border-border-subtle flex flex-wrap gap-8 items-center justify-center">
                             <CornerButton>
                                 <span className="mr-8">NAVIGATION</span>
                                 <i className="ri-arrow-right-line" />
@@ -143,19 +143,19 @@ export const DesignSystemPage = () => {
 
                     {/* 4. GhostButton */}
                     <div className="space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-cyan-300">
                                 {"<GhostButton />"} / variant="ghost"
                             </h3>
                             <span className="text-xs text-cyan-700">Secondary / Navigation</span>
                         </div>
-                        <div className="p-8 bg-cyan-950/10 rounded-xl border border-cyan-900/30 flex flex-wrap gap-6 items-center">
+                        <div className="p-8 bg-brand-dim rounded-xl border border-border-subtle flex flex-wrap gap-6 items-center">
                             <GhostButton>Cancel Operation</GhostButton>
                             <GhostButton className="text-purple-400 hover:text-purple-200">
                                 <i className="ri-magic-line mr-2" />
                                 Magic Mode
                             </GhostButton>
-                            <div className="h-12 w-[1px] bg-cyan-900/50" />
+                            <div className="h-12 w-[1px] bg-border-subtle" />
                             <CyberButton variant="ghost" iconOnly>
                                 <i className="ri-more-2-fill" />
                             </CyberButton>
@@ -173,7 +173,7 @@ export const DesignSystemPage = () => {
 
                     {/* 1. CornerFrame (Avatar/Display) */}
                     <div className="space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-purple-300">
                                 {"<CornerFrame />"} / variant="corner"
                             </h3>
@@ -215,7 +215,7 @@ export const DesignSystemPage = () => {
 
                     {/* 2. DotsFrame (Modal/Window) */}
                     <div className="space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-purple-300">
                                 {"<DotsFrame />"} / variant="dots"
                             </h3>
@@ -239,7 +239,7 @@ export const DesignSystemPage = () => {
                     {/* 3. Lines & Chamfer Frames */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-6">
-                            <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                            <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                                 <h3 className="text-lg font-mono text-purple-300">LinesFrame</h3>
                             </div>
                             <div className="h-40 relative">
@@ -252,7 +252,7 @@ export const DesignSystemPage = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                            <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                                 <h3 className="text-lg font-mono text-purple-300">ChamferFrame</h3>
                             </div>
                             <div className="h-40 relative">
@@ -267,7 +267,7 @@ export const DesignSystemPage = () => {
 
                     {/* 4. Complex Interactions */}
                     <div className="mt-12 space-y-6">
-                        <div className="flex justify-between items-end border-b border-dashed border-cyan-900/50 pb-2">
+                        <div className="flex justify-between items-end border-b border-dashed border-border-subtle pb-2">
                             <h3 className="text-lg font-mono text-white">
                                 Complex Components
                             </h3>

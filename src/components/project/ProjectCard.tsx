@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge';
 
 // Configuration constants
 const CARD_WIDTH = 400;
-const CARD_HEIGHT = 240;
+const CARD_HEIGHT = 225;
 const DECO_DELAY_MS = 500;
 
 interface ProjectCardProps {
@@ -57,7 +57,7 @@ export const ProjectCard = ({
                 transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
             }}
         >
-            <div className="relative w-full h-full" style={frameStyles}>
+            <div className="relative w-full h-full p-4" style={frameStyles}>
                 {/* Inactive corner decoration - fade out */}
                 <div
                     className={twMerge(
@@ -65,7 +65,7 @@ export const ProjectCard = ({
                         delayedActive ? "opacity-0 duration-0" : "opacity-100"
                     )}
                 >
-                    <CornerFrame strokeWidth={2} cornerSize={12} color="var(--color-cyan-900)" />
+                    <CornerFrame strokeWidth={2} cornerSize={12} color="var(--color-brand-secondary)" />
                 </div>
 
                 {/* Active corner decoration - fade in with glow */}
@@ -84,10 +84,10 @@ export const ProjectCard = ({
                 </div>
 
                 {/* Background Layer: Image or Gradient + Icon Watermark */}
-                <div className="absolute inset-0 z-0 overflow-hidden bg-neutral-900">
+                <div className="absolute inset-0 z-0 overflow-hidden">
                     {project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/') ? (
                         // Image Background
-                        <div className="absolute inset-0">
+                        <div className="absolute inset-4">
                             <div className="absolute inset-0 bg-neutral-900/20 z-0" />
                             <img
                                 src={project.thumbnail}
@@ -102,11 +102,11 @@ export const ProjectCard = ({
                         </div>
                     ) : (
                         // Fallback: Gradient + Icon Watermark
-                        <div className="absolute inset-0 card-gradient-bg">
+                        <div className="absolute inset-4 card-gradient-bg">
                             <i
                                 className={twMerge(
                                     project.thumbnail || 'ri-code-s-slash-line',
-                                    "absolute -bottom-4 -right-4 text-[120px] text-cyan-500/10 pointer-events-none transition-transform duration-500",
+                                    "absolute -bottom-4 -right-4 text-[120px] text-brand-primary/10 pointer-events-none transition-transform duration-500",
                                     isActive ? "scale-110 translate-x-2 translate-y-2" : "scale-100"
                                 )}
                             />
@@ -115,7 +115,7 @@ export const ProjectCard = ({
                 </div>
 
                 {/* Card Content */}
-                <div className="relative w-full h-full flex flex-col justify-end p-6 z-[1]">
+                <div className="relative w-full h-full flex flex-col justify-end p-6 z-10">
                     <div className="flex flex-col gap-2 transform transition-transform duration-300 translate-z-10">
                         {/* Title */}
                         <h3

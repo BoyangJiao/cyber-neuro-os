@@ -12,7 +12,7 @@ export const ProjectInfo = ({ project }: ProjectInfoProps) => {
     return (
         <div className="w-full max-w-[calc((100%-48px)/12*4)] 2xl:max-w-[calc((100%-60px)/12*4)] flex flex-col items-center justify-start text-center gap-2 2xl:gap-3">
             {/* Project Name */}
-            <h2 className="text-[16px] 2xl:text-[20px] font-bold font-sans text-cyan-400 tracking-wider uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.6)] truncate w-full">
+            <h2 className="text-[16px] 2xl:text-[20px] font-bold font-sans text-brand-primary tracking-wider uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.6)] truncate w-full">
                 {project.title}
             </h2>
 
@@ -21,7 +21,7 @@ export const ProjectInfo = ({ project }: ProjectInfoProps) => {
                 {(project.techStack || []).map((tech, index) => (
                     <span
                         key={index}
-                        className="px-2 py-0.5 text-[10px] 2xl:text-[12px] font-mono font-medium text-cyan-400 bg-cyan-950/30 border border-cyan-500/20"
+                        className="px-2 py-0.5 text-[10px] 2xl:text-[12px] font-mono font-medium text-brand-primary bg-brand-dim border border-brand-primary/20"
                     >
                         {tech}
                     </span>
@@ -30,7 +30,7 @@ export const ProjectInfo = ({ project }: ProjectInfoProps) => {
 
             {/* Project Description - Fixed height for exactly 3 lines */}
             <p
-                className="text-[12px] 2xl:text-[14px] font-normal font-sans text-cyan-500/80 leading-relaxed w-full overflow-hidden h-[59px] 2xl:h-[68px]"
+                className="text-[12px] 2xl:text-[14px] font-normal font-sans text-brand-secondary leading-relaxed w-full overflow-hidden h-[59px] 2xl:h-[68px]"
                 style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 3,

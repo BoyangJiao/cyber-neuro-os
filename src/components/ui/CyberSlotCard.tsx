@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
+import { PixelGridEffect } from './effects';
 
 export interface CyberSlotCardProps {
     title: string;
@@ -130,15 +131,7 @@ export const CyberSlotCard = ({
                     />
 
                     {/* 像素网格背景 - 扫描完成后显示（与 FeatureCard 一致） */}
-                    <div
-                        className={twMerge(
-                            "absolute inset-0 transition-opacity duration-300",
-                            "bg-[linear-gradient(to_bottom,var(--color-brand-dim)_80%,transparent)]",
-                            "[mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)]",
-                            "[mask-size:4px_4px]",
-                            isActive ? "opacity-100" : "opacity-0"
-                        )}
-                    />
+                    <PixelGridEffect active={isActive} />
 
                     {/* 扫描线 */}
                     {scanProgress > 0 && scanProgress < 100 && (

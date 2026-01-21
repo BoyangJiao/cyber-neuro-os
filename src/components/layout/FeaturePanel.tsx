@@ -55,7 +55,7 @@ export const FeaturePanel = () => {
             <div className="absolute inset-0 z-[100] pointer-events-none">
                 <Canvas
                     className="w-full h-full"
-                    eventSource={containerRef as any}
+                    eventSource={containerRef as React.RefObject<HTMLElement>}
                     gl={{ alpha: true, antialias: true }}
                 >
                     <View.Port />
@@ -74,7 +74,7 @@ export const FeaturePanel = () => {
                             className="feature-card snap-center shrink-0 w-[85vw] lg:w-full h-[60vh] lg:h-full"
                         >
                             {item.titleKey === 'features.project' ? (
-                                <MotionDiv layoutId="project-expand" className="h-full">
+                                <MotionDiv className="h-full">
                                     <Link to={item.link!} className="block h-full">
                                         <HoloFeatureCard
                                             title={t(item.titleKey)}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CyberLine } from '../ui/CyberLine';
+import { GhostText } from '../ui/GhostText';
 import { useTranslation } from '../../i18n';
 
 export const Header = () => {
@@ -31,7 +32,7 @@ export const Header = () => {
                     className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => navigate('/')}
                 >
-                    <h1 className="relative text-[18px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
+                    <h1 className="relative text-[16px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
                         {/* Main Text Layer */}
                         <span className="relative z-10 text-brand-primary">
                             {t('header.brand')} <span className="text-brand-primary">{t('header.brandHighlight')}</span>
@@ -48,27 +49,27 @@ export const Header = () => {
                 {/* Right: Status Info - Single Row */}
                 <div className="hidden lg:flex items-center justify-end gap-4 2xl:gap-6 font-display tracking-widest">
                     {/* ONLINE Status with Ghost Effect */}
-                    <span className="relative inline-block text-status-success font-bold text-sm 2xl:text-base">
-                        <span className="relative z-10">{t('header.online')}</span>
-                        {/* Ghost / Afterimage Layer */}
-                        <span className="absolute bottom-[3px] left-[4px] text-status-success/50 blur-[1px] select-none pointer-events-none" aria-hidden="true">
-                            {t('header.online')}
-                        </span>
-                    </span>
+                    <GhostText
+                        className="text-status-success font-bold text-sm 2xl:text-base"
+                        ghostOpacity={0.5}
+                        ghostOffset="bottom-[3px] left-[4px]"
+                    >
+                        {t('header.online')}
+                    </GhostText>
 
                     {/* Time with Ghost Effect */}
-                    <span className="relative inline-block text-[var(--color-text-primary)] font-bold text-sm 2xl:text-base font-sans">
-                        <span className="relative z-10">{formatTime(time)}</span>
-                        {/* Ghost / Afterimage Layer - Energy Color */}
-                        <span className="absolute bottom-[3px] left-[4px] text-[var(--color-brand-primary)]/40 blur-[1px] select-none pointer-events-none" aria-hidden="true">
-                            {formatTime(time)}
-                        </span>
-                    </span>
+                    <GhostText
+                        className="text-text-primary font-bold text-sm 2xl:text-base font-sans"
+                        ghostOpacity={0.4}
+                        ghostOffset="bottom-[3px] left-[4px]"
+                    >
+                        {formatTime(time)}
+                    </GhostText>
                 </div>
             </div>
 
-            {/* Header Decorative Bottom Line */}
-            <div className="absolute bottom-0 left-4 right-4 lg:left-6 lg:right-6 xl:left-10 xl:right-10 2xl:left-12 2xl:right-12">
+            {/* Header Decorative Bottom Line - Full Width */}
+            <div className="absolute bottom-0 left-0 right-0 mx-6 2xl:mx-10">
                 <CyberLine variant="surface" className="w-full" />
             </div>
         </header>

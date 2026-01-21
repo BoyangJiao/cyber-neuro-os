@@ -4,7 +4,10 @@ export interface Project {
     description: string;
     techStack: string[];
     status: string | 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
-    thumbnail: string; // Placeholder for now
+    thumbnail: string;
+    projectType?: string;  // e.g. 'UI/UX', 'Game', 'Web3'
+    timeline?: string;     // e.g. '2024'
+    liveUrl?: string;      // Live project URL
 }
 
 export const projects: Project[] = [
@@ -55,29 +58,5 @@ export const projects: Project[] = [
         techStack: ['Rust', 'PostgreSQL', 'WASM'],
         status: 'DEPLOYED',
         thumbnail: 'ri-database-2-line'
-    },
-    {
-        id: 'p7',
-        title: 'GHOST SHELL',
-        description: 'Cybersecurity penetration testing framework.',
-        techStack: ['Kali', 'Bash', 'Go'],
-        status: 'CLASSIFIED',
-        thumbnail: 'ri-spy-line'
-    },
-    {
-        id: 'p8',
-        title: 'ECHO CHAMBER',
-        description: 'Social sentiment analysis using NLP.',
-        techStack: ['Node.js', 'OpenAI', 'Redis'],
-        status: 'IN_DEVELOPMENT',
-        thumbnail: 'ri-message-3-line'
-    },
-    {
-        id: 'p9',
-        title: 'SYNTH WAVE',
-        description: 'Generative music platform powered by emotional state.',
-        techStack: ['WebAudio API', 'Tone.js', 'Vue'],
-        status: 'DEPLOYED',
-        thumbnail: 'ri-pulse-line'
     }
 ];

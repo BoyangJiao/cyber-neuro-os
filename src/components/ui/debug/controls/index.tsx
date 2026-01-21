@@ -57,10 +57,15 @@ interface EffectSliderProps {
     value: number;
     onChange: (v: number) => void;
     disabled?: boolean;
+    min?: number;
+    max?: number;
+    step?: number;
 }
 
-export const EffectSlider = ({ label, description, value, onChange, disabled }: EffectSliderProps) => {
-    const isActive = value > 0;
+export const EffectSlider = ({ label, description, value, onChange, disabled, min = 0, max = 1, step = 0.01 }: EffectSliderProps) => {
+    const isActive = value > min;
+    // Display as percentage if range is 0-1, otherwise show raw value
+    const displayValue = max <= 1 ? `${(value * 100).toFixed(0)}%` : `${value}`;
     return (
         <div className={`space-y-0.5 ${disabled ? 'opacity-40' : ''}`}>
             <div className="flex items-center justify-between">
@@ -69,9 +74,9 @@ export const EffectSlider = ({ label, description, value, onChange, disabled }: 
                     <span className="text-[9px] font-semibold text-cyan-500 tracking-wider">{label}</span>
                     <span className="text-[8px] text-cyan-800">{description}</span>
                 </div>
-                <span className="text-[9px] text-cyan-600 font-mono w-8 text-right">{(value * 100).toFixed(0)}%</span>
+                <span className="text-[9px] text-cyan-600 font-mono w-12 text-right">{displayValue}</span>
             </div>
-            <CyberSlider value={value} onChange={onChange} disabled={disabled} />
+            <CyberSlider value={value} onChange={onChange} disabled={disabled} min={min} max={max} step={step} />
         </div>
     );
 };

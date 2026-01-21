@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { HoloFrame } from './HoloFrame';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { MotionDiv } from '../motion/MotionWrappers';
+import { PixelGridEffect, ScanlineEffect } from './effects';
 
 export interface FeatureCardProps {
     title: string;
@@ -10,6 +12,7 @@ export interface FeatureCardProps {
 
 export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
     const { playHover, playClick } = useSoundSystem();
+    const [isHovered, setIsHovered] = useState(false);
 
     return (
         <HoloFrame
@@ -19,14 +22,18 @@ export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
                 playClick();
                 onClick?.();
             }}
-            onMouseEnter={() => playHover()}
+            onMouseEnter={() => {
+                playHover();
+                setIsHovered(true);
+            }}
+            onMouseLeave={() => setIsHovered(false)}
             background={
                 <>
-                    {/* Hover Background: Pixel Pattern (Solid Squares) */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[linear-gradient(to_bottom,var(--color-brand-dim)_80%,transparent)] [mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)] [mask-size:4px_4px]"></div>
+                    {/* Hover Background: Pixel Pattern */}
+                    <PixelGridEffect active={isHovered} />
 
                     {/* Scanline Animation */}
-                    <div className="absolute inset-x-0 h-[2px] bg-[var(--color-brand-secondary)]/50 shadow-[0_0_10px_var(--color-brand-glow)] opacity-0 group-hover:animate-[scanline_0.3s_linear_1] pointer-events-none"></div>
+                    <ScanlineEffect variant="flash" active={isHovered} />
                 </>
             }
         >

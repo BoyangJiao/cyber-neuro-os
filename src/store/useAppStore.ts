@@ -51,6 +51,35 @@ const defaultGlitchSettings: GlitchSettings = {
 };
 
 // ============================================================
+// Transition Glitch Settings - Mission Briefing 切换效果配置
+// ============================================================
+export interface TransitionGlitchSettings {
+    enabled: boolean;
+    rgbSplit: number;          // 0-30 px
+    skewAngle: number;         // 0-20 deg
+    displacement: number;      // 0-30 px
+    flickerIntensity: number;  // 0-1
+    sliceAmount: number;       // 0-1
+    duration: number;          // 100-800 ms
+    hueRotate: number;         // 0-180 deg - 色调旋转
+    colorInvert: number;       // 0-1 - 颜色反转
+    saturate: number;          // 0.5-2 - 饱和度
+}
+
+const defaultTransitionGlitchSettings: TransitionGlitchSettings = {
+    enabled: false, // 默认使用平滑过渡，glitch 可通过 Debug Panel 启用
+    rgbSplit: 10,
+    skewAngle: 8,
+    displacement: 12,
+    flickerIntensity: 0.7,
+    sliceAmount: 0.5,
+    duration: 400,
+    hueRotate: 30,
+    colorInvert: 0.3,
+    saturate: 1.2,
+};
+
+// ============================================================
 // Cyber RGB Effect Settings - 赛博色彩效果配置
 // ============================================================
 export interface CyberRgbSettings {
@@ -86,6 +115,7 @@ const defaultCyberRgbSettings: CyberRgbSettings = {
 // ============================================================
 const GLITCH_SETTINGS_KEY = 'cyber-glitch-settings';
 const CYBER_RGB_SETTINGS_KEY = 'cyber-rgb-settings';
+const TRANSITION_GLITCH_SETTINGS_KEY = 'cyber-transition-glitch-settings';
 
 const loadSavedGlitchSettings = (): GlitchSettings => {
     try {
@@ -109,6 +139,18 @@ const loadSavedCyberRgbSettings = (): CyberRgbSettings => {
         console.warn('Failed to load cyber RGB settings:', e);
     }
     return { ...defaultCyberRgbSettings };
+};
+
+const loadSavedTransitionGlitchSettings = (): TransitionGlitchSettings => {
+    try {
+        const saved = localStorage.getItem(TRANSITION_GLITCH_SETTINGS_KEY);
+        if (saved) {
+            return { ...defaultTransitionGlitchSettings, ...JSON.parse(saved) };
+        }
+    } catch (e) {
+        console.warn('Failed to load transition glitch settings:', e);
+    }
+    return { ...defaultTransitionGlitchSettings };
 };
 
 // ============================================================
@@ -141,6 +183,11 @@ interface AppState {
     setCyberRgbSetting: <K extends keyof CyberRgbSettings>(key: K, value: CyberRgbSettings[K]) => void;
     resetCyberRgbSettings: () => void;
     saveCyberRgbSettings: () => void;
+    // Transition Glitch Settings
+    transitionGlitchSettings: TransitionGlitchSettings;
+    setTransitionGlitchSetting: <K extends keyof TransitionGlitchSettings>(key: K, value: TransitionGlitchSettings[K]) => void;
+    resetTransitionGlitchSettings: () => void;
+    saveTransitionGlitchSettings: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -199,6 +246,20 @@ export const useAppStore = create<AppState>((set) => ({
             localStorage.setItem(CYBER_RGB_SETTINGS_KEY, JSON.stringify(state.cyberRgbSettings));
         } catch (e) {
             console.warn('Failed to save cyber RGB settings:', e);
+        }
+    },
+    // Transition Glitch Settings
+    transitionGlitchSettings: loadSavedTransitionGlitchSettings(),
+    setTransitionGlitchSetting: (key, value) => set((state) => ({
+        transitionGlitchSettings: { ...state.transitionGlitchSettings, [key]: value }
+    })),
+    resetTransitionGlitchSettings: () => set({ transitionGlitchSettings: { ...defaultTransitionGlitchSettings } }),
+    saveTransitionGlitchSettings: () => {
+        const state = useAppStore.getState();
+        try {
+            localStorage.setItem(TRANSITION_GLITCH_SETTINGS_KEY, JSON.stringify(state.transitionGlitchSettings));
+        } catch (e) {
+            console.warn('Failed to save transition glitch settings:', e);
         }
     },
 }));

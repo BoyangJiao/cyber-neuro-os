@@ -61,12 +61,12 @@ export const AboutMePage = () => {
                             {/* 工作经历 */}
                             <div className="flex gap-6 2xl:gap-10">
                                 <div className="w-48 2xl:w-64 shrink-0">
-                                    <span className="text-xs 2xl:text-sm font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
+                                    <span className="text-xs 2xl:text-sm font-semibold text-brand-secondary tracking-widest uppercase leading-relaxed">
                                         {t('about.workExperience.label')}
                                     </span>
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm 2xl:text-base text-cyan-50 leading-relaxed 2xl:leading-loose">
+                                    <p className="text-sm 2xl:text-base text-text-primary leading-relaxed 2xl:leading-loose">
                                         {t('about.workExperience.content')}
                                     </p>
                                 </div>

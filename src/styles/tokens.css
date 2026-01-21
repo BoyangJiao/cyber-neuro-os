@@ -83,14 +83,14 @@
     /* Brand-colored text (Energy Path) */
     --color-text-accent: var(--color-white);
     /* High-impact highlight (Signal High) */
-    --color-text-highlight: var(--color-brand-secondary);
+    --color-text-muted: var(--color-brand-secondary);
     /* Highlighted/interactive text */
     --color-text-inverse: var(--color-neutral-950);
     /* Text on bright/system-colored backgrounds */
 
     /* --- Brand --- */
     --color-brand-primary: var(--color-cyan-500);
-    --color-brand-secondary: var(--color-cyan-400);
+    --color-brand-secondary: var(--color-cyan-700);
     --color-brand-dim: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
     --color-brand-glow: color-mix(in srgb, var(--color-brand-primary) 50%, transparent);
 
@@ -221,17 +221,17 @@
 :root,
 [data-theme="cyan"] {
     --color-brand-primary: var(--color-cyan-500);
-    --color-brand-secondary: var(--color-cyan-400);
+    --color-brand-secondary: var(--color-cyan-700);
 }
 
 /* Cyber Green (赛博绿色) */
 [data-theme="green"] {
     --color-brand-primary: var(--color-green-500);
-    --color-brand-secondary: var(--color-green-400);
+    --color-brand-secondary: var(--color-green-700);
 }
 
 /* Cyber Red (赛博红色) */
 [data-theme="red"] {
     --color-brand-primary: var(--color-red-500);
-    --color-brand-secondary: var(--color-red-400);
+    --color-brand-secondary: var(--color-red-700);
 }

@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
-    include: ['@sanity/visual-editing/react']
+    include: ['@sanity/visual-editing/react', 'styled-components']
   },
   server: {
     port: 5173,

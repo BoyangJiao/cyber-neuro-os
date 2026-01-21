@@ -7,13 +7,14 @@ import { AnimatePresence } from 'framer-motion';
 import { GeometryTab } from './GeometryTab';
 import { GlitchTab } from './GlitchTab';
 import { CyberRgbTab } from './CyberRgbTab';
+import { TransitionTab } from './TransitionTab';
 
 const MIN_WIDTH = 280;
 const MIN_HEIGHT = 300;
 const DEFAULT_WIDTH = 360;
 const DEFAULT_HEIGHT = 520;
 
-type TabType = 'geometry' | 'glitch' | 'cyberrgb';
+type TabType = 'geometry' | 'glitch' | 'cyberrgb' | 'transition';
 
 /**
  * CyberDebugPanel - 可拖拽/缩放的赛博朋克风格调试面板
@@ -37,14 +38,15 @@ export const CyberDebugPanel = () => {
     const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const { saveGlitchSettings, saveCyberRgbSettings } = useAppStore();
+    const { saveGlitchSettings, saveCyberRgbSettings, saveTransitionGlitchSettings } = useAppStore();
 
     const handleSave = useCallback(() => {
         saveGlitchSettings();
         saveCyberRgbSettings();
+        saveTransitionGlitchSettings();
         setSaveFlash(true);
         setTimeout(() => setSaveFlash(false), 800);
-    }, [saveGlitchSettings, saveCyberRgbSettings]);
+    }, [saveGlitchSettings, saveCyberRgbSettings, saveTransitionGlitchSettings]);
 
     const handleDragStart = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -94,6 +96,7 @@ export const CyberDebugPanel = () => {
         { key: 'geometry', label: 'GEO', icon: 'ri-shapes-line' },
         { key: 'cyberrgb', label: 'RGB', icon: 'ri-palette-line' },
         { key: 'glitch', label: 'GLITCH', icon: 'ri-flashlight-line' },
+        { key: 'transition', label: 'TRANS', icon: 'ri-slideshow-3-line' },
     ];
 
     return (
@@ -172,6 +175,7 @@ export const CyberDebugPanel = () => {
                                 {activeSection === 'geometry' && <GeometryTab />}
                                 {activeSection === 'cyberrgb' && <CyberRgbTab onSave={handleSave} saveFlash={saveFlash} />}
                                 {activeSection === 'glitch' && <GlitchTab onSave={handleSave} saveFlash={saveFlash} />}
+                                {activeSection === 'transition' && <TransitionTab onSave={handleSave} saveFlash={saveFlash} />}
                             </div>
 
                             {/* Resize Handle */}

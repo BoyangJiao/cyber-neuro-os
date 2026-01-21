@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { MotionDiv } from '../components/motion/MotionWrappers';
 import { useQuery } from '../sanity/client';
@@ -13,9 +13,13 @@ import type { SanityProjectDetail } from '../data/projectDetails';
 import { getProjectDetail } from '../data/projectDetails';
 
 export const ProjectDetail = () => {
-    const { projectId } = useParams<{ projectId: string }>();
+    const location = useLocation();
     const navigate = useNavigate();
     const { projects } = useProjectStore();
+
+    // Manually extract projectId since we are rendered outside of Routes
+    const match = matchPath('/projects/:projectId', location.pathname);
+    const projectId = match?.params.projectId;
 
     // Data State
     const [detail, setDetail] = useState<SanityProjectDetail | null>(null);
@@ -25,7 +29,6 @@ export const ProjectDetail = () => {
     // UI State
     const [activeSection, setActiveSection] = useState('');
     const [isHeroVisible, setIsHeroVisible] = useState(true);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     // Refs
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -114,15 +117,13 @@ export const ProjectDetail = () => {
         navigate('/projects');
     }, [navigate]);
 
-    const toggleSidebar = useCallback(() => {
-        setIsSidebarCollapsed(prev => !prev);
-    }, []);
+
 
     // Render Logic
     if (isLoading) {
         return (
             <div className="w-full h-full flex items-center justify-center bg-black">
-                <div className="text-cyan-500 font-mono text-sm 2xl:text-base animate-pulse">LOADING NEURAL LINK...</div>
+                <div className="text-brand-primary font-mono text-sm 2xl:text-base animate-pulse">LOADING NEURAL LINK...</div>
             </div>
         );
     }
@@ -138,10 +139,10 @@ export const ProjectDetail = () => {
                     <div className="text-6xl mb-4 opacity-30">
                         <i className="ri-error-warning-line" />
                     </div>
-                    <h1 className="text-2xl 2xl:text-3xl font-display text-cyan-500 mb-2">
+                    <h1 className="text-2xl 2xl:text-3xl font-display text-brand-primary mb-2">
                         {error || "PROJECT NOT FOUND"}
                     </h1>
-                    <p className="text-neutral-400 mb-6 2xl:text-lg">
+                    <p className="text-text-secondary mb-6 2xl:text-lg">
                         The requested project data is unavailable.
                     </p>
                     <CyberButton variant="ghost" onClick={() => navigate('/projects')}>
@@ -155,60 +156,31 @@ export const ProjectDetail = () => {
     return (
         <AnimatePresence>
             <MotionDiv
-                className="absolute inset-0 z-[60] overflow-hidden"
-                layoutId={`project-card-${projectId}`}
+                className="fixed left-0 right-0 z-[40] overflow-hidden"
+                style={{
+                    top: 'var(--header-height, 44px)',
+                    bottom: 'var(--footer-height, 48px)',
+                }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
             >
                 {/* Background Overlay */}
-                <div className="absolute inset-0 z-0 bg-[#050505]/98" />
+                <div className="absolute inset-0 z-0 bg-bg-app/98" />
 
                 {/* Close Button */}
-                <div className="absolute top-4 right-4 z-[100]">
+                <div className="absolute top-4 right-6 z-[100]">
                     <CyberButton
                         variant="ghost"
                         icon={<i className="ri-close-line text-2xl" />}
                         onClick={handleClose}
-                        className="text-cyan-500 hover:text-cyan-300"
+                        className="text-brand-primary hover:text-text-accent"
                         iconOnly
                     />
                 </div>
 
-                {/* HUD Toggle */}
-                <MotionDiv
-                    initial={{ opacity: 0 }}
-                    animate={{
-                        opacity: isHeroVisible ? 0 : 1,
-                        x: isHeroVisible ? -60 : 0,
-                    }}
-                    transition={{ duration: 0.3 }}
-                    className="fixed left-0 top-1/2 -translate-y-1/2 z-[100]"
-                    style={{ pointerEvents: isHeroVisible ? 'none' : 'auto' }}
-                >
-                    <button
-                        onClick={toggleSidebar}
-                        className="group relative flex items-center cursor-pointer bg-transparent border-none p-0"
-                    >
-                        <div
-                            className={`w-[3px] h-[120px] transition-all duration-300 ${isSidebarCollapsed ? 'hud-toggle-bar--active' : 'hud-toggle-bar--inactive'}`}
-                        />
-                        <MotionDiv
-                            animate={{
-                                width: isSidebarCollapsed ? 48 : 40,
-                                opacity: 1,
-                            }}
-                            transition={{ duration: 0.2 }}
-                            className="h-[100px] flex flex-col items-center justify-center gap-2 overflow-hidden bg-gradient-to-r from-[#06121ae6] to-[#06121acc] border-y border-r border-[#00f0ff33]"
-                        >
-                            <i className={`${isSidebarCollapsed ? 'ri-layout-left-2-line' : 'ri-layout-left-2-fill'} text-xl transition-all duration-200 text-[#00f0ff]`} />
-                            <span className="text-[10px] font-mono tracking-[0.15em] uppercase text-[#00f0ff66] [writing-mode:vertical-rl] [text-orientation:mixed]">
-                                HUD
-                            </span>
-                        </MotionDiv>
-                    </button>
-                </MotionDiv>
+
 
                 {/* Main Content Area */}
                 <div
@@ -226,12 +198,11 @@ export const ProjectDetail = () => {
                             {/* Sticky Sidebar */}
                             <MotionDiv
                                 animate={{
-                                    opacity: isSidebarCollapsed ? 0 : (isHeroVisible ? 0 : 1),
-                                    width: isSidebarCollapsed ? 0 : 'auto',
+                                    opacity: isHeroVisible ? 0 : 1,
                                 }}
                                 transition={{ duration: 0.5 }}
                                 className="sticky top-6 h-fit self-start overflow-hidden flex-shrink-0 min-w-[180px] max-w-[220px]"
-                                style={{ pointerEvents: (isHeroVisible || isSidebarCollapsed) ? 'none' : 'auto' }}
+                                style={{ pointerEvents: isHeroVisible ? 'none' : 'auto' }}
                             >
                                 <HUDSidebar
                                     detail={detail}
@@ -243,7 +214,6 @@ export const ProjectDetail = () => {
 
                             {/* Dynamic Content Feed */}
                             <MotionDiv
-                                layout
                                 className="flex-1 min-w-0 px-4"
                             >
                                 <div className="space-y-12 2xl:space-y-16">
@@ -257,8 +227,8 @@ export const ProjectDetail = () => {
                                 </div>
 
                                 {/* Back Button Footer */}
-                                <div className="py-20 2xl:py-28 flex flex-col items-center justify-center border-t border-cyan-900/30 mt-20 2xl:mt-28">
-                                    <h3 className="text-2xl 2xl:text-3xl font-display text-cyan-400 mb-6 2xl:mb-8">
+                                <div className="py-20 2xl:py-28 flex flex-col items-center justify-center border-t border-border-subtle mt-20 2xl:mt-28">
+                                    <h3 className="text-2xl 2xl:text-3xl font-display text-brand-primary mb-6 2xl:mb-8">
                                         End of Case Study
                                     </h3>
                                     <CyberButton variant="chamfer" onClick={handleClose}>

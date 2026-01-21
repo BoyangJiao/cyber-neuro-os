@@ -6,6 +6,9 @@ export const PROJECTS_QUERY = `*[_type == "project"] | order(_createdAt desc) {
   description,
   "status": sidebar.status,
   "techStack": sidebar.techStack,
+  "projectType": sidebar.projectType,
+  "timeline": sidebar.timeline,
+  "liveUrl": sidebar.liveUrl,
   "heroImage": heroImage.asset->url
 }`;
 

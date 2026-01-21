@@ -131,7 +131,7 @@ export const ConnectionLine = () => {
                     ref={lineRef}
                     d={pathD}
                     fill="none"
-                    stroke="var(--color-cyan-600)"
+                    stroke="var(--color-brand-secondary)"
                     strokeWidth="1"
                     strokeOpacity="0.35"
                 />
@@ -142,7 +142,7 @@ export const ConnectionLine = () => {
                     y={startPoint.y - dotSize / 2}
                     width={dotSize}
                     height={dotSize}
-                    fill="var(--color-cyan-500)"
+                    fill="var(--color-brand-primary)"
                     fillOpacity="0.9"
                     filter="url(#glow)"
                     className="animate-pulse"
@@ -154,7 +154,7 @@ export const ConnectionLine = () => {
                     y={endPoint.y - dotSize / 2}
                     width={dotSize}
                     height={dotSize}
-                    fill="var(--color-cyan-500)"
+                    fill="var(--color-brand-primary)"
                     fillOpacity="0.9"
                     filter="url(#glow)"
                     className="animate-pulse"

@@ -52,10 +52,12 @@ function App() {
     );
   }
 
-  // Check if we are on a project detail page OR design system page
+  // Check if we're on a project detail page (for full-screen overlay)
   const isDetailPage = location.pathname.startsWith('/projects/') && location.pathname.split('/').length > 2;
+
+  // Check if we are on a design system page (needs full width in grid)
   const isDesignSystemPage = location.pathname === '/design-system';
-  const isFullWidth = isDetailPage || isDesignSystemPage;
+  const isFullWidth = isDesignSystemPage;
 
   return (
     <LanguageProvider>
@@ -64,24 +66,17 @@ function App() {
           {/* Dashboard Container - Grid System */}
           <div className="cyber-grid h-full items-stretch relative">
 
-            {/* LEFT PROFILE COLUMN (static) - Hidden on Detail/FullWidth Page */}
+            {/* LEFT PROFILE COLUMN (static) - Hidden on FullWidth Page */}
             {!isFullWidth && <ProfileSidebar />}
 
-            {/* CENTER MAIN GRID (dynamic) - Expands to full width on Detail/FullWidth Page */}
+            {/* CENTER MAIN GRID (dynamic) */}
             <div className={`${isFullWidth ? 'col-span-12' : 'col-span-1 md:col-span-3 lg:col-span-8'} h-full relative overflow-hidden`}>
-              <AnimatePresence mode='wait'>
-                {/* 
-                   Consolidated Routing:
-                   If we are at /projects/:id, render ProjectDetail.
-                   Else render Landing/Feature.
-                 */}
-                <Routes location={location} key={location.pathname}>
-                  <Route path="/" element={<FeaturePanel />} />
-                  <Route path="/projects" element={<ProjectLanding />} />
-                  <Route path="/projects/:projectId" element={<ProjectDetail />} />
-                  <Route path="/design-system" element={<DesignSystemPage />} />
-                </Routes>
-              </AnimatePresence>
+              {/* Routes without key - prevents unnecessary re-mounting */}
+              <Routes location={location}>
+                <Route path="/" element={<FeaturePanel />} />
+                <Route path="/projects/*" element={<ProjectLanding />} />
+                <Route path="/design-system" element={<DesignSystemPage />} />
+              </Routes>
 
               {/* About Me Modal - 覆盖在 main-mid 区域内 */}
               <AnimatePresence>
@@ -89,7 +84,7 @@ function App() {
               </AnimatePresence>
             </div>
 
-            {/* RIGHT EMPTY COLUMN (static) - Hidden on Detail/FullWidth Page */}
+            {/* RIGHT EMPTY COLUMN (static) - Hidden on FullWidth Page */}
             {!isFullWidth && <StatusSidebar />}
 
           </div>
@@ -97,6 +92,11 @@ function App() {
           {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪 */}
           <ConnectionLine />
         </MainLayout>
+
+        {/* ProjectDetail - Full Screen Overlay (completely independent of routing) */}
+        <AnimatePresence>
+          {isDetailPage && <ProjectDetail />}
+        </AnimatePresence>
 
         <AnimatePresence>
           {isSettingsOpen && <SettingsModal />}

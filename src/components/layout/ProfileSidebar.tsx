@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { HoloFrame } from '../ui/HoloFrame';
+import { GhostText } from '../ui/GhostText';
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../i18n';
+import { PixelGridEffect, ScanlineEffect } from '../ui/effects';
 
 export const ProfileSidebar = () => {
     const { startAvatarScan, isAvatarScanning } = useAppStore();
@@ -48,9 +50,9 @@ export const ProfileSidebar = () => {
                                 {isAvatarScanning && (
                                     <>
                                         {/* Pixel pattern background */}
-                                        <div className="absolute inset-0 z-20 bg-[linear-gradient(to_bottom,var(--color-brand-dim)_80%,transparent)] [mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)] [mask-size:4px_4px]" />
+                                        <PixelGridEffect active className="z-20" />
                                         {/* Scanline Animation */}
-                                        <div className="absolute inset-x-0 h-[2px] z-30 bg-[var(--color-brand-secondary)]/50 shadow-[0_0_10px_var(--color-brand-glow)] animate-[scanline_0.3s_linear_1] pointer-events-none" />
+                                        <ScanlineEffect variant="flash" active className="z-30" />
                                     </>
                                 )}
                             </div>
@@ -61,46 +63,46 @@ export const ProfileSidebar = () => {
                 {/* Profile Details */}
                 <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-7">
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
-                        <div className="relative inline-block w-max">
-                            <span className="relative z-10 text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-[var(--color-text-secondary)] tracking-widest uppercase">{t('profile.name')}</span>
-                            <span className="absolute bottom-[2px] right-[3px] text-[var(--color-text-secondary)]/30 blur-[1px] select-none pointer-events-none whitespace-nowrap text-xs lg:text-sm 2xl:text-base uppercase" aria-hidden="true">
-                                {t('profile.name')}
-                            </span>
-                        </div>
-                        <div className="relative inline-block text-sm lg:text-base 2xl:text-lg font-bold font-display text-[var(--color-text-primary)] tracking-wider w-max">
-                            <span className="relative z-10">{t('profile.nameValue')}</span>
-                            <span className="absolute bottom-[2px] right-[3px] text-[var(--color-text-primary)]/40 blur-[1px] select-none pointer-events-none whitespace-nowrap" aria-hidden="true">
-                                {t('profile.nameValue')}
-                            </span>
-                        </div>
+                        <GhostText
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            ghostOpacity={0.3}
+                        >
+                            {t('profile.name')}
+                        </GhostText>
+                        <GhostText
+                            className="text-sm lg:text-base 2xl:text-lg font-bold font-display text-text-primary tracking-wider"
+                            ghostOpacity={0.4}
+                        >
+                            {t('profile.nameValue')}
+                        </GhostText>
                     </div>
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
-                        <div className="relative inline-block w-max">
-                            <span className="relative z-10 text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-[var(--color-text-secondary)] tracking-widest uppercase">{t('profile.occupation')}</span>
-                            <span className="absolute bottom-[2px] right-[3px] text-[var(--color-text-secondary)]/30 blur-[1px] select-none pointer-events-none whitespace-nowrap text-xs lg:text-sm 2xl:text-base uppercase" aria-hidden="true">
-                                {t('profile.occupation')}
-                            </span>
-                        </div>
-                        <div className="relative inline-block text-sm lg:text-base 2xl:text-lg font-bold font-display text-[var(--color-text-primary)] tracking-wide w-max">
-                            <span className="relative z-10">{t('profile.occupationValue')}</span>
-                            <span className="absolute bottom-[2px] right-[3px] text-[var(--color-text-primary)]/40 blur-[1px] select-none pointer-events-none whitespace-nowrap" aria-hidden="true">
-                                {t('profile.occupationValue')}
-                            </span>
-                        </div>
+                        <GhostText
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            ghostOpacity={0.3}
+                        >
+                            {t('profile.occupation')}
+                        </GhostText>
+                        <GhostText
+                            className="text-sm lg:text-base 2xl:text-lg font-bold font-display text-text-primary tracking-wide"
+                            ghostOpacity={0.4}
+                        >
+                            {t('profile.occupationValue')}
+                        </GhostText>
                     </div>
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
-                        <div className="relative inline-block w-max">
-                            <span className="relative z-10 text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-[var(--color-text-secondary)] tracking-widest uppercase">{t('profile.corporation')}</span>
-                            <span className="absolute bottom-[2px] right-[3px] text-[var(--color-text-secondary)]/30 blur-[1px] select-none pointer-events-none whitespace-nowrap text-xs lg:text-sm 2xl:text-base uppercase" aria-hidden="true">
-                                {t('profile.corporation')}
-                            </span>
-                        </div>
-                        <div className="relative inline-block text-sm lg:text-base 2xl:text-lg font-bold font-display text-[var(--color-text-primary)] tracking-wide w-max">
-                            <span className="relative z-10">{t('profile.corporationValue')}</span>
-                            <span className="absolute bottom-[2px] right-[3px] text-[var(--color-text-primary)]/40 blur-[1px] select-none pointer-events-none whitespace-nowrap" aria-hidden="true">
-                                {t('profile.corporationValue')}
-                            </span>
-                        </div>
+                        <GhostText
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            ghostOpacity={0.3}
+                        >
+                            {t('profile.corporation')}
+                        </GhostText>
+                        <GhostText
+                            className="text-sm lg:text-base 2xl:text-lg font-bold font-display text-text-primary tracking-wide"
+                            ghostOpacity={0.4}
+                        >
+                            {t('profile.corporationValue')}
+                        </GhostText>
                     </div>
                 </div>
             </div>

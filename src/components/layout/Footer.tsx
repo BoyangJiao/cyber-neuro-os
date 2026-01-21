@@ -7,7 +7,7 @@ export const Footer = () => {
     const { t } = useTranslation();
 
     return (
-        <div className="w-full h-full flex items-center justify-between pt-2 2xl:pt-3">
+        <div className="w-full h-auto flex items-center justify-between pt-2 2xl:pt-3">
             {/* Footer Left: Neural Uplink */}
             <div className="flex items-center gap-4 2xl:gap-5">
                 <CyberButton

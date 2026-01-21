@@ -7,6 +7,7 @@ import type { SanityProjectRaw } from '../sanity/types';
 interface ProjectState {
     projects: Project[];
     activeProjectId: string;
+    activeProjectIndex: number;  // 保持 Mission 选择
     filter: 'ALL' | 'WEB3' | 'AI' | 'SYS';
     isLoading: boolean;
     error: string | null;
@@ -14,6 +15,7 @@ interface ProjectState {
     // Actions
     fetchProjects: () => Promise<void>;
     setActiveProject: (id: string) => void;
+    setActiveProjectIndex: (index: number) => void;
     setFilter: (filter: 'ALL' | 'WEB3' | 'AI' | 'SYS') => void;
     nextProject: () => void;
     prevProject: () => void;
@@ -23,6 +25,7 @@ interface ProjectState {
 export const useProjectStore = create<ProjectState>((set, get) => ({
     projects: mockProjects, // Start with mock, replace with Sanity data if available
     activeProjectId: mockProjects[0]?.id || '',
+    activeProjectIndex: 0,
     filter: 'ALL',
     isLoading: false,
     error: null,
@@ -37,10 +40,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 id: p.slug,
                 title: p.title,
                 description: p.description || '',
-                // Use sidebar techStack if available
                 techStack: p.techStack || [],
                 status: p.status || 'In Development',
-                thumbnail: p.heroImage || 'ri-code-s-slash-line'
+                thumbnail: p.heroImage || 'ri-code-s-slash-line',
+                projectType: p.projectType,
+                timeline: p.timeline,
+                liveUrl: p.liveUrl
             }));
 
             // Only update store if we actually got projects so we don't wipe the mock data with nothing
@@ -62,6 +67,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     },
 
     setActiveProject: (id) => set({ activeProjectId: id }),
+
+    setActiveProjectIndex: (index) => set({ activeProjectIndex: index }),
 
     setFilter: (filter) => set({ filter }),
 

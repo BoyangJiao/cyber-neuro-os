@@ -6,37 +6,63 @@ export interface LinesFrameProps {
     className?: string;
     /** Whether to animate the frame on mount */
     animate?: boolean;
+    /** Whether to show the top line */
+    showTop?: boolean;
+    /** Whether to show the bottom line */
+    showBottom?: boolean;
+    /** Custom color for the lines */
+    color?: string;
 }
 
 /**
  * LinesFrame - HUD-style frame with top and bottom lines only
  * Lines draw from endpoints toward center (like Header divider)
  */
-export const LinesFrame = ({ children, className, animate = true }: LinesFrameProps) => {
+export const LinesFrame = ({
+    children,
+    className,
+    animate = true,
+    showTop = true,
+    showBottom = true,
+    color
+}: LinesFrameProps) => {
     const topLeftRef = useRef<SVGLineElement>(null);
     const topRightRef = useRef<SVGLineElement>(null);
     const bottomLeftRef = useRef<SVGLineElement>(null);
     const bottomRightRef = useRef<SVGLineElement>(null);
 
     const frameStyles = {
-        '--frame-color': 'var(--color-brand-primary)',
+        '--frame-color': color || 'var(--color-brand-primary)',
     } as CSSProperties;
 
     // Entry animation: lines draw from edges toward center
     useEffect(() => {
         if (!animate) return;
 
-        const lines = [topLeftRef.current, topRightRef.current, bottomLeftRef.current, bottomRightRef.current];
-        if (lines.some(l => !l)) return;
+        const lines = [
+            topLeftRef.current,
+            topRightRef.current,
+            bottomLeftRef.current,
+            bottomRightRef.current
+        ].filter(Boolean) as SVGLineElement[];
+
+        if (lines.length === 0) return;
 
         const ctx = gsap.context(() => {
             // Each line segment draws from its starting point toward center
             lines.forEach(line => {
-                if (!line) return;
                 const length = line.getTotalLength?.() || 100;
                 gsap.fromTo(line,
                     { strokeDasharray: length, strokeDashoffset: length },
-                    { strokeDashoffset: 0, duration: 0.5, ease: 'power2.out' }
+                    {
+                        strokeDashoffset: 0,
+                        duration: 0.5,
+                        ease: 'power2.out',
+                        onComplete: () => {
+                            // Clear dash alignment props to fix gaps on resize
+                            gsap.set(line, { clearProps: "strokeDasharray,strokeDashoffset" });
+                        }
+                    }
                 );
             });
         });
@@ -52,16 +78,24 @@ export const LinesFrame = ({ children, className, animate = true }: LinesFramePr
                 preserveAspectRatio="none"
             >
                 {/* Top line - split into left and right segments, drawing toward center */}
-                <line ref={topLeftRef} x1="0" y1="0.5" x2="50%" y2="0.5"
-                    stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
-                <line ref={topRightRef} x1="100%" y1="0.5" x2="50%" y2="0.5"
-                    stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
+                {showTop && (
+                    <>
+                        <line ref={topLeftRef} x1="0" y1="0.5" x2="50%" y2="0.5"
+                            stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
+                        <line ref={topRightRef} x1="100%" y1="0.5" x2="50%" y2="0.5"
+                            stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
+                    </>
+                )}
 
                 {/* Bottom line - split into left and right segments, drawing toward center */}
-                <line ref={bottomLeftRef} x1="0" y1="calc(100% - 0.5px)" x2="50%" y2="calc(100% - 0.5px)"
-                    stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
-                <line ref={bottomRightRef} x1="100%" y1="calc(100% - 0.5px)" x2="50%" y2="calc(100% - 0.5px)"
-                    stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
+                {showBottom && (
+                    <>
+                        <line ref={bottomLeftRef} x1="0" y1="calc(100% - 0.5px)" x2="50%" y2="calc(100% - 0.5px)"
+                            stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
+                        <line ref={bottomRightRef} x1="100%" y1="calc(100% - 0.5px)" x2="50%" y2="calc(100% - 0.5px)"
+                            stroke="var(--frame-color)" strokeWidth="1" strokeOpacity="0.6" />
+                    </>
+                )}
             </svg>
 
             {/* Content Layer */}

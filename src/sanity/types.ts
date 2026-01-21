@@ -13,5 +13,8 @@ export interface SanityProjectRaw {
 
     status?: string;
     techStack?: string[];
+    projectType?: string;
+    timeline?: string;
+    liveUrl?: string;
     heroImage?: string;
 }

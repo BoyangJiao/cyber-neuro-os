@@ -15,7 +15,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
     const sectionId = module.title.toLowerCase().replace(/\s+/g, '-');
 
     // Common animation props
-    const viewportConfig = { once: false, margin: "-20% 0px -20% 0px" };
+    const viewportConfig = { once: true, margin: "-10% 0px -10% 0px" };
 
     // Use IntersectionObserver logic via onViewportEnter if needed, 
     // or just rely on parent scroll spy. 
@@ -29,11 +29,11 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
     // Portable Text Components customization
     const ptComponents = {
         block: {
-            normal: ({ children }: any) => <p className="text-lg 2xl:text-xl text-neutral-300 leading-relaxed 2xl:leading-loose max-w-2xl 2xl:max-w-3xl">{children}</p>,
-            h4: ({ children }: any) => <h4 className="text-xl 2xl:text-2xl font-display text-cyan-400 mb-4 2xl:mb-5">{children}</h4>,
+            normal: ({ children }: any) => <p className="text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose max-w-2xl 2xl:max-w-3xl">{children}</p>,
+            h4: ({ children }: any) => <h4 className="text-xl 2xl:text-2xl font-display text-brand-primary mb-4 2xl:mb-5">{children}</h4>,
         },
         list: {
-            bullet: ({ children }: any) => <ul className="list-disc pl-5 mb-4 2xl:mb-5 text-neutral-300 space-y-2 2xl:space-y-3 text-base 2xl:text-lg">{children}</ul>,
+            bullet: ({ children }: any) => <ul className="list-disc pl-5 mb-4 2xl:mb-5 text-text-primary space-y-2 2xl:space-y-3 text-base 2xl:text-lg">{children}</ul>,
         },
     };
 
@@ -46,7 +46,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
     const renderMedia = () => {
         if (!module.media) return null;
         return (
-            <div className="relative rounded-lg overflow-hidden border border-cyan-500/20 bg-black/40">
+            <div className="relative rounded-lg overflow-hidden border border-brand-primary/20 bg-black/40">
                 <img
                     src={urlFor(module.media).width(1200).url()}
                     alt={module.title}
@@ -64,7 +64,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
         return (
             <section
                 id={sectionId}
-                className="py-20 2xl:py-28 border-b border-cyan-900/10 min-h-[60vh] flex flex-col justify-center"
+                className="py-20 2xl:py-28 border-b border-border-subtle min-h-[60vh] flex flex-col justify-center"
             >
                 <MotionDiv
                     initial={{ opacity: 0, y: 30 }}
@@ -74,7 +74,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
                     className="w-full"
                 >
                     <div className="mb-8 2xl:mb-10">
-                        <span className="text-xs 2xl:text-sm font-mono text-cyan-500 tracking-widest uppercase mb-2 block">
+                        <span className="text-xs 2xl:text-sm font-mono text-brand-primary tracking-widest uppercase mb-2 block">
                             {module.theme.toUpperCase()}
                         </span>
                         <h2 className="text-3xl md:text-4xl 2xl:text-5xl font-display text-white mb-6 2xl:mb-8">
@@ -97,7 +97,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
         return (
             <section
                 id={sectionId}
-                className="py-20 2xl:py-28 border-b border-cyan-900/10"
+                className="py-20 2xl:py-28 border-b border-border-subtle"
             >
                 <MotionDiv
                     initial={{ opacity: 0, y: 30 }}
@@ -107,7 +107,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
                     className="grid grid-cols-1 lg:grid-cols-2 gap-12 2xl:gap-16 items-center"
                 >
                     <div>
-                        <span className="text-xs 2xl:text-sm font-mono text-cyan-500 tracking-widest uppercase mb-2 block">
+                        <span className="text-xs 2xl:text-sm font-mono text-brand-primary tracking-widest uppercase mb-2 block">
                             {module.theme.toUpperCase()}
                         </span>
                         <h2 className="text-3xl 2xl:text-4xl font-display text-white mb-6 2xl:mb-8">
@@ -132,7 +132,7 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
     return (
         <section
             id={sectionId}
-            className="py-20 2xl:py-28 border-b border-cyan-900/10"
+            className="py-20 2xl:py-28 border-b border-border-subtle"
         >
             <MotionDiv
                 initial={{ opacity: 0, x: -20 }}
@@ -143,12 +143,12 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
             >
                 {/* Section Header / Left Column */}
                 <div className="md:col-span-4">
-                    <div className="sticky top-32 2xl:top-40">
+                    <div className="sticky top-6">
                         <h2 className="text-2xl 2xl:text-3xl font-display text-white mb-2 2xl:mb-3">
                             {module.title}
                         </h2>
-                        <div className="h-1 w-12 2xl:w-16 bg-cyan-500 mb-4 2xl:mb-5" />
-                        <span className="text-xs 2xl:text-sm font-mono text-cyan-500/60 tracking-widest uppercase block">
+                        <div className="h-1 w-12 2xl:w-16 bg-brand-primary mb-4 2xl:mb-5" />
+                        <span className="text-xs 2xl:text-sm font-mono text-brand-secondary tracking-widest uppercase block">
                             {module.theme.toUpperCase()}
                         </span>
                     </div>

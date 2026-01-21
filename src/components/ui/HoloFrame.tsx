@@ -18,6 +18,10 @@ export interface HoloFrameProps extends HTMLAttributes<HTMLDivElement> {
     ghostOffset?: string;
     // For Corner variant interactions
     isPressed?: boolean;
+    // For Lines variant customization
+    showTop?: boolean;
+    showBottom?: boolean;
+    frameColor?: string;
 }
 
 export const HoloFrame = ({
@@ -32,13 +36,16 @@ export const HoloFrame = ({
     showGhost = false,
     ghostOffset = "-translate-x-[3px] -translate-y-[2px]",
     isPressed = false,
+    showTop = true,
+    showBottom = true,
+    frameColor,
     ...props
 }: HoloFrameProps) => {
 
     // Theme styles for frame customization
     const frameStyles = {
         '--frame-bg-color': filled ? 'var(--color-bg-panel)' : 'transparent',
-        '--frame-line-color': 'var(--color-brand-primary)',
+        '--frame-line-color': frameColor || 'var(--color-brand-primary)',
         '--frame-deco-color': 'var(--color-brand-secondary)',
     } as CSSProperties;
 
@@ -60,7 +67,15 @@ export const HoloFrame = ({
                     </div>
                 );
             case 'lines':
-                return <div className={extraClass}><LinesFrame /></div>;
+                return (
+                    <div className={extraClass}>
+                        <LinesFrame
+                            showTop={showTop}
+                            showBottom={showBottom}
+                            color={frameColor}
+                        />
+                    </div>
+                );
             case 'dots':
                 return <div className={extraClass}><DotsFrame /></div>;
             case 'chamfer':

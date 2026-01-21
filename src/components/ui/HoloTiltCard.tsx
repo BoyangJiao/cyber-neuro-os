@@ -2,6 +2,7 @@ import { useState, useRef, type ReactNode, type MouseEvent } from 'react';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { PixelGridEffect, ScanlineEffect } from './effects';
 
 interface HoloTiltCardProps {
     title: string;
@@ -143,14 +144,13 @@ export const HoloTiltCard = ({
                 }}
             >
                 {/* 1.1 Pixel Grid Pattern */}
-                <div className={`absolute inset-0 transition-opacity duration-300 bg-[linear-gradient(to_bottom,var(--color-brand-dim)_80%,transparent)] [mask-image:conic-gradient(from_0deg_at_3px_3px,transparent_270deg,black_270deg)] [mask-size:4px_4px] ${isHovered ? 'opacity-100' : 'opacity-0'}`}></div>
+                <PixelGridEffect active={isHovered} />
 
                 {/* 1.2 Base Dark Background */}
                 <div className="absolute inset-0 bg-[var(--color-brand-dim)]/40 group-hover:bg-[var(--color-brand-dim)]/20 transition-colors" />
 
                 {/* 1.3 Scanline Effect - Moved INSIDE tilt container for correct physics */}
-                {/* opacity-0 base, animate on hover. Removed explicit opacity-100 to allow animation to handle visibility fade */}
-                <div className="absolute inset-x-0 h-[2px] bg-[var(--color-brand-secondary)]/50 shadow-[0_0_10px_var(--color-brand-glow)] z-50 pointer-events-none opacity-0 group-hover:animate-[scanline_0.3s_linear_1]"></div>
+                <ScanlineEffect variant="flash" active={isHovered} className="z-50" />
             </div>
 
             {/* 2. Title */}

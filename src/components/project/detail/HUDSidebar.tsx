@@ -1,3 +1,4 @@
+import { ChamferFrame } from '../../ui/frames/ChamferFrame';
 import type { ProjectDetail, SanityProjectDetail } from '../../../data/projectDetails';
 
 interface HUDSidebarProps {
@@ -17,38 +18,25 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
     }
 
     return (
-        <aside
-            className="w-full h-fit"
-            style={{
-                // Glass morphism HUD panel
-                background: 'rgba(6, 18, 26, 0.6)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(0, 240, 255, 0.15)',
-                boxShadow: `
-                    0 0 30px rgba(0, 240, 255, 0.1),
-                    inset 0 0 30px rgba(0, 240, 255, 0.03)
-                `,
-            }}
+        <ChamferFrame
+            className="w-full h-fit relative"
+            bgClassName="bg-[#06121a]/60 backdrop-blur-xl"
+            chamferSize={16}
+            showEffects={false}
+            disableHover={true}
         >
-            {/* Scan Line Overlay */}
-            <div
-                className="absolute inset-0 pointer-events-none overflow-hidden"
-                style={{
-                    background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 240, 255, 0.02) 3px, rgba(0, 240, 255, 0.02) 6px)',
-                }}
-            />
+
 
             {/* My Role */}
             <SidebarSection label="My Role">
-                <span className="text-sm 2xl:text-base text-cyan-400 font-semibold">
+                <span className="text-sm 2xl:text-base text-brand-primary font-semibold">
                     {sidebar.role}
                 </span>
             </SidebarSection>
 
             {/* Team */}
             <SidebarSection label="Team">
-                <span className="text-sm 2xl:text-base text-neutral-300">
+                <span className="text-sm 2xl:text-base text-text-primary">
                     {sidebar.team}
                 </span>
             </SidebarSection>
@@ -56,15 +44,15 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             {/* Timeline & Status */}
             <SidebarSection label="Timeline & Status">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm 2xl:text-base text-neutral-300">
+                    <span className="text-sm 2xl:text-base text-text-primary">
                         {sidebar.timeline}
                     </span>
-                    <span className="text-neutral-600">•</span>
+                    <span className="text-border-default">•</span>
                     <span
                         className="text-sm 2xl:text-base font-medium"
                         style={{
-                            color: sidebar.status === 'Live' ? '#22c55e' :
-                                sidebar.status === 'In Development' ? '#fbbf24' : '#94a3b8',
+                            color: sidebar.status === 'Live' ? 'var(--color-status-success)' :
+                                sidebar.status === 'In Development' ? 'var(--color-status-warning)' : 'var(--color-text-secondary)',
                         }}
                     >
                         {sidebar.status}
@@ -74,7 +62,7 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
                             href={sidebar.liveLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:text-cyan-400 transition-colors"
+                            className="text-brand-primary hover:text-text-accent transition-colors"
                         >
                             <i className="ri-external-link-line text-sm 2xl:text-base" />
                         </a>
@@ -88,11 +76,7 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
                     {(sidebar.techStack || []).map((tech, index) => (
                         <span
                             key={index}
-                            className="px-2 py-0.5 text-[12px] 2xl:text-[14px] font-mono text-cyan-400/80"
-                            style={{
-                                background: 'rgba(0, 240, 255, 0.05)',
-                                border: '1px solid rgba(0, 240, 255, 0.15)',
-                            }}
+                            className="px-2 py-0.5 text-[12px] 2xl:text-[14px] font-mono text-brand-primary/80 bg-brand-dim border border-brand-primary/15"
                         >
                             {tech}
                         </span>
@@ -106,27 +90,23 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
                     {(sidebar.coreContributions || []).map((contribution, index) => (
                         <li key={index} className="flex items-start gap-2">
                             <div
-                                className="w-1 h-1 2xl:w-1.5 2xl:h-1.5 mt-2 flex-shrink-0"
-                                style={{
-                                    background: '#00f0ff',
-                                    boxShadow: '0 0 4px rgba(0, 240, 255, 0.6)',
-                                }}
+                                className="w-1 h-1 2xl:w-1.5 2xl:h-1.5 mt-2 flex-shrink-0 bg-brand-primary shadow-glow"
                             />
-                            <span className="text-sm 2xl:text-base text-neutral-300">{contribution}</span>
+                            <span className="text-sm 2xl:text-base text-text-primary">{contribution}</span>
                         </li>
                     ))}
                 </ul>
             </SidebarSection>
 
 
-        </aside>
+        </ChamferFrame>
     );
 };
 
 // Helper component for sidebar sections
 const SidebarSection = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="relative px-4 2xl:px-5 py-3 2xl:py-4 border-b border-cyan-900/30">
-        <div className="text-[12px] 2xl:text-[14px] font-mono text-cyan-700 tracking-widest uppercase mb-2 2xl:mb-3">
+    <div className="relative px-4 2xl:px-5 py-3 2xl:py-4 border-b border-border-subtle">
+        <div className="text-[12px] 2xl:text-[14px] font-mono text-brand-secondary tracking-widest uppercase mb-2 2xl:mb-3">
             {label}
         </div>
         {children}
