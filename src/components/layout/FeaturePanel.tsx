@@ -50,7 +50,7 @@ export const FeaturePanel = () => {
     }, { scope: containerRef });
 
     return (
-        <div ref={containerRef} className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden">
+        <div ref={containerRef} className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-4">
             {/* Shared Canvas for all 3D Views */}
             <div className="absolute inset-0 z-[100] pointer-events-none">
                 <Canvas
@@ -63,15 +63,15 @@ export const FeaturePanel = () => {
             </div>
 
             {/* 
-              Desktop: Centered Grid 
+              Desktop: Centered Grid (Stable 6-column Layout)
               Mobile: Horizontal Scroll List
             */}
-            <div className="relative z-10 h-full w-full flex lg:items-center lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0 py-4 lg:py-0">
-                <div className="flex flex-row lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:w-3/4 lg:gap-4 xl:gap-6 2xl:gap-8 gap-4 min-w-full lg:min-w-0 h-full">
+            <div className="relative z-10 h-full w-full flex lg:items-start lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0">
+                <div className="flex flex-row lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:w-3/4 lg:my-auto lg:gap-x-6 lg:gap-y-4 gap-2 min-w-full lg:min-w-0">
                     {features.map((item) => (
                         <div
                             key={item.titleKey}
-                            className="feature-card snap-center shrink-0 w-[85vw] lg:w-full h-[60vh] lg:h-full"
+                            className="feature-card snap-center shrink-0 w-[85vw] lg:w-full aspect-[3/4] flex flex-col"
                         >
                             {item.titleKey === 'features.project' ? (
                                 <MotionDiv className="h-full">
@@ -106,7 +106,7 @@ export const FeaturePanel = () => {
                         </div>
                     ))}
                     {/* Spacer for mobile scroll end padding */}
-                    <div className="w-4 shrink-0 lg:hidden"></div>
+                    <div className="w-1 lg:hidden shrink-0"></div>
                 </div>
             </div>
         </div>

@@ -17,7 +17,7 @@ export const FeatureCard = ({ title, icon, onClick }: FeatureCardProps) => {
     return (
         <HoloFrame
             variant="lines"
-            className="group h-full cursor-pointer transition-colors duration-300"
+            className="group h-full w-full cursor-pointer transition-colors duration-300"
             onClick={() => {
                 playClick();
                 onClick?.();
