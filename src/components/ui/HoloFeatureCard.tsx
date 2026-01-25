@@ -8,6 +8,8 @@ export interface HoloFeatureCardProps {
     title: string;
     icon?: string;
     geometryType?: GeometryType;
+    subtitle?: string;
+    glitchType?: 'heavy' | 'rgb' | 'slice' | 'vertical' | 'subtle' | 'standard';
     onClick?: () => void;
 }
 

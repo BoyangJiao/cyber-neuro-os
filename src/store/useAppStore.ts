@@ -174,6 +174,7 @@ interface AppState {
     // 3D Mode
     is3DMode: boolean;
     set3DMode: (mode: boolean) => void;
+
     debugGeometryType: GeometryType;
     setDebugGeometryType: (type: GeometryType) => void;
     // Glitch Settings
@@ -194,7 +195,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-    isBootSequenceActive: false,
+    isBootSequenceActive: typeof window !== 'undefined' && window.location.pathname === '/',
     setBootSequence: (active) => set({ isBootSequenceActive: active }),
     isAboutMeOpen: false,
     setAboutMeOpen: (open) => set({ isAboutMeOpen: open }),

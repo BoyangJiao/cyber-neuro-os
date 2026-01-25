@@ -4,12 +4,16 @@ import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { ChamferFrame } from './frames/ChamferFrame';
 import { PixelGridEffect, PCBTraceEffect } from './effects';
 
+export type GlitchType = 'heavy' | 'rgb' | 'slice' | 'vertical' | 'subtle' | 'standard';
+
 export interface CyberSlotCardProps {
     title: string;
+    subtitle?: string;
     inactiveImage: string;
     activeImage: string;
     onClick?: () => void;
     className?: string;
+    glitchType?: GlitchType;
 }
 
 /**
@@ -18,10 +22,12 @@ export interface CyberSlotCardProps {
  */
 export const CyberSlotCard = ({
     title,
+    subtitle,
     inactiveImage,
     activeImage,
     onClick,
     className,
+    glitchType = 'standard',
 }: CyberSlotCardProps) => {
     const { playHover, playClick } = useSoundSystem();
     const [scanProgress, setScanProgress] = useState(0);
@@ -69,6 +75,18 @@ export const CyberSlotCard = ({
     const isScanComplete = scanProgress === 100;
     // Header activates early during the scan (20%)
     const isHeaderActive = scanProgress > 20;
+
+    // Map glitch type to animation class
+    const getGlitchClass = (type: GlitchType) => {
+        switch (type) {
+            case 'heavy':
+            case 'rgb':
+            case 'slice':
+            case 'vertical':
+            case 'subtle':
+            case 'standard': default: return "animate-[cyberGlitch_4s_ease-in-out_infinite]";
+        }
+    };
 
     return (
         <ChamferFrame
@@ -120,20 +138,32 @@ export const CyberSlotCard = ({
                         {/* Inactive 背景层 */}
                         <div
                             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80 mix-blend-screen"
-                            style={{ backgroundImage: `url(${inactiveImage})` }}
+                            style={{ backgroundImage: `url('${inactiveImage}')` }}
                         />
 
                         {/* Active 背景层 - 跟随扫描线揭示 + 通电后 glitch 效果 */}
                         <div
                             className={twMerge(
                                 "absolute inset-0 bg-cover bg-center bg-no-repeat",
-                                isScanComplete && "animate-[cyberGlitch_4s_ease-in-out_infinite]"
+                                isScanComplete && getGlitchClass(glitchType)
                             )}
                             style={{
-                                backgroundImage: `url(${activeImage})`,
+                                backgroundImage: `url('${activeImage}')`,
                                 clipPath: `polygon(0 0, 100% 0, 100% ${scanProgress}%, 0 ${scanProgress}%)`,
                             }}
                         />
+
+                        {/* Subtitle / Caption Layer */}
+                        {subtitle && (
+                            <div className={twMerge(
+                                "absolute bottom-0 right-0 p-2 pr-4 z-20 text-[0.6rem] font-mono tracking-widest text-right transition-all duration-300",
+                                isScanComplete ? "opacity-100 translate-y-0 text-[var(--color-brand-primary)]" : "opacity-0 translate-y-2 text-white/50"
+                            )}>
+                                <span className="bg-black/50 px-1 backdrop-blur-sm border-l-2 border-[var(--color-brand-primary)]">
+                                    {subtitle}
+                                </span>
+                            </div>
+                        )}
 
                         {/* 像素网格背景 - 覆盖在图像之上，作为全息纹理 */}
                         <PixelGridEffect active={isScanComplete} />

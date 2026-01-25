@@ -20,11 +20,11 @@ export const translations = {
 
         // Feature Panel
         features: {
-            project: 'PROJECT',
-            video: 'VIDEO',
-            game: 'GAME',
-            sound: 'SOUND',
-            music: 'MUSIC',
+            project: 'ARCHIVES',
+            video: 'VISION',
+            game: 'SIMULATION',
+            sound: 'SYNTHESIS',
+            music: 'BROADCAST',
             lab: 'LAB',
         },
 

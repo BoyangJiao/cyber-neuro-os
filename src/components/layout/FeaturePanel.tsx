@@ -16,15 +16,62 @@ interface FeatureItem {
     activeImage?: string;
     geometryType?: GeometryType;
     icon?: string;
+    subtitle?: string;
+    glitchType?: 'heavy' | 'rgb' | 'slice' | 'vertical' | 'subtle' | 'standard';
 }
 
 const features: FeatureItem[] = [
-    { titleKey: 'features.project', link: '/projects', geometryType: 'project', icon: '/images/features/Lab_active.png' }, // Fallback icon
-    { titleKey: 'features.video', geometryType: 'video' },
-    { titleKey: 'features.game', geometryType: 'game' },
-    { titleKey: 'features.sound', geometryType: 'sound' },
-    { titleKey: 'features.music', geometryType: 'music' },
-    { titleKey: 'features.lab', geometryType: 'lab' },
+    {
+        titleKey: 'features.project',
+        link: '/projects',
+        geometryType: 'project',
+        icon: '/images/features/project_active.png',
+        activeImage: '/images/features/project_active.png',
+        inactiveImage: '/images/features/project_inactive.png',
+        subtitle: '[WORK_CORE]',
+        glitchType: 'heavy'
+    },
+    {
+        titleKey: 'features.music',
+        link: '/music',
+        geometryType: 'music',
+        activeImage: '/images/features/radio_active.png',
+        inactiveImage: '/images/features/radio_inactive.png',
+        subtitle: '[FM_WAVE]',
+        glitchType: 'rgb'
+    },
+    {
+        titleKey: 'features.game',
+        geometryType: 'game',
+        activeImage: '/images/features/game_active.png',
+        inactiveImage: '/images/features/game_inactive.png',
+        subtitle: '[INTERACT]',
+        glitchType: 'slice'
+    },
+    {
+        titleKey: 'features.sound',
+        geometryType: 'sound',
+        activeImage: '/images/features/SFX_active.png',
+        inactiveImage: '/images/features/SFX_inactive.png',
+        subtitle: '[PATCH_BAY]',
+        glitchType: 'standard'
+    },
+    {
+        titleKey: 'features.video',
+        geometryType: 'video',
+        activeImage: '/images/features/vide_active.png',
+        inactiveImage: '/images/features/video_inactive.png',
+        subtitle: '[OPTIC_FEED]',
+        glitchType: 'vertical'
+    },
+    {
+        titleKey: 'features.lab',
+        geometryType: 'lab',
+        activeImage: '/images/features/Lab_active.png',
+        inactiveImage: '/images/features/Lab_inactive.png',
+        subtitle: '[UNSTABLE]',
+        glitchType: 'subtle'
+    },
 ];
 
 export const FeaturePanel = () => {
@@ -52,7 +99,7 @@ export const FeaturePanel = () => {
 
     return (
         <div ref={containerRef} className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6">
-            {/* 
+            {/*
               Desktop: Centered Grid (Stable 6-column Layout)
               Mobile: Horizontal Scroll List
             */}
@@ -68,14 +115,18 @@ export const FeaturePanel = () => {
                                     {is3DMode ? (
                                         <HoloFeatureCard
                                             title={t(item.titleKey)}
+                                            subtitle={item.subtitle}
+                                            glitchType={item.glitchType}
                                             geometryType={item.geometryType}
-                                            icon={item.icon || "/images/features/Lab_active.png"}
+                                            icon={item.icon || item.activeImage || "/images/features/Lab_active.png"}
                                         />
                                     ) : (
                                         <CyberSlotCard
                                             title={t(item.titleKey)}
-                                            inactiveImage="/images/features/Lab_inactive.png"
-                                            activeImage="/images/features/Lab_active.png"
+                                            subtitle={item.subtitle}
+                                            glitchType={item.glitchType}
+                                            inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
+                                            activeImage={item.activeImage || "/images/features/Lab_active.png"}
                                         />
                                     )}
                                 </Link>
@@ -83,14 +134,18 @@ export const FeaturePanel = () => {
                                 is3DMode ? (
                                     <HoloFeatureCard
                                         title={t(item.titleKey)}
+                                        subtitle={item.subtitle}
+                                        glitchType={item.glitchType}
                                         geometryType={item.geometryType}
-                                        icon={item.icon || "/images/features/Lab_active.png"}
+                                        icon={item.icon || item.activeImage || "/images/features/Lab_active.png"}
                                     />
                                 ) : (
                                     <CyberSlotCard
                                         title={t(item.titleKey)}
-                                        inactiveImage="/images/features/Lab_inactive.png"
-                                        activeImage="/images/features/Lab_active.png"
+                                        subtitle={item.subtitle}
+                                        glitchType={item.glitchType}
+                                        inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
+                                        activeImage={item.activeImage || "/images/features/Lab_active.png"}
                                     />
                                 )
                             )}

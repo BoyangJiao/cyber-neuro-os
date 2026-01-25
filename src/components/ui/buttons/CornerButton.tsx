@@ -22,12 +22,12 @@ const FrameCorners = ({
     mousePos?: { x: number, y: number }
 }) => {
     const color = isHovered
-        ? (isPressed ? 'var(--color-brand-secondary)' : 'var(--color-brand-secondary)')
+        ? 'var(--color-brand-primary)'
         : 'var(--color-border-default)';
-    const glowClass = isHovered ? (isPressed ? 'drop-shadow-[0_0_8px_var(--color-brand-primary)]' : 'drop-shadow-[0_0_5px_var(--color-brand-glow)]') : '';
+    const glowClass = isHovered ? (isPressed ? 'drop-shadow-[0_0_5px_var(--color-brand-primary)]' : 'drop-shadow-[0_0_3px_var(--color-brand-glow)]') : '';
 
     const bgStyle = isHovered
-        ? { backgroundColor: isPressed ? 'color-mix(in srgb, var(--color-brand-primary) 40%, transparent)' : 'color-mix(in srgb, var(--color-brand-primary) 25%, transparent)' }
+        ? { backgroundColor: isPressed ? 'color-mix(in srgb, var(--color-brand-primary) 30%, transparent)' : 'color-mix(in srgb, var(--color-brand-primary) 15%, transparent)' }
         : {
             backgroundImage: `radial-gradient(circle 200px at ${mousePos.x}% ${mousePos.y}%, color-mix(in srgb, var(--color-brand-primary) ${proximityOpacity * 40}%, transparent) 0%, transparent 100%)`,
         };

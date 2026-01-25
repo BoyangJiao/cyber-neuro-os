@@ -10,6 +10,7 @@ import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { AboutMePage } from './pages/AboutMePage'
 import { DesignSystemPage } from './pages/DesignSystemPage'
+import { MusicPage } from './pages/MusicPage'
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
@@ -22,6 +23,7 @@ import { useLiveMode } from './sanity/client'
 import { SanityErrorBoundary } from './components/error/SanityErrorBoundary'
 import { Canvas } from '@react-three/fiber'
 import { View } from '@react-three/drei'
+import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 
 function App() {
   // Enable live mode for Sanity drafts
@@ -35,16 +37,10 @@ function App() {
     // Initialize theme on first load
     document.documentElement.setAttribute('data-theme', brandTheme);
 
-    // Start boot sequence
-    const timer = setTimeout(() => {
-      setBootSequence(false);
-    }, 4500);
-
     // Fetch Content
     useProjectStore.getState().fetchProjects();
 
-    return () => clearTimeout(timer);
-  }, [setBootSequence, brandTheme]);
+  }, [brandTheme]);
 
   if (isBootSequenceActive) {
     return (
@@ -83,6 +79,7 @@ function App() {
                   <Route path="/" element={<FeaturePanel />} />
                   <Route path="/projects/*" element={<ProjectLanding />} />
                   <Route path="/design-system" element={<DesignSystemPage />} />
+                  <Route path="/music" element={<MusicPage />} />
                 </Routes>
 
                 {/* About Me Modal - 覆盖在 main-mid 区域内 */}
@@ -141,6 +138,7 @@ function App() {
           <View.Port />
         </Canvas>
       </div>
+      <GlobalAudioPlayer />
     </LanguageProvider>
   )
 }

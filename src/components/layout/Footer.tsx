@@ -1,9 +1,12 @@
 import { CyberButton } from '../ui/CyberButton';
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../i18n';
+import { useMusicStore } from '../../store/useMusicStore';
+import { AudioWaveform } from '../ui/AudioWaveform';
 
 export const Footer = () => {
     const { setSettingsOpen } = useAppStore();
+    const { isPlaying, togglePlay } = useMusicStore();
     const { t } = useTranslation();
 
     return (
@@ -36,8 +39,18 @@ export const Footer = () => {
                     <i className="ri-settings-line animate-spin-slow text-base lg:text-lg 2xl:text-xl"></i>
                 </CyberButton>
                 <div className="w-[1px] h-5 lg:h-6 2xl:h-7 bg-border-default"></div>
-                <CyberButton variant="dot" size="sm" iconOnly showGhost={true} ghostOffset="-translate-x-[-4px] -translate-y-[-2px]" className="flex items-center justify-center">
-                    <i className="ri-voiceprint-line text-base lg:text-lg 2xl:text-xl"></i>
+
+                {/* Music Playback Control */}
+                <CyberButton
+                    variant="dot"
+                    size="sm"
+                    iconOnly
+                    showGhost={true}
+                    ghostOffset="-translate-x-[-4px] -translate-y-[-2px]"
+                    className="flex items-center justify-center min-w-[40px]"
+                    onClick={togglePlay}
+                >
+                    <AudioWaveform isPlaying={isPlaying} className="text-brand-primary" />
                 </CyberButton>
             </div>
         </div>

@@ -12,6 +12,8 @@ interface HoloTiltCardProps {
     onClick?: () => void;
     className?: string;
     onHoverChange?: (isHovered: boolean) => void;
+    subtitle?: string;
+    glitchType?: 'heavy' | 'rgb' | 'slice' | 'vertical' | 'subtle' | 'standard';
 }
 
 /**
@@ -24,7 +26,9 @@ export const HoloTiltCard = ({
     content3d,
     onClick,
     className,
-    onHoverChange
+    onHoverChange,
+    subtitle,
+    // glitchType - currently unused in 3D mode
 }: HoloTiltCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -163,6 +167,18 @@ export const HoloTiltCard = ({
             >
                 {title}
             </div>
+
+            {/* 2.5 Subtitle (Small Tech Text) */}
+            {subtitle && (
+                <div
+                    className={`absolute bottom-[100px] -right-2 z-30 transition-all duration-300 font-mono text-[10px] tracking-[0.2em] text-[var(--color-brand-secondary)] bg-black/60 px-2 py-1 backdrop-blur-sm border-l border-[var(--color-brand-secondary)] ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}
+                    style={{
+                        transform: isHovered ? 'translateX(0)' : 'translateX(10px)'
+                    }}
+                >
+                    {subtitle}
+                </div>
+            )}
 
             {/* 3. 2D Content (Icon) - Fades OUT */}
             <div
