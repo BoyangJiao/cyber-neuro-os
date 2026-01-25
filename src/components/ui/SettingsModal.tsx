@@ -31,7 +31,7 @@ const themes: ThemeOption[] = [
 ];
 
 export const SettingsModal = () => {
-    const { setSettingsOpen, debugMode, setDebugMode, brandTheme, setBrandTheme } = useAppStore();
+    const { setSettingsOpen, debugMode, setDebugMode, is3DMode, set3DMode, brandTheme, setBrandTheme } = useAppStore();
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
 
@@ -228,6 +228,35 @@ export const SettingsModal = () => {
                                         )}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* 3D Mode Section */}
+                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <i className="ri-box-3-line text-[var(--color-brand-primary)]/60" />
+                                    <span className="text-xs font-semibold text-[var(--color-text-subtle)] tracking-widest uppercase">
+                                        {t('settings.mode3d')}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => set3DMode(!is3DMode)}
+                                    className={`
+                                        w-12 h-6 relative rounded-none border transition-all duration-300
+                                        ${is3DMode
+                                            ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30'
+                                            : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'
+                                        }
+                                    `}
+                                >
+                                    <div
+                                        className={`
+                                            absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300
+                                            ${is3DMode ? 'left-7' : 'left-1'}
+                                        `}
+                                    />
+                                </button>
                             </div>
                         </div>
 

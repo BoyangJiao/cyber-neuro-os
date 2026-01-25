@@ -20,6 +20,8 @@ import { AnimatePresence } from 'framer-motion'
 import { VisualEditing } from '@sanity/visual-editing/react'
 import { useLiveMode } from './sanity/client'
 import { SanityErrorBoundary } from './components/error/SanityErrorBoundary'
+import { Canvas } from '@react-three/fiber'
+import { View } from '@react-three/drei'
 
 function App() {
   // Enable live mode for Sanity drafts
@@ -63,29 +65,39 @@ function App() {
     <LanguageProvider>
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
         <MainLayout footer={<Footer />}>
-          {/* Dashboard Container - Grid System */}
-          <div className="cyber-grid h-full items-stretch relative">
+          {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
+          <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">
 
-            {/* LEFT PROFILE COLUMN (static) - Hidden on FullWidth Page */}
-            {!isFullWidth && <ProfileSidebar />}
+            {/* LEFT PROFILE COLUMN (Fixed width, sticky behavior) */}
+            {!isFullWidth && (
+              <aside className="hidden lg:flex flex-none flex-col h-full z-30 relative">
+                <ProfileSidebar />
+              </aside>
+            )}
 
-            {/* CENTER MAIN GRID (dynamic) */}
-            <div className={`${isFullWidth ? 'col-span-12' : 'col-span-1 md:col-span-3 lg:col-span-8'} h-full relative overflow-hidden`}>
-              {/* Routes without key - prevents unnecessary re-mounting */}
-              <Routes location={location}>
-                <Route path="/" element={<FeaturePanel />} />
-                <Route path="/projects/*" element={<ProjectLanding />} />
-                <Route path="/design-system" element={<DesignSystemPage />} />
-              </Routes>
+            {/* CENTER MAIN CONTENT (Fluid width, takes remaining space) */}
+            <main className={`flex-1 h-full relative min-w-0 flex flex-col z-10 transition-all duration-300 ${isFullWidth ? 'w-full' : ''}`}>
+              <div className="w-full h-full relative overflow-hidden py-3 lg:py-4 max-w-[1600px] mx-auto">
+                {/* Routes without key - prevents unnecessary re-mounting */}
+                <Routes location={location}>
+                  <Route path="/" element={<FeaturePanel />} />
+                  <Route path="/projects/*" element={<ProjectLanding />} />
+                  <Route path="/design-system" element={<DesignSystemPage />} />
+                </Routes>
 
-              {/* About Me Modal - 覆盖在 main-mid 区域内 */}
-              <AnimatePresence>
-                {isAboutMeOpen && <AboutMePage />}
-              </AnimatePresence>
-            </div>
+                {/* About Me Modal - 覆盖在 main-mid 区域内 */}
+                <AnimatePresence>
+                  {isAboutMeOpen && <AboutMePage />}
+                </AnimatePresence>
+              </div>
+            </main>
 
-            {/* RIGHT EMPTY COLUMN (static) - Hidden on FullWidth Page */}
-            {!isFullWidth && <StatusSidebar />}
+            {/* RIGHT STATUS COLUMN (Fixed width, sticky behavior) */}
+            {!isFullWidth && (
+              <aside className="hidden lg:flex flex-none flex-col h-full z-30 relative pointer-events-none">
+                <StatusSidebar />
+              </aside>
+            )}
 
           </div>
 
@@ -116,6 +128,18 @@ function App() {
             </SanityErrorBoundary>
           </div>
         )}
+      </div>
+
+      {/* Shared Three.js Canvas for View Portals */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <Canvas
+          eventSource={document.getElementById('root')!}
+          className="pointer-events-none"
+          gl={{ alpha: true, antialias: true }}
+          dpr={[1, 1.5]}
+        >
+          <View.Port />
+        </Canvas>
       </div>
     </LanguageProvider>
   )

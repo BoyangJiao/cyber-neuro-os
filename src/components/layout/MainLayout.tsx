@@ -21,8 +21,8 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
 
             {/* 4. Main Body: Flex-1 to fill remaining space, NO horizontal padding here */}
             <main className="relative z-10 flex-1 w-full min-h-0 overflow-y-auto py-3 lg:py-4 xl:py-6">
-                {/* Inner Container: Max-width + centered + horizontal padding (Basement.studio style) */}
-                <div className="w-full h-full relative max-w-[1920px] mx-auto px-4 lg:px-6 xl:px-10 2xl:px-12">
+                {/* Inner Container: Full width for custom layouts */}
+                <div className="w-full h-full relative">
                     {children}
                 </div>
             </main>

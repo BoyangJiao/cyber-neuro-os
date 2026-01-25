@@ -36,6 +36,8 @@ export const translations = {
             occupationValue: 'DESIGNER & BUILDER',
             corporation: 'CORPORATION',
             corporationValue: 'ANT GROUP',
+            activeQuest: 'ACTIVE QUEST',
+            activeQuestValue: 'Bettr',
             aboutMe: 'ABOUT ME',
         },
 
@@ -61,6 +63,7 @@ export const translations = {
             title: 'SETTINGS',
             language: 'LANGUAGE',
             languageDesc: 'Select display language',
+            mode3d: '3D MODE',
             close: 'CLOSE',
         },
 
@@ -70,6 +73,20 @@ export const translations = {
             connecting: 'CONNECTING TO CORTEX',
             loading: 'LOADING PERSONALITY MATRIX',
             ready: 'SYSTEM READY',
+        },
+
+        // Biometric Monitor
+        biometric: {
+            sysMon: 'SYS.MON',
+            cortex: 'CORTEX',
+            sync: 'SYNC',
+            stable: 'STABLE',
+            vitals: 'VITALS',
+            normal: 'NORMAL',
+            stress: 'STRESS',
+            overload: 'OVERLOAD',
+            illness: 'ILLNESS',
+            energy: 'ENERGY',
         },
     },
 
@@ -105,6 +122,8 @@ export const translations = {
             occupationValue: '设计师 & 开发者',
             corporation: '公司',
             corporationValue: '蚂蚁集团',
+            activeQuest: '当前任务',
+            activeQuestValue: 'Bettr',
             aboutMe: '关于我',
         },
 
@@ -130,6 +149,7 @@ export const translations = {
             title: '设置',
             language: '语言',
             languageDesc: '选择显示语言',
+            mode3d: '3D 模式',
             close: '关闭',
         },
 
@@ -139,6 +159,20 @@ export const translations = {
             connecting: '正在连接皮层',
             loading: '正在加载人格矩阵',
             ready: '系统就绪',
+        },
+
+        // Biometric Monitor
+        biometric: {
+            sysMon: '系统监控',
+            cortex: '皮层负荷',
+            sync: '神经同步',
+            stable: '稳定',
+            vitals: '生命体征',
+            normal: '正常',
+            stress: '精神压力',
+            overload: '神经过载',
+            illness: '生理异常',
+            energy: '能量水平',
         },
     },
 } as const;

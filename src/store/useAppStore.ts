@@ -171,6 +171,9 @@ interface AppState {
     // Debug Mode
     debugMode: boolean;
     setDebugMode: (mode: boolean) => void;
+    // 3D Mode
+    is3DMode: boolean;
+    set3DMode: (mode: boolean) => void;
     debugGeometryType: GeometryType;
     setDebugGeometryType: (type: GeometryType) => void;
     // Glitch Settings
@@ -218,6 +221,9 @@ export const useAppStore = create<AppState>((set) => ({
     // Debug Mode
     debugMode: false,
     setDebugMode: (mode) => set({ debugMode: mode }),
+    // 3D Mode
+    is3DMode: false,
+    set3DMode: (mode) => set({ is3DMode: mode }),
     debugGeometryType: 'project',
     setDebugGeometryType: (type) => set({ debugGeometryType: type }),
     // Glitch Settings

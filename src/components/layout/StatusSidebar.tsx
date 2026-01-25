@@ -1,9 +1,14 @@
+import { BiometricMonitor } from '../ui/BiometricMonitor';
+
 export const StatusSidebar = () => {
     return (
-        <div className="col-span-1 lg:col-span-2 hidden lg:flex flex-col h-full p-4 opacity-30 border-l border-border-subtle">
-            {/* Placeholder Visuals */}
-            <div className="h-full w-full border border-dashed border-border-default rounded flex items-center justify-center">
-                <span className="text-text-muted font-mono text-xs tracking-[0.3em] uppercase rotate-90">Awaiting Module</span>
+        <div className="flex flex-col items-end h-full pr-4 lg:pr-6 xl:pr-8 py-3 lg:py-4">
+            {/* Fixed Width Container matching ProfileSidebar */}
+            <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-8 shrink-0 w-[160px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px] h-full">
+
+                {/* Biometric Monitor without container border */}
+                <BiometricMonitor />
+
             </div>
         </div>
     );

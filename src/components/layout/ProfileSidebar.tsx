@@ -11,15 +11,15 @@ export const ProfileSidebar = () => {
     const [isPressed, setIsPressed] = useState(false);
 
     return (
-        <div className="col-span-1 lg:col-span-2 flex flex-col items-start h-full">
-            <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-8 shrink-0 w-[120px] lg:w-[146px] xl:w-[170px] 2xl:w-[220px]">
+        <div className="flex flex-col items-start h-full pl-4 lg:pl-6 xl:pl-8 py-3 lg:py-4">
+            <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-8 shrink-0 w-[160px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px]">
                 {/* Profile Photo Frame - Clickable to open About Me */}
-                <div id="avatar-frame" className="relative group">
+                <div id="avatar-frame" className="relative group w-fit">
                     <HoloFrame
                         variant="corner"
                         isPressed={isPressed}
                         showGhost={true}
-                        className="h-[120px] lg:h-[146px] xl:h-[170px] 2xl:h-[220px] w-full flex items-center justify-center relative cursor-pointer p-0"
+                        className="h-[80px] lg:h-[140px] xl:h-[160px] 2xl:h-[180px] w-[80px] lg:w-[140px] xl:w-[160px] 2xl:w-[180px] flex items-center justify-center relative cursor-pointer p-0"
                         onClick={startAvatarScan}
                         onMouseDown={() => setIsPressed(true)}
                         onMouseUp={() => setIsPressed(false)}
@@ -103,6 +103,30 @@ export const ProfileSidebar = () => {
                         >
                             {t('profile.corporationValue')}
                         </GhostText>
+                    </div>
+                    <div className="flex flex-col gap-1 2xl:gap-1.5">
+                        <GhostText
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            ghostOpacity={0.3}
+                        >
+                            {t('profile.activeQuest')}
+                        </GhostText>
+                        <a
+                            href="https://www.bettr.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-2 w-fit"
+                        >
+                            <span className="border-b border-brand-primary/30 border-dashed group-hover:border-solid group-hover:border-brand-primary pb-0.5 transition-colors duration-300">
+                                <GhostText
+                                    className="text-sm lg:text-base 2xl:text-lg font-bold font-display tracking-wide text-text-primary group-hover:text-brand-primary transition-colors"
+                                    ghostOpacity={0.4}
+                                >
+                                    {t('profile.activeQuestValue')}
+                                </GhostText>
+                            </span>
+                            <i className="ri-arrow-right-up-line text-brand-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-sm" />
+                        </a>
                     </div>
                 </div>
             </div>
