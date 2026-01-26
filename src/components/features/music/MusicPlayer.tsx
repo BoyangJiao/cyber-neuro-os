@@ -1,8 +1,10 @@
 import { useMusicStore } from '../../../store/useMusicStore';
 import { ChamferFrame } from '../../ui/frames/ChamferFrame';
 import clsx from 'clsx';
+import { useTranslation } from '../../../i18n';
 
 export const MusicPlayer = () => {
+    const { t } = useTranslation();
     const {
         currentTrack,
         isPlaying,
@@ -39,7 +41,7 @@ export const MusicPlayer = () => {
             {/* Track Header - Integrated state identifier */}
             <div className="flex items-center mb-4 border-b border-brand-primary/30 pb-2">
                 <span className="text-[10px] font-sans font-medium text-brand-primary/80 tracking-widest uppercase">
-                    正在播放
+                    {t('music.nowPlaying')}
                 </span>
             </div>
 

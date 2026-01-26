@@ -33,7 +33,7 @@ export const MusicPage = () => {
                         {/* Center Title */}
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                AUDIO INTERFACE
+                                BROADCAST
                             </h1>
                         </div>
 

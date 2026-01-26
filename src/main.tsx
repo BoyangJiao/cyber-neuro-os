@@ -4,9 +4,7 @@ import './index.css'
 import 'remixicon/fonts/remixicon.css'
 import App from './App.tsx'
 
-// NOTE: StrictMode disabled for Arwes compatibility
-// Arwes officially does not support React StrictMode
-// See: https://arwes.dev/docs/develop/fundamentals/react
+// NOTE: StrictMode previously disabled for legacy reasons. Can be re-enabled if needed.
 
 createRoot(document.getElementById('root')!).render(
   <BrowserRouter>

@@ -177,6 +177,11 @@ interface AppState {
 
     debugGeometryType: GeometryType;
     setDebugGeometryType: (type: GeometryType) => void;
+
+    // Audio Settings
+    sfxVolume: number;
+    setSfxVolume: (volume: number) => void;
+
     // Glitch Settings
     glitchSettings: GlitchSettings;
     setGlitchSetting: <K extends keyof GlitchSettings>(key: K, value: GlitchSettings[K]) => void;
@@ -227,6 +232,10 @@ export const useAppStore = create<AppState>((set) => ({
     set3DMode: (mode) => set({ is3DMode: mode }),
     debugGeometryType: 'project',
     setDebugGeometryType: (type) => set({ debugGeometryType: type }),
+
+    // Audio Settings
+    sfxVolume: 50,
+    setSfxVolume: (vol) => set({ sfxVolume: Math.max(0, Math.min(100, vol)) }),
     // Glitch Settings
     glitchSettings: loadSavedGlitchSettings(),
     setGlitchSetting: (key, value) => set((state) => ({

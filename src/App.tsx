@@ -24,6 +24,8 @@ import { SanityErrorBoundary } from './components/error/SanityErrorBoundary'
 import { Canvas } from '@react-three/fiber'
 import { View } from '@react-three/drei'
 import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
+import { Agentation } from 'agentation'
+import { TacticalCursor } from './components/ui/TacticalCursor'
 
 function App() {
   // Enable live mode for Sanity drafts
@@ -59,6 +61,13 @@ function App() {
 
   return (
     <LanguageProvider>
+      {/* Dev-only Annotation Tool */}
+      {import.meta.env.DEV && (
+        <div className="fixed z-[9999] pointer-events-none *:pointer-events-auto">
+          <Agentation />
+        </div>
+      )}
+
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
@@ -139,6 +148,9 @@ function App() {
         </Canvas>
       </div>
       <GlobalAudioPlayer />
+
+      {/* Tactical HUD Cursor - Topmost Layer */}
+      <TacticalCursor />
     </LanguageProvider>
   )
 }

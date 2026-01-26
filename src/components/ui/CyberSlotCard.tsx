@@ -14,6 +14,7 @@ export interface CyberSlotCardProps {
     onClick?: () => void;
     className?: string;
     glitchType?: GlitchType;
+    bgSize?: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export const CyberSlotCard = ({
     onClick,
     className,
     glitchType = 'standard',
+    bgSize = '70%',
 }: CyberSlotCardProps) => {
     const { playHover, playClick } = useSoundSystem();
     const [scanProgress, setScanProgress] = useState(0);
@@ -137,19 +139,23 @@ export const CyberSlotCard = ({
                     <div className="flex-1 relative overflow-hidden bg-black/60">
                         {/* Inactive 背景层 */}
                         <div
-                            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80 mix-blend-screen"
-                            style={{ backgroundImage: `url('${inactiveImage}')` }}
+                            className="absolute inset-0 bg-center bg-no-repeat opacity-80 mix-blend-screen"
+                            style={{
+                                backgroundImage: `url('${inactiveImage}')`,
+                                backgroundSize: bgSize
+                            }}
                         />
 
                         {/* Active 背景层 - 跟随扫描线揭示 + 通电后 glitch 效果 */}
                         <div
                             className={twMerge(
-                                "absolute inset-0 bg-cover bg-center bg-no-repeat",
+                                "absolute inset-0 bg-center bg-no-repeat",
                                 isScanComplete && getGlitchClass(glitchType)
                             )}
                             style={{
                                 backgroundImage: `url('${activeImage}')`,
                                 clipPath: `polygon(0 0, 100% 0, 100% ${scanProgress}%, 0 ${scanProgress}%)`,
+                                backgroundSize: bgSize
                             }}
                         />
 

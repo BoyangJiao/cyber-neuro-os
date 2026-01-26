@@ -20,32 +20,32 @@ export const AboutMePage = () => {
             <HoloFrame
                 variant="lines"
                 className="w-full h-full bg-[var(--color-bg-app)] relative overflow-hidden p-0"
-                active={true}  // 触发 Arwes FrameLines 入场动效
+                active={true}
                 showAtmosphere={true}
                 showMask={true}
             >
                 {/* 主容器布局 */}
                 <div className="w-full h-full flex flex-col">
 
-                    {/* === 顶部标题栏 === */}
-                    <div className="w-full shrink-0 flex items-center justify-between relative z-[60] px-4 2xl:px-6 pt-4 2xl:pt-6">
-                        {/* 左侧占位 */}
-                        <div className="w-16 2xl:w-20"></div>
+                    {/* === HEADER === */}
+                    <div className="w-full shrink-0 flex items-center justify-between relative z-[60] px-1 2xl:px-2 pt-1 2xl:pt-1 pb-1 2xl:pb-1">
+                        {/* Left Placeholder */}
+                        <div className="w-16 2xl:w-20" />
 
-                        {/* 中间标题 */}
-                        <div className="flex items-center gap-3 2xl:gap-4">
-                            {/* 连接线终点矩形 - 由 ConnectionLine 组件渲染 */}
-                            <div id="about-title-dot" className="w-2 h-2 2xl:w-2.5 2xl:h-2.5 shrink-0"></div>
-                            <h1 className="text-[16px] 2xl:text-[20px] font-bold text-brand-secondary tracking-[0.3em]">
+                        {/* Center Title */}
+                        <div className="flex items-center gap-3 justify-center">
+                            {/* Connection Dot for Hologram Line */}
+                            <div id="about-title-dot" className="w-1.5 h-1.5 bg-brand-secondary/50 rounded-full" />
+                            <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
                                 {t('about.title')}
                             </h1>
                         </div>
 
-                        {/* 右侧关闭按钮 */}
+                        {/* Right Close Button */}
                         <div className="flex justify-end w-16 2xl:w-20">
                             <CyberButton
                                 variant="ghost"
-                                icon={<i className="ri-close-line text-2xl 2xl:text-3xl"></i>}
+                                icon={<i className="ri-close-line text-xl 2xl:text-2xl" />}
                                 onClick={() => setAboutMeOpen(false)}
                                 className="text-brand-primary hover:text-brand-secondary transition-colors"
                                 iconOnly

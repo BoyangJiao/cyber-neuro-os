@@ -28,6 +28,11 @@ export const translations = {
             lab: 'LAB',
         },
 
+        // Music Page
+        music: {
+            nowPlaying: 'NOW PLAYING',
+        },
+
         // Profile Sidebar
         profile: {
             name: 'NAME',
@@ -112,6 +117,11 @@ export const translations = {
             sound: '声音',
             music: '音乐',
             lab: '实验室',
+        },
+
+        // Music Page
+        music: {
+            nowPlaying: '正在播放',
         },
 
         // Profile Sidebar

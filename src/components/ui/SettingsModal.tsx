@@ -2,6 +2,7 @@ import { HoloFrame } from './HoloFrame';
 import { CyberButton } from './CyberButton';
 import { MotionDiv } from '../motion/MotionWrappers';
 import { useAppStore } from '../../store/useAppStore';
+import { useMusicStore } from '../../store/useMusicStore';
 import { useLanguage } from '../../i18n';
 import { useTranslation } from '../../i18n';
 import type { Language } from '../../i18n';
@@ -31,7 +32,8 @@ const themes: ThemeOption[] = [
 ];
 
 export const SettingsModal = () => {
-    const { setSettingsOpen, debugMode, setDebugMode, is3DMode, set3DMode, brandTheme, setBrandTheme } = useAppStore();
+    const { setSettingsOpen, debugMode, setDebugMode, is3DMode, set3DMode, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
+    const { volume, setVolume } = useMusicStore();
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
 
@@ -228,6 +230,48 @@ export const SettingsModal = () => {
                                         )}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Audio Section */}
+                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-4">
+                            <div className="flex items-center gap-2">
+                                <i className="ri-volume-up-line text-[var(--color-brand-primary)]/60" />
+                                <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                    AUDIO
+                                </span>
+                            </div>
+
+                            {/* Music Volume */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+                                    <span>Music</span>
+                                    <span>{Math.round(volume)}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={volume}
+                                    onChange={(e) => setVolume(Number(e.target.value))}
+                                    className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-brand-secondary)] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--color-brand-primary)] [&::-webkit-slider-thumb]:shadow-[0_0_5px_var(--color-brand-secondary)]"
+                                />
+                            </div>
+
+                            {/* SFX Volume */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+                                    <span>SFX</span>
+                                    <span>{Math.round(sfxVolume)}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={sfxVolume}
+                                    onChange={(e) => setSfxVolume(Number(e.target.value))}
+                                    className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-brand-secondary)] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--color-brand-primary)] [&::-webkit-slider-thumb]:shadow-[0_0_5px_var(--color-brand-secondary)]"
+                                />
                             </div>
                         </div>
 
