@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import clsx from 'clsx';
-import { useLocation } from 'react-router-dom';
+
 
 export const TacticalCursor = () => {
     const cursorRef = useRef<HTMLDivElement>(null);
     const [isHovering, setIsHovering] = useState(false);
     const [isActive, setIsActive] = useState(false);
     const [isClicking, setIsClicking] = useState(false);
-    const location = useLocation();
+
 
     // 状态 ref，用于避免 react render loop 中断动画流畅性
     const mousePos = useRef({ x: 0, y: 0 });
@@ -24,7 +24,7 @@ export const TacticalCursor = () => {
     const centerRef = useRef<HTMLDivElement>(null);
 
     // 速度监测
-    const lastTime = useRef(0);
+
     const lastMouse = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
@@ -100,7 +100,7 @@ export const TacticalCursor = () => {
         document.addEventListener('mouseenter', onMouseEnter);
 
         // RAF 动画循环 (这是流畅的关键)
-        const render = (time: number) => {
+        const render = () => {
             if (!cursor) return;
 
             // 1. 位置跟随：使用极小的 lerp 实现微平滑，或者直接 1.0 实现绝对跟手

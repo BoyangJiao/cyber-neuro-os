@@ -136,7 +136,7 @@ body::after {
 /* Selection */
 ::selection {
     background: var(--color-brand-primary);
-    color: var(--color-text-inverse);
+    color: #000;
 }
 
 @keyframes scanline {

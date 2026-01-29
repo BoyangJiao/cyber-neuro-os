@@ -82,7 +82,7 @@ export const MissionBriefing = ({
         const scrambleObj = { value: 0 };
         tl.to(scrambleObj, {
             value: 1,
-            duration: 0.8,
+            duration: 1.5,
             ease: 'none',
             onUpdate: () => {
                 const progress = scrambleObj.value;
