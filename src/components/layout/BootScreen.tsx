@@ -56,10 +56,28 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
 
     const handleEnter = () => {
         if (soundEnabled) {
-            setVolume(75);
+            // Start silent and fade in
+            setVolume(0);
             play();
+
+            // Fade in logic
+            const targetVol = 75;
+            const duration = 5000; // 5s fade
+            const steps = 50; // smoother steps
+            const stepTime = duration / steps;
+            const increment = targetVol / steps;
+
+            let currentVol = 0;
+            const fadeTimer = setInterval(() => {
+                currentVol += increment;
+                if (currentVol >= targetVol) {
+                    currentVol = targetVol;
+                    clearInterval(fadeTimer);
+                }
+                setVolume(currentVol);
+            }, stepTime);
         } else {
-            setVolume(30);
+            setVolume(0);
             pause(); // Ensure state is paused
         }
         onComplete();
