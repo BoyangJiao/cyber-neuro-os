@@ -1,4 +1,4 @@
-import { useAppStore } from '../../../store/useAppStore';
+import { useSettingsStore } from '../../../store/useSettingsStore';
 import { ToggleSwitch, EffectSlider, ColorInput } from './controls';
 
 interface CyberRgbTabProps {
@@ -10,7 +10,7 @@ interface CyberRgbTabProps {
  * CyberRgbTab - Cyber RGB 效果控制面板
  */
 export const CyberRgbTab = ({ onSave, saveFlash }: CyberRgbTabProps) => {
-    const { cyberRgbSettings, setCyberRgbSetting, resetCyberRgbSettings } = useAppStore();
+    const { cyberRgbSettings, setCyberRgbSetting, resetCyberRgbSettings } = useSettingsStore();
 
     return (
         <div className="space-y-3">
@@ -32,8 +32,8 @@ export const CyberRgbTab = ({ onSave, saveFlash }: CyberRgbTabProps) => {
                             key={count}
                             onClick={() => setCyberRgbSetting('colorCount', count)}
                             className={`flex-1 py-1 border text-[10px] transition-all ${cyberRgbSettings.colorCount === count
-                                    ? 'border-pink-500 bg-pink-500/20 text-pink-300'
-                                    : 'border-cyan-800/50 text-cyan-600 hover:border-cyan-600'
+                                ? 'border-pink-500 bg-pink-500/20 text-pink-300'
+                                : 'border-cyan-800/50 text-cyan-600 hover:border-cyan-600'
                                 }`}
                         >
                             {count} Colors
@@ -93,8 +93,8 @@ export const CyberRgbTab = ({ onSave, saveFlash }: CyberRgbTabProps) => {
                             key={dir}
                             onClick={() => setCyberRgbSetting('scanlineDirection', dir)}
                             className={`flex-1 py-1 border text-[9px] transition-all ${cyberRgbSettings.scanlineDirection === dir
-                                    ? 'border-pink-500 bg-pink-500/20 text-pink-300'
-                                    : 'border-cyan-800/50 text-cyan-600 hover:border-cyan-600'
+                                ? 'border-pink-500 bg-pink-500/20 text-pink-300'
+                                : 'border-cyan-800/50 text-cyan-600 hover:border-cyan-600'
                                 }`}
                         >
                             {dir === 'horizontal' ? 'H' : dir === 'vertical' ? 'V' : 'BOTH'}
@@ -108,8 +108,8 @@ export const CyberRgbTab = ({ onSave, saveFlash }: CyberRgbTabProps) => {
                 <button
                     onClick={onSave}
                     className={`flex-1 py-1.5 border text-[10px] uppercase tracking-wider transition-all ${saveFlash
-                            ? 'border-green-500 bg-green-500/20 text-green-300'
-                            : 'border-cyan-500/50 bg-cyan-500/10 text-cyan-400 hover:border-cyan-400'
+                        ? 'border-green-500 bg-green-500/20 text-green-300'
+                        : 'border-cyan-500/50 bg-cyan-500/10 text-cyan-400 hover:border-cyan-400'
                         }`}
                 >
                     <i className={`ri-${saveFlash ? 'check' : 'save'}-line mr-1`} />

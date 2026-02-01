@@ -56,6 +56,7 @@ export const MissionList = ({
                                 )}
                                 isActive={isActive}
                                 showEffects={false}
+                                animate={false}
                             >
                                 <button
                                     onClick={() => {

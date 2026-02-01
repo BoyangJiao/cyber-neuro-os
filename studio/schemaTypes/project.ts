@@ -66,10 +66,10 @@ export default {
                         list: ['Live', 'In Development', 'Archived'],
                     },
                 },
-                { name: 'liveLink', type: 'url', title: 'Live Link' },
+                { name: 'liveUrl', type: 'url', title: 'Live URL' },
                 {
-                    name: 'techStack',
-                    title: 'Project Type',
+                    name: 'projectType',
+                    title: 'Project Type (项目类型)',
                     type: 'array',
                     of: [{ type: 'string' }],
                 },
@@ -84,9 +84,13 @@ export default {
         {
             name: 'contentModules',
             title: 'Content Modules',
-            description: 'Build your case study with modular sections',
+            description: 'Build your case study with flexible layout blocks / 使用灵活的布局块构建你的案例',
             type: 'array',
-            of: [{ type: 'projectSection' }],
+            of: [
+                { type: 'layoutFullWidth' },
+                { type: 'layoutSplit' },
+                { type: 'layoutGrid' },
+            ],
         },
     ],
 };

@@ -3,6 +3,7 @@ import { useGLTF, Float } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useAppStore } from '../../../store/useAppStore';
+import { useSettingsStore } from '../../../store/useSettingsStore';
 import { createFullUniforms, fresnelVertexShader, fresnelFragmentShader } from '../shaders';
 
 /**
@@ -17,11 +18,11 @@ export const CrystalCore = () => {
     const groupRef = useRef<THREE.Group>(null);
     const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-    const glitchSettings = useAppStore((state) => state.glitchSettings);
-    const cyberRgbSettings = useAppStore((state) => state.cyberRgbSettings);
+    const glitchSettings = useSettingsStore((state) => state.glitchSettings);
+    const cyberRgbSettings = useSettingsStore((state) => state.cyberRgbSettings);
     const brandTheme = useAppStore((state) => state.brandTheme);
 
-    const { scene } = useGLTF('/models/CrystalCore%20v2.glb');
+    const { scene } = useGLTF('/models/CrystalCore_v2.glb');
 
     // Theme color mapping
     const themeColors = {
@@ -113,4 +114,4 @@ export const CrystalCore = () => {
     );
 };
 
-useGLTF.preload('/models/CrystalCore%20v2.glb');
+useGLTF.preload('/models/CrystalCore_v2.glb');

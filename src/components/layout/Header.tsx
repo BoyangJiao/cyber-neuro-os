@@ -35,12 +35,12 @@ export const Header = () => {
                     <h1 className="relative text-[16px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
                         {/* Main Text Layer */}
                         <span className="relative z-10 text-brand-primary">
-                            {t('header.brand')} <span className="text-brand-primary">{t('header.brandHighlight')}</span>
+                            {t('header.brand')}<span className="text-brand-primary">{t('header.brandHighlight')}</span>
                         </span>
 
                         {/* Ghost / Afterimage Layer */}
                         <span className="absolute bottom-[3px] right-[4px] blur-[1px] select-none pointer-events-none opacity-50 whitespace-nowrap w-max" aria-hidden="true">
-                            <span className="text-brand-primary">{t('header.brand')} </span>
+                            <span className="text-brand-primary">{t('header.brand')}</span>
                             <span className="text-brand-primary">{t('header.brandHighlight')}</span>
                         </span>
                     </h1>

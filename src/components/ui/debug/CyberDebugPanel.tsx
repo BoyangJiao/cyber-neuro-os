@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useAppStore } from '../../../store/useAppStore';
+
+import { useSettingsStore } from '../../../store/useSettingsStore';
 import { HoloFrame } from '../HoloFrame';
 import { CyberButton } from '../CyberButton';
 import { MotionDiv } from '../../motion/MotionWrappers';
@@ -38,7 +39,7 @@ export const CyberDebugPanel = () => {
     const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const { saveGlitchSettings, saveCyberRgbSettings, saveTransitionGlitchSettings } = useAppStore();
+    const { saveGlitchSettings, saveCyberRgbSettings, saveTransitionGlitchSettings } = useSettingsStore();
 
     const handleSave = useCallback(() => {
         saveGlitchSettings();

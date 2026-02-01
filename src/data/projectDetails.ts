@@ -5,15 +5,77 @@
  * NOTE: Legacy mock data has been removed. All data should now come from Sanity.
  */
 
-// Sanity content module interface
-export interface SanityProjectModule {
+// ============================================
+// Content Block Types (Slot Content)
+// 内容块类型（插槽内容）
+// ============================================
+
+export interface RichTextBlock {
     _key: string;
-    title: string;
-    theme: 'context' | 'strategy' | 'highlights' | 'outcome' | 'default';
-    layout: 'left-sidebar' | 'full-width' | 'media-right';
-    content: any[]; // Portable Text content
-    media?: any; // Sanity image reference
+    _type: 'richTextBlock';
+    content: any[]; // Portable Text
 }
+
+export interface MediaBlock {
+    _key: string;
+    _type: 'mediaBlock';
+    image?: any; // Sanity image reference
+    videoFile?: { asset: { url: string } }; // Sanity file reference
+    video?: string; // External URL
+    caption?: string;
+    alt?: string;
+    layout: 'cover' | 'contain' | 'auto';
+}
+
+export interface StatsItem {
+    label: string;
+    value: string;
+    description?: string;
+}
+
+export interface StatsBlock {
+    _key: string;
+    _type: 'statsBlock';
+    items: StatsItem[];
+}
+
+export type ContentBlock = RichTextBlock | MediaBlock | StatsBlock;
+
+// ============================================
+// Layout Module Types (Row Structure)
+// 布局模块类型（行结构）
+// ============================================
+
+export interface LayoutFullWidth {
+    _key: string;
+    _type: 'layoutFullWidth';
+    anchorId?: string;
+    background?: 'transparent' | 'dark-glass' | 'outline';
+    content: ContentBlock[];
+}
+
+export interface LayoutSplit {
+    _key: string;
+    _type: 'layoutSplit';
+    anchorId?: string;
+    ratio: '50-50' | '40-60' | '60-40';
+    leftSlot: ContentBlock[];
+    rightSlot: ContentBlock[];
+}
+
+export interface LayoutGrid {
+    _key: string;
+    _type: 'layoutGrid';
+    anchorId?: string;
+    columns: 2 | 3 | 4;
+    items: (MediaBlock | StatsBlock)[];
+}
+
+export type LayoutModule = LayoutFullWidth | LayoutSplit | LayoutGrid;
+
+// ============================================
+// Core Metrics & Sidebar (unchanged)
+// ============================================
 
 // Core metrics displayed in hero section
 export interface CoreMetric {
@@ -28,22 +90,29 @@ export interface ProjectSidebar {
     team: string;
     timeline: string;
     status: 'Live' | 'In Development' | 'Archived';
-    liveLink?: string;
-    techStack: string[];
+    liveUrl?: string;
+    projectType?: string[];
     coreContributions: string[];
 }
 
-// Full project detail from Sanity
+// ============================================
+// Full Project Detail (updated)
+// ============================================
+
 export interface SanityProjectDetail {
     _id: string;
     title: string;
     slug: string;
     tagline?: string;
-    heroImage?: string;
+    heroImage?: any;
     coreMetrics?: CoreMetric[];
     sidebar?: ProjectSidebar;
-    contentModules?: SanityProjectModule[];
+    contentModules?: LayoutModule[];
 }
+
+// ============================================
+// Legacy Types (deprecated)
+// ============================================
 
 /**
  * @deprecated Legacy interface - Use SanityProjectDetail instead.

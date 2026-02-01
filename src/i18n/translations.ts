@@ -7,8 +7,8 @@ export const translations = {
     en: {
         // Header
         header: {
-            brand: 'CYBER',
-            brandHighlight: 'NEUROSPACE',
+            brand: 'NEURO',
+            brandHighlight: '.OS',
             online: 'Online',
         },
 
@@ -98,8 +98,8 @@ export const translations = {
     zh: {
         // Header
         header: {
-            brand: '赛博',
-            brandHighlight: '神经空间',
+            brand: '神经操作系统',
+            brandHighlight: '',
             online: '在线',
         },
 

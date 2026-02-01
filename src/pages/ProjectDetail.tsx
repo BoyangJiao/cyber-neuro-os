@@ -28,7 +28,6 @@ export const ProjectDetail = () => {
 
     // UI State
     const [activeSection, setActiveSection] = useState('');
-    const [isHeroVisible, setIsHeroVisible] = useState(true);
 
     // Refs
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -77,28 +76,15 @@ export const ProjectDetail = () => {
         }
     }, [sanityError]);
 
-    // Construct Sidebar Sections from Modules
-    const sidebarSections = (detail?.contentModules || []).map(module => ({
-        id: module.title ? module.title.toLowerCase().replace(/\s+/g, '-') : module._key,
-        title: module.title || 'Untitled'
-    }));
+    // Construct Sidebar Sections from Modules (using anchorId)
+    const sidebarSections = (detail?.contentModules || [])
+        .filter(module => module.anchorId) // Only include modules with anchorId
+        .map(module => ({
+            id: module.anchorId || module._key,
+            title: module.anchorId || 'Section'
+        }));
 
-    // Handle scroll spy
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        const hero = heroRef.current;
-        if (!container || !hero) return;
 
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setIsHeroVisible(entry.isIntersecting);
-            },
-            { root: container, threshold: 0.1 }
-        );
-
-        observer.observe(hero);
-        return () => observer.disconnect();
-    }, [isLoading]);
 
     // Handle Layout Logic
     const handleNavigate = useCallback((sectionId: string) => {
@@ -170,7 +156,7 @@ export const ProjectDetail = () => {
                 <div className="absolute inset-0 z-0 bg-bg-app/98" />
 
                 {/* Close Button */}
-                <div className="absolute top-4 right-6 z-[100]">
+                <div className="absolute top-4 right-4 lg:right-6 xl:right-10 2xl:right-12 z-[100]">
                     <CyberButton
                         variant="ghost"
                         icon={<i className="ri-close-line text-2xl" />}
@@ -193,16 +179,11 @@ export const ProjectDetail = () => {
                         <DetailHeroSection project={project} detail={detail as any} />
                     </div>
 
-                    <div className="w-full px-4 2xl:px-6 pb-20 2xl:pb-28">
-                        <div className="flex gap-6 lg:gap-10 2xl:gap-14">
+                    <div className="w-full px-4 lg:px-6 xl:px-10 2xl:px-12 pb-20 2xl:pb-28">
+                        <div className="flex gap-4">
                             {/* Sticky Sidebar */}
-                            <MotionDiv
-                                animate={{
-                                    opacity: isHeroVisible ? 0 : 1,
-                                }}
-                                transition={{ duration: 0.5 }}
+                            <div
                                 className="sticky top-6 h-fit self-start overflow-hidden flex-shrink-0 min-w-[180px] max-w-[220px]"
-                                style={{ pointerEvents: isHeroVisible ? 'none' : 'auto' }}
                             >
                                 <HUDSidebar
                                     detail={detail}
@@ -210,18 +191,18 @@ export const ProjectDetail = () => {
                                     sections={sidebarSections}
                                     onNavigate={handleNavigate}
                                 />
-                            </MotionDiv>
+                            </div>
 
                             {/* Dynamic Content Feed */}
                             <MotionDiv
-                                className="flex-1 min-w-0 px-4"
+                                className="flex-1 min-w-0"
                             >
                                 <div className="space-y-12 2xl:space-y-16">
                                     {(detail.contentModules || []).map((module) => (
                                         <SectionRenderer
                                             key={module._key}
                                             module={module}
-                                            onVisible={() => setActiveSection(module.title ? module.title.toLowerCase().replace(/\s+/g, '-') : '')}
+                                            onVisible={() => setActiveSection(module.anchorId || module._key)}
                                         />
                                     ))}
                                 </div>

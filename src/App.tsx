@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect, Suspense, lazy } from 'react'
+import { Routes, Route, useLocation, matchPath } from 'react-router-dom'
 import { BootScreen } from './components/layout/BootScreen'
 import { MainLayout } from './components/layout/MainLayout'
 import { Footer } from './components/layout/Footer'
@@ -8,9 +8,10 @@ import { StatusSidebar } from './components/layout/StatusSidebar'
 import { FeaturePanel } from './components/layout/FeaturePanel'
 import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
-import { AboutMePage } from './pages/AboutMePage'
-import { DesignSystemPage } from './pages/DesignSystemPage'
-import { MusicPage } from './pages/MusicPage'
+// Lazy load heavy components
+const AboutMePage = lazy(() => import('./pages/AboutMePage').then(module => ({ default: module.AboutMePage })));
+const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage').then(module => ({ default: module.DesignSystemPage })));
+const MusicPage = lazy(() => import('./pages/MusicPage').then(module => ({ default: module.MusicPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
@@ -33,6 +34,9 @@ function App() {
 
   const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
   const location = useLocation();
+  const isDetailPage = !!matchPath('/projects/:projectId', location.pathname);
+  // Hide sidebars on detail pages to focus attention and improve performance
+  const isFullWidth = isDetailPage;
 
   // Simulate boot sequence completion and initialize theme
   useEffect(() => {
@@ -44,21 +48,10 @@ function App() {
 
   }, [brandTheme]);
 
-  if (isBootSequenceActive) {
-    return (
-      <LanguageProvider>
-        <BootScreen onComplete={() => setBootSequence(false)} />
-      </LanguageProvider>
-    );
-  }
 
-  // Check if we're on a project detail page (for full-screen overlay)
-  const isDetailPage = location.pathname.startsWith('/projects/') && location.pathname.split('/').length > 2;
 
-  // Check if we are on a design system page (needs full width in grid)
-  const isDesignSystemPage = location.pathname === '/design-system';
-  const isFullWidth = isDesignSystemPage;
-
+  // Pre-load Main Layout by rendering it hidden/behind BootScreen
+  // This ensures no frame drop when boot sequence finishes
   return (
     <LanguageProvider>
       {/* Dev-only Annotation Tool */}
@@ -67,6 +60,13 @@ function App() {
           <Agentation />
         </div>
       )}
+
+      {/* Boot Screen Overlay - Highest Z-Index */}
+      <AnimatePresence mode="wait">
+        {isBootSequenceActive && (
+          <BootScreen onComplete={() => setBootSequence(false)} />
+        )}
+      </AnimatePresence>
 
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
         <MainLayout footer={<Footer />}>
@@ -86,14 +86,27 @@ function App() {
                 {/* Routes without key - prevents unnecessary re-mounting */}
                 <Routes location={location}>
                   <Route path="/" element={<FeaturePanel />} />
-                  <Route path="/projects/*" element={<ProjectLanding />} />
-                  <Route path="/design-system" element={<DesignSystemPage />} />
-                  <Route path="/music" element={<MusicPage />} />
+                  <Route path="/projects" element={<ProjectLanding />} />
+                  <Route path="/projects/:projectId" element={<ProjectDetail />} />
+                  <Route path="/design-system" element={
+                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ SYSTEM_ACCESSING... ]</div>}>
+                      <DesignSystemPage />
+                    </Suspense>
+                  } />
+                  <Route path="/music" element={
+                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ AUDIO_LINKing... ]</div>}>
+                      <MusicPage />
+                    </Suspense>
+                  } />
                 </Routes>
 
                 {/* About Me Modal - 覆盖在 main-mid 区域内 */}
                 <AnimatePresence>
-                  {isAboutMeOpen && <AboutMePage />}
+                  {isAboutMeOpen && (
+                    <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm text-brand-primary animate-pulse tracking-widest">[ IDENTITY_VERIFYING... ]</div>}>
+                      <AboutMePage />
+                    </Suspense>
+                  )}
                 </AnimatePresence>
               </div>
             </main>
@@ -111,10 +124,7 @@ function App() {
           <ConnectionLine />
         </MainLayout>
 
-        {/* ProjectDetail - Full Screen Overlay (completely independent of routing) */}
-        <AnimatePresence>
-          {isDetailPage && <ProjectDetail />}
-        </AnimatePresence>
+
 
         <AnimatePresence>
           {isSettingsOpen && <SettingsModal />}

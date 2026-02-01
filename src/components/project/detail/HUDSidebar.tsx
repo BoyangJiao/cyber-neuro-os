@@ -57,9 +57,9 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
                     >
                         {sidebar.status}
                     </span>
-                    {sidebar.liveLink && (
+                    {sidebar.liveUrl && (
                         <a
-                            href={sidebar.liveLink}
+                            href={sidebar.liveUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-brand-primary hover:text-text-accent transition-colors"
@@ -70,15 +70,15 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
                 </div>
             </SidebarSection>
 
-            {/* Tech Stack */}
-            <SidebarSection label="Tech Stack">
+            {/* Project Type */}
+            <SidebarSection label="Project Type">
                 <div className="flex flex-wrap gap-1.5 2xl:gap-2">
-                    {(sidebar.techStack || []).map((tech, index) => (
+                    {(sidebar.projectType || []).map((type: string, index: number) => (
                         <span
                             key={index}
                             className="px-2 py-0.5 text-[12px] 2xl:text-[14px] font-mono text-brand-primary/80 bg-brand-dim border border-brand-primary/15"
                         >
-                            {tech}
+                            {type}
                         </span>
                     ))}
                 </div>

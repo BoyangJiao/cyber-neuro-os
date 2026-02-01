@@ -13,7 +13,7 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
     return (
         <section className="w-full relative">
             {/* Content Container */}
-            <div className="w-full px-6 lg:px-10 2xl:px-14 py-12 2xl:py-16">
+            <div className="w-full px-4 lg:px-6 xl:px-10 2xl:px-12 py-12 2xl:py-16">
                 {/* Project Title */}
                 <MotionH1
                     initial={{ opacity: 0, y: 30 }}
@@ -39,7 +39,7 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    className="flex flex-wrap gap-8 2xl:gap-12 mb-10 2xl:mb-14"
+                    className="flex flex-wrap gap-4 mb-10 2xl:mb-14"
                 >
                     {(detail.coreMetrics || []).map((metric, index) => (
                         <div key={index} className="flex flex-col">

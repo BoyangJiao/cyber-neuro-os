@@ -19,7 +19,7 @@ export const client = createClient({
 });
 
 // Configure the React Loader with this client to enable Live Queries
-const { loadQuery, useQuery, useLiveMode } = createQueryStore({ client: client as any }); // Cast as any if type mismatch occurs due to package versions
+const { loadQuery, useQuery, useLiveMode } = createQueryStore({ client });
 
 export { loadQuery, useQuery, useLiveMode };
 

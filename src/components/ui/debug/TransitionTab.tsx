@@ -1,4 +1,4 @@
-import { useAppStore, type TransitionGlitchSettings } from '../../../store/useAppStore';
+import { useSettingsStore, type TransitionGlitchSettings } from '../../../store/useSettingsStore';
 import { ToggleSwitch, EffectSlider } from './controls';
 
 interface TransitionSliderConfig {
@@ -31,7 +31,7 @@ interface TransitionTabProps {
  * TransitionTab - Mission Briefing 切换 Glitch 效果控制面板
  */
 export const TransitionTab = ({ onSave, saveFlash }: TransitionTabProps) => {
-    const { transitionGlitchSettings, setTransitionGlitchSetting, resetTransitionGlitchSettings } = useAppStore();
+    const { transitionGlitchSettings, setTransitionGlitchSetting, resetTransitionGlitchSettings } = useSettingsStore();
 
     return (
         <div className="space-y-3">

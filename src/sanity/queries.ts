@@ -23,10 +23,47 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
   sidebar,
   contentModules[] {
     _key,
-    title,
-    theme,
-    layout,
-    content,
-    media
+    _type,
+    anchorId,
+    // Full Width Layout
+    _type == "layoutFullWidth" => {
+      background,
+      content[] {
+        _key,
+        _type,
+        _type == "richTextBlock" => { content },
+        _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, caption, alt, layout },
+        _type == "statsBlock" => { items }
+      }
+    },
+    // Split Layout
+    _type == "layoutSplit" => {
+      ratio,
+      leftSlot[] {
+        _key,
+        _type,
+        _type == "richTextBlock" => { content },
+        _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, caption, alt, layout },
+        _type == "statsBlock" => { items }
+      },
+      rightSlot[] {
+        _key,
+        _type,
+        _type == "richTextBlock" => { content },
+        _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, caption, alt, layout },
+        _type == "statsBlock" => { items }
+      }
+    },
+    // Grid Layout
+    _type == "layoutGrid" => {
+      columns,
+      items[] {
+        _key,
+        _type,
+        _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, caption, alt, layout },
+        _type == "statsBlock" => { items }
+      }
+    }
   }
 }`;
+

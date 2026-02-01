@@ -1,4 +1,4 @@
-import { useAppStore, type GlitchSettings } from '../../../store/useAppStore';
+import { useSettingsStore, type GlitchSettings } from '../../../store/useSettingsStore';
 import { ToggleSwitch, CyberSlider, EffectSlider } from './controls';
 
 interface GlitchSliderConfig {
@@ -27,7 +27,7 @@ interface GlitchTabProps {
  * GlitchTab - Glitch 效果控制面板
  */
 export const GlitchTab = ({ onSave, saveFlash }: GlitchTabProps) => {
-    const { glitchSettings, setGlitchSetting, resetGlitchSettings } = useAppStore();
+    const { glitchSettings, setGlitchSetting, resetGlitchSettings } = useSettingsStore();
 
     return (
         <div className="space-y-3">
@@ -73,8 +73,8 @@ export const GlitchTab = ({ onSave, saveFlash }: GlitchTabProps) => {
                 <button
                     onClick={onSave}
                     className={`flex-1 py-1.5 border text-[10px] uppercase tracking-wider transition-all ${saveFlash
-                            ? 'border-green-500 bg-green-500/20 text-green-300'
-                            : 'border-cyan-500/50 bg-cyan-500/10 text-cyan-400 hover:border-cyan-400'
+                        ? 'border-green-500 bg-green-500/20 text-green-300'
+                        : 'border-cyan-500/50 bg-cyan-500/10 text-cyan-400 hover:border-cyan-400'
                         }`}
                 >
                     <i className={`ri-${saveFlash ? 'check' : 'save'}-line mr-1`} />

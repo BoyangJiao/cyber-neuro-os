@@ -1,20 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { MotionDiv, MotionH1 } from '../motion/MotionWrappers';
 import { CyberButton } from '../ui/CyberButton';
-import { DotsFrame } from '../ui/frames/DotsFrame';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AnimatePresence } from 'framer-motion';
+import { HelmetReveal } from '../three/HelmetReveal';
 
-// Mock boot logs
+// Neural sync status messages
 const BOOT_LOGS = [
     "INITIALIZING NEURO-LINK PROTOCOL...",
-    "BYPASSING FIREWALL :: LAYER 7...",
-    "SYNCING SYNAPSES...",
-    "CHECKING BIOMETRIC SIGNATURE...",
-    "ESTABLISHING SECURE HANDSHAKE...",
-    "DECRYPTING USER PROFILE...",
-    "LOADING HOLOGRAPHIC INTERFACE...",
-    "SYSTEM READY."
+    "SCANNING NEURAL PATHWAYS...",
+    "SYNCING SYNAPTIC NODES...",
+    "CALIBRATING CORTEX INTERFACE...",
+    "ESTABLISHING NEURAL HANDSHAKE...",
+    "MAPPING CONSCIOUSNESS GRID...",
+    "LOADING HOLOGRAPHIC OVERLAY...",
+    "NEURAL SYNC COMPLETE."
 ];
 
 export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
@@ -23,11 +24,11 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
     const [isReady, setIsReady] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
 
-    // Audio store actions
+    const { setLanguage } = useLanguage();
     const { setVolume, play, pause } = useMusicStore();
 
     useEffect(() => {
-        const totalDuration = 3500;
+        const totalDuration = 5000; // Longer for dramatic effect
         const interval = 50;
         const totalSteps = totalDuration / interval;
         let step = 0;
@@ -37,7 +38,6 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
             const newProgress = Math.min((step / totalSteps) * 100, 100);
             setProgress(newProgress);
 
-            // Update logs based on progress
             const totalLogs = BOOT_LOGS.length;
             const currentLogIndex = Math.min(
                 Math.floor((newProgress / 100) * totalLogs),
@@ -56,17 +56,13 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
 
     const handleEnter = () => {
         if (soundEnabled) {
-            // Start silent and fade in
             setVolume(0);
             play();
-
-            // Fade in logic
             const targetVol = 75;
-            const duration = 5000; // 5s fade
-            const steps = 50; // smoother steps
+            const duration = 5000;
+            const steps = 50;
             const stepTime = duration / steps;
             const increment = targetVol / steps;
-
             let currentVol = 0;
             const fadeTimer = setInterval(() => {
                 currentVol += increment;
@@ -78,14 +74,14 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
             }, stepTime);
         } else {
             setVolume(0);
-            pause(); // Ensure state is paused
+            pause();
         }
         onComplete();
     };
 
     return (
         <MotionDiv
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black text-brand-primary font-mono overflow-hidden"
+            className="fixed inset-0 z-[100] bg-black text-brand-primary font-mono overflow-hidden"
             exit={{
                 opacity: 0,
                 scale: 1.05,
@@ -93,129 +89,187 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                 transition: { duration: 0.8, ease: "circIn" }
             }}
         >
-            {/* Background Effects */}
-            <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] animate-scanlines"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,#000_100%)]"></div>
+            {/* Scanline overlay */}
+            <div className="absolute inset-0 z-50 pointer-events-none opacity-20">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_2px]" />
             </div>
 
-            {/* Rotating Hexagon / Spinner */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-brand-primary/10 rounded-full animate-[spin_10s_linear_infinite]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-brand-primary/20 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+            {/* Main Layout: Full screen 3D with overlay HUD */}
+            <div className="relative w-full h-full">
 
-            {/* Main Terminal Window */}
-            <div className="relative z-10 w-full max-w-2xl h-[600px] p-4">
-                <DotsFrame>
-                    <div className="h-full flex flex-col justify-between p-6">
-                        {/* Header */}
-                        <div className="flex justify-between items-end border-b border-brand-primary/30 pb-4">
-                            <div>
-                                <MotionH1
-                                    className="text-5xl font-display font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-brand-primary via-white to-brand-primary drop-shadow-[0_0_15px_var(--color-brand-glow)]"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                >
-                                    NEURO.OS
-                                </MotionH1>
-                                <p className="text-xs text-brand-secondary tracking-[0.5em] mt-2">KERNEL VERSION 4.2.0 // UNSTABLE</p>
-                            </div>
-                            <div className="text-right">
-                                <div className="flex flex-col gap-1 items-end">
-                                    {isReady ? (
-                                        <>
-                                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#0f0]"></span>
-                                            <span className="text-[10px] text-brand-primary/60 tracking-widest">READY</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-75"></span>
-                                            <span className="text-[10px] text-amber-500/80 tracking-widest animate-pulse">ESTABLISHING...</span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
+                {/* 3D Helmet Scene - Full Screen Background */}
+                <div className="absolute inset-0 z-0">
+                    <Suspense fallback={
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-32 h-32 border-2 border-brand-primary/30 rounded-full animate-spin" />
+                        </div>
+                    }>
+                        <HelmetReveal progress={progress} />
+                    </Suspense>
+                </div>
+
+                {/* HUD Overlay - Positioned over 3D scene */}
+                <div className="absolute inset-0 z-10 flex flex-col pointer-events-none">
+
+                    {/* Top HUD Bar */}
+                    <div className="flex justify-between items-start p-8 pointer-events-auto">
+                        {/* Left: Title */}
+                        <div>
+                            <MotionH1
+                                className="text-3xl lg:text-5xl font-display font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-brand-primary via-white to-brand-primary drop-shadow-[0_0_30px_var(--color-brand-glow)]"
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.8 }}
+                            >
+                                NEURO.OS
+                            </MotionH1>
+                            <p className="text-xs text-brand-secondary tracking-[0.5em] mt-2 opacity-60">
+                                BOYANG JIAO v1.0.0 // NEURAL INTERFACE
+                            </p>
                         </div>
 
-                        {/* Middle Content: Logs & Progress */}
-                        <div className="flex-1 flex flex-col justify-center gap-8 py-8">
-                            {/* Boot Logs Output */}
-                            <div className="h-32 font-mono text-sm overflow-hidden flex flex-col justify-end relative">
-                                {/* Scanline for logs */}
-                                {/* Removed background gradient per user request */}
-
-                                <AnimatePresence mode='popLayout'>
-                                    {BOOT_LOGS.slice(0, logIndex + 1).slice(-4).map((log, idx) => (
-                                        <MotionDiv
-                                            key={`${idx}-${log}`}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            className="mb-1 text-brand-primary/80 truncate"
-                                        >
-                                            <span className="text-brand-secondary mr-2">[{new Date().toISOString().split('T')[1].slice(0, 8)}]</span>
-                                            {log}
-                                        </MotionDiv>
-                                    ))}
-                                </AnimatePresence>
+                        {/* Right: Status Indicator */}
+                        <div className="text-right">
+                            <div className="flex items-center gap-2 justify-end">
+                                {isReady ? (
+                                    <>
+                                        <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_#0f0]" />
+                                        <span className="text-sm text-green-400 tracking-widest font-bold">SYNCED</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="w-3 h-3 bg-amber-500 rounded-full animate-ping" />
+                                        <span className="text-sm text-amber-400 tracking-widest animate-pulse">SYNCING...</span>
+                                    </>
+                                )}
                             </div>
+                            <p className="text-[10px] text-brand-primary/40 mt-1 tracking-widest">
+                                {new Date().toISOString().split('T')[0]}
+                            </p>
+                        </div>
+                    </div>
 
-                            {/* Loading Bar */}
-                            <div className="relative h-4 bg-brand-primary/10 border border-brand-primary/30 skew-x-[-20deg]">
-                                {/* Loading stripes pattern */}
-                                <MotionDiv
-                                    className="absolute top-0 left-0 h-full bg-brand-primary shadow-[0_0_20px_var(--color-brand-glow)]"
-                                    style={{ width: `${progress}%` }}
-                                >
-                                    <div className="w-full h-full bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.5)_10px,rgba(0,0,0,0.5)_20px)]"></div>
-                                </MotionDiv>
-                                <div className="absolute top-0 right-2 h-full flex items-center text-[10px] text-brand-primary font-bold">
-                                    {Math.floor(progress)}%
-                                </div>
-                            </div>
+                    {/* Left Center: Status Message - positioned at vertical center */}
+                    <div className="absolute left-8 top-1/2 -translate-y-1/2">
+                        <MotionDiv
+                            className="text-left max-w-[200px]"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                        >
+                            <p className="text-sm lg:text-base text-brand-primary tracking-[0.15em] font-light leading-relaxed">
+                                {BOOT_LOGS[logIndex]}
+                            </p>
+                        </MotionDiv>
+                    </div>
+
+                    {/* Bottom Right: Progress Panel - Larger size, from shoulder to edge */}
+                    <div className="absolute bottom-8 right-8 pointer-events-auto" style={{ width: 'calc(35% - 32px)' }}>
+                        {/* Neural Sync Label */}
+                        <div className="flex justify-between text-[10px] text-brand-primary/50 mb-2 tracking-widest">
+                            <span>NEURAL.SYNC</span>
+                            <span className="text-brand-primary font-bold text-sm">{Math.floor(progress)}%</span>
                         </div>
 
-                        {/* Action Area */}
-                        <div className="h-24 flex items-center justify-center relative">
-                            {isReady ? (
-                                <MotionDiv
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="flex flex-col items-center gap-6 w-full"
+                        {/* Progress Bar Container */}
+                        <div className="relative h-2 bg-black/80 border border-brand-primary/40 overflow-hidden backdrop-blur-sm">
+                            {/* Corner Accents */}
+                            <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-brand-primary" />
+                            <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-brand-primary" />
+                            <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-brand-primary" />
+                            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-brand-primary" />
+
+                            {/* Progress Fill */}
+                            <MotionDiv
+                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-brand-primary to-cyan-300 shadow-[0_0_15px_var(--color-brand-glow)]"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.1 }}
+                            />
+                        </div>
+
+                        {/* Data Metrics */}
+                        <div className="flex justify-between text-[9px] mt-2 font-mono text-brand-primary/40">
+                            <span>BANDWIDTH: <span className="text-brand-primary">{Math.floor(progress * 12.8)} MB/s</span></span>
+                            <span>LATENCY: <span className="text-green-400">{Math.max(1, Math.floor(100 - progress))}ms</span></span>
+                            <span>NODES: <span className="text-brand-primary">{Math.floor(progress / 10)}/10</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Buttons - Center bottom with background overlay when ready */}
+                <AnimatePresence>
+                    {isReady && (
+                        <MotionDiv
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="absolute inset-0 z-20 flex flex-col items-center justify-end pb-24"
+                        >
+                            {/* Dark overlay for button visibility */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+
+                            <MotionDiv
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="relative flex flex-col items-center gap-4 pointer-events-auto"
+                            >
+                                {/* Audio Toggle */}
+                                <div
+                                    className="flex items-center gap-3 cursor-pointer group"
+                                    onClick={() => setSoundEnabled(!soundEnabled)}
                                 >
-                                    <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setSoundEnabled(!soundEnabled)}>
-                                        <div className={`w-4 h-4 border border-brand-primary flex items-center justify-center transition-all duration-300 ${soundEnabled ? 'bg-brand-primary shadow-[0_0_10px_var(--color-brand-glow)]' : 'bg-transparent'}`}>
-                                            {soundEnabled && <div className="w-2 h-2 bg-black"></div>}
-                                        </div>
-                                        <span className={`text-xs tracking-widest transition-colors ${soundEnabled ? 'text-brand-primary' : 'text-brand-primary/50'}`}>
-                                            ENABLE NEURAL AUDIO SYNC
-                                        </span>
+                                    <div className={`w-4 h-4 border border-brand-primary flex items-center justify-center transition-all duration-300 ${soundEnabled ? 'bg-brand-primary shadow-[0_0_10px_var(--color-brand-glow)]' : 'bg-transparent'}`}>
+                                        {soundEnabled && <div className="w-2 h-2 bg-black" />}
                                     </div>
+                                    <span className={`text-xs tracking-widest transition-colors font-sans ${soundEnabled ? 'text-brand-primary' : 'text-brand-primary/50'}`}>
+                                        AUDIO SYNC
+                                    </span>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-6">
+                                    <CyberButton
+                                        variant="corner"
+                                        color="cyan"
+                                        size="lg"
+                                        onClick={() => {
+                                            setLanguage('en');
+                                            handleEnter();
+                                        }}
+                                        className="tracking-[0.3em] font-bold text-sm px-12"
+                                    >
+                                        INITIATE
+                                    </CyberButton>
 
                                     <CyberButton
                                         variant="corner"
                                         color="cyan"
                                         size="lg"
-                                        onClick={handleEnter}
-                                        className="w-auto whitespace-nowrap tracking-[0.25em] font-bold text-xs transition-all duration-500"
+                                        onClick={() => {
+                                            setLanguage('zh');
+                                            handleEnter();
+                                        }}
+                                        className="tracking-[0.3em] font-bold text-sm px-8 font-sans"
                                     >
-                                        SYNC SYSTEM
+                                        接入
                                     </CyberButton>
-                                </MotionDiv>
-                            ) : (
-                                <span className="text-xs animate-pulse text-brand-primary/50 tracking-[0.2em]">
-                                    SYSTEM COMPILING...
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </DotsFrame>
-            </div>
+                                </div>
 
-            {/* Bottom Warning */}
-            <div className="absolute bottom-8 text-center opacity-40">
-                <p className="text-[10px] text-red-500 tracking-[0.3em] font-bold">WARNING: HIGH BANDWIDTH NEURAL CONNECTION</p>
-                <p className="text-[9px] text-brand-primary/40 mt-1">UNAUTHORIZED ACCESS WILL BE TERMINATED</p>
-            </div>
+                                {/* Bottom Warning */}
+                                <p className="text-[9px] text-red-500/60 tracking-[0.2em] mt-4">
+                                    ⚠ HIGH BANDWIDTH NEURAL CONNECTION
+                                </p>
+                            </MotionDiv>
+                        </MotionDiv>
+                    )}
+                </AnimatePresence>
 
+                {/* Corner HUD Decorations */}
+                <div className="absolute top-4 left-4 w-2 h-2 bg-white z-20" />
+                <div className="absolute top-4 right-4 w-2 h-2 bg-white z-20" />
+                <div className="absolute bottom-4 left-4 w-2 h-2 bg-white z-20" />
+                <div className="absolute bottom-4 right-4 w-2 h-2 bg-white z-20" />
+            </div>
         </MotionDiv>
     );
 };
