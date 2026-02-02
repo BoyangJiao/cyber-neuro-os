@@ -30,7 +30,9 @@ import { TacticalCursor } from './components/ui/TacticalCursor'
 
 function App() {
   // Enable live mode for Sanity drafts
-  useLiveMode({ allowStudioOrigin: 'http://localhost:3333' });
+  useLiveMode({
+    allowStudioOrigin: 'http://localhost:3333',
+  });
 
   const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
   const location = useLocation();

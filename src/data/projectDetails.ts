@@ -50,8 +50,10 @@ export interface LayoutFullWidth {
     _key: string;
     _type: 'layoutFullWidth';
     anchorId?: string;
-    background?: 'transparent' | 'dark-glass' | 'outline';
     content: ContentBlock[];
+    paddingTop?: number;
+    paddingBottom?: number;
+    showBottomBorder?: boolean;
 }
 
 export interface LayoutSplit {
@@ -61,6 +63,9 @@ export interface LayoutSplit {
     ratio: '50-50' | '40-60' | '60-40';
     leftSlot: ContentBlock[];
     rightSlot: ContentBlock[];
+    paddingTop?: number;
+    paddingBottom?: number;
+    showBottomBorder?: boolean;
 }
 
 export interface LayoutGrid {
@@ -69,6 +74,9 @@ export interface LayoutGrid {
     anchorId?: string;
     columns: 2 | 3 | 4;
     items: (MediaBlock | StatsBlock)[];
+    paddingTop?: number;
+    paddingBottom?: number;
+    showBottomBorder?: boolean;
 }
 
 export type LayoutModule = LayoutFullWidth | LayoutSplit | LayoutGrid;

@@ -14,29 +14,40 @@ interface Props {
     onViewportEnter?: () => void;
 }
 
-const backgroundStyles: Record<string, string> = {
-    'transparent': '',
-    'dark-glass': 'bg-black/40 backdrop-blur-md border border-border-subtle rounded-xl p-8',
-    'outline': 'border border-brand-primary/30 rounded-xl p-8',
-};
-
 export const LayoutFullWidthRenderer = ({ module, sectionId, onViewportEnter }: Props) => {
     const viewportConfig = { once: true, margin: "-10% 0px -10% 0px" };
-    const bgClass = backgroundStyles[module.background || 'transparent'] || '';
+
+    const borderClass = (module.showBottomBorder ?? true) ? 'border-b border-border-subtle' : '';
+
+    // Handle legacy string values by converting them to numbers or defaults
+    const getPaddingValue = (val: number | string | undefined, defaultVal: number): number => {
+        if (typeof val === 'number') return val;
+        // Legacy string mappings
+        if (val === 'small') return 16;
+        if (val === 'medium') return 24;
+        if (val === 'large') return 160;
+        if (val === 'extra-large') return 240;
+        if (val === 'none') return 0;
+        return defaultVal;
+    };
+
+    const pt = getPaddingValue(module.paddingTop, 16);
+    const pb = getPaddingValue(module.paddingBottom, 160);
 
     return (
         <section
             id={sectionId}
-            className="pt-20 pb-20 mb-4 border-b border-border-subtle min-h-[40vh] flex flex-col justify-center"
+            className={`${borderClass} min-h-[40vh] flex flex-col justify-center`}
+            style={{ paddingTop: `${pt}px`, paddingBottom: `${pb}px` }}
         >
             <MotionDiv
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={viewportConfig}
                 onViewportEnter={onViewportEnter}
-                className={`w-full ${bgClass}`}
+                className={`w-full`}
             >
-                <ContentSlotRenderer blocks={module.content || []} />
+                <ContentSlotRenderer blocks={module.content || []} layout="full" />
             </MotionDiv>
         </section>
     );

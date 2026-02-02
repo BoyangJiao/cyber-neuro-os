@@ -15,7 +15,7 @@ import { getProjectDetail } from '../data/projectDetails';
 export const ProjectDetail = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { projects } = useProjectStore();
+    const { projects, language } = useProjectStore();
 
     // Manually extract projectId since we are rendered outside of Routes
     const match = matchPath('/projects/:projectId', location.pathname);
@@ -41,7 +41,7 @@ export const ProjectDetail = () => {
     // The initial data can be passed if we had server-side props, but here we start null/loading.
     const { data: sanityData, loading: isSanityLoading, error: sanityError } = useQuery<SanityProjectDetail>(
         PROJECT_DETAIL_QUERY,
-        { slug: projectId },
+        { slug: projectId, language },
         { initial: undefined }
     );
 
@@ -197,7 +197,7 @@ export const ProjectDetail = () => {
                             <MotionDiv
                                 className="flex-1 min-w-0"
                             >
-                                <div className="space-y-12 2xl:space-y-16">
+                                <div className="">
                                     {(detail.contentModules || []).map((module) => (
                                         <SectionRenderer
                                             key={module._key}

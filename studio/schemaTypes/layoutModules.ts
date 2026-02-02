@@ -28,19 +28,29 @@ export const layoutFullWidth = {
                 { type: 'statsBlock' },
             ],
         },
+
+        // Layout Options
         {
-            name: 'background',
-            title: 'Background Style / 背景样式',
-            type: 'string',
-            options: {
-                list: [
-                    { title: 'Transparent / 透明', value: 'transparent' },
-                    { title: 'Dark Glass / 深色玻璃', value: 'dark-glass' },
-                    { title: 'Outline / 边框', value: 'outline' },
-                ],
-                layout: 'radio',
-            },
-            initialValue: 'transparent',
+            name: 'paddingTop',
+            title: 'Top Padding (px) / 上间距',
+            type: 'number',
+            description: 'Enter pixel value (e.g. 16, 24, 160)',
+            initialValue: 16, // Default: 16px
+            validation: (Rule: any) => Rule.min(0).integer(),
+        },
+        {
+            name: 'paddingBottom',
+            title: 'Bottom Padding (px) / 下间距',
+            type: 'number',
+            description: 'Enter pixel value (e.g. 16, 24, 160)',
+            initialValue: 160, // Default: 160px
+            validation: (Rule: any) => Rule.min(0).integer(),
+        },
+        {
+            name: 'showBottomBorder',
+            title: 'Show Bottom Divider / 显示底部分割线',
+            type: 'boolean',
+            initialValue: true,
         },
     ],
     preview: {
@@ -103,6 +113,29 @@ export const layoutSplit = {
                 { type: 'statsBlock' },
             ],
         },
+        // Layout Options
+        {
+            name: 'paddingTop',
+            title: 'Top Padding (px) / 上间距',
+            type: 'number',
+            description: 'Enter pixel value (e.g. 16, 24, 160)',
+            initialValue: 16, // Default: 16px
+            validation: (Rule: any) => Rule.min(0).integer(),
+        },
+        {
+            name: 'paddingBottom',
+            title: 'Bottom Padding (px) / 下间距',
+            type: 'number',
+            description: 'Enter pixel value (e.g. 16, 24, 160)',
+            initialValue: 160, // Default: 160px
+            validation: (Rule: any) => Rule.min(0).integer(),
+        },
+        {
+            name: 'showBottomBorder',
+            title: 'Show Bottom Divider / 显示底部分割线',
+            type: 'boolean',
+            initialValue: true,
+        },
     ],
     preview: {
         select: {
@@ -152,6 +185,29 @@ export const layoutGrid = {
                 { type: 'mediaBlock' },
                 { type: 'statsBlock' },
             ],
+        },
+        // Layout Options
+        {
+            name: 'paddingTop',
+            title: 'Top Padding (px) / 上间距',
+            type: 'number',
+            description: 'Enter pixel value (e.g. 16, 24, 160)',
+            initialValue: 16, // Default: 16px
+            validation: (Rule: any) => Rule.min(0).integer(),
+        },
+        {
+            name: 'paddingBottom',
+            title: 'Bottom Padding (px) / 下间距',
+            type: 'number',
+            description: 'Enter pixel value (e.g. 16, 24, 160)',
+            initialValue: 160, // Default: 160px
+            validation: (Rule: any) => Rule.min(0).integer(),
+        },
+        {
+            name: 'showBottomBorder',
+            title: 'Show Bottom Divider / 显示底部分割线',
+            type: 'boolean',
+            initialValue: true,
         },
     ],
     preview: {

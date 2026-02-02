@@ -3,6 +3,7 @@ import { View, Environment, PerspectiveCamera } from '@react-three/drei';
 import { HoloGeometry, type GeometryType } from '../three/ui/HoloGeometry';
 import { HoloTiltCard } from './HoloTiltCard';
 import { useAppStore } from '../../store/useAppStore';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export interface HoloFeatureCardProps {
     title: string;
@@ -24,17 +25,12 @@ export const HoloFeatureCard = ({
     geometryType = 'project',
     onClick,
 }: HoloFeatureCardProps) => {
-    const { debugMode, debugGeometryType, brandTheme } = useAppStore();
+    const { debugMode, debugGeometryType } = useAppStore();
     const activeGeometryType = debugMode ? debugGeometryType : geometryType;
     const [isHovered, setIsHovered] = useState(false);
+    const { primary } = useThemeColors();
 
-    // Theme color mapping for Three.js (hex required)
-    const themeColors = {
-        cyan: '#00F0FF',
-        green: '#00FF88',
-        red: '#FF0055'
-    };
-    const activeColor = themeColors[brandTheme] || themeColors.cyan;
+    const activeColor = primary;
 
     return (
         <HoloTiltCard

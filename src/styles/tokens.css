@@ -106,6 +106,10 @@
     --color-status-danger: var(--color-red-500);
     --color-status-info: var(--color-cyan-500);
 
+    /* --- Glitch / Effects --- */
+    --color-glitch-primary: var(--color-cyan-500);
+    --color-glitch-secondary: var(--color-red-500);
+
     /* ================= TYPOGRAPHY ================= */
 
     /* Font Families */
@@ -222,16 +226,22 @@
 [data-theme="cyan"] {
     --color-brand-primary: var(--color-cyan-500);
     --color-brand-secondary: var(--color-cyan-700);
+    --color-glitch-primary: var(--color-cyan-500);
+    --color-glitch-secondary: var(--color-red-500);
 }
 
 /* Cyber Green (赛博绿色) */
 [data-theme="green"] {
     --color-brand-primary: var(--color-green-500);
     --color-brand-secondary: var(--color-green-700);
+    --color-glitch-primary: var(--color-green-500);
+    --color-glitch-secondary: var(--color-red-500);
 }
 
 /* Cyber Red (赛博红色) */
 [data-theme="red"] {
     --color-brand-primary: var(--color-red-500);
     --color-brand-secondary: var(--color-red-700);
+    --color-glitch-primary: var(--color-red-500);
+    --color-glitch-secondary: var(--color-cyan-500);
 }

@@ -9,6 +9,7 @@ interface ProjectState {
     activeProjectId: string;
     activeProjectIndex: number;  // 保持 Mission 选择
     filter: 'ALL' | 'WEB3' | 'AI' | 'SYS';
+    language: 'en' | 'zh';
     isLoading: boolean;
     error: string | null;
 
@@ -17,23 +18,35 @@ interface ProjectState {
     setActiveProject: (id: string) => void;
     setActiveProjectIndex: (index: number) => void;
     setFilter: (filter: 'ALL' | 'WEB3' | 'AI' | 'SYS') => void;
+    setLanguage: (lang: 'en' | 'zh') => void;
     nextProject: () => void;
     prevProject: () => void;
     getActiveProject: () => Project | undefined;
 }
+
+// Helper to get initial language
+const getInitialLanguage = (): 'en' | 'zh' => {
+    if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('cyber-neuro-language');
+        if (stored === 'en' || stored === 'zh') return stored;
+    }
+    return 'en';
+};
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
     projects: mockProjects, // Start with mock, replace with Sanity data if available
     activeProjectId: mockProjects[0]?.id || '',
     activeProjectIndex: 0,
     filter: 'ALL',
+    language: getInitialLanguage(),
     isLoading: false,
     error: null,
 
     fetchProjects: async () => {
         set({ isLoading: true });
         try {
-            const sanityProjects = await client.fetch(PROJECTS_QUERY);
+            const { language } = get();
+            const sanityProjects = await client.fetch(PROJECTS_QUERY, { language });
 
             // Transform Sanity data to match Project interface
             const mappedProjects: Project[] = (sanityProjects as SanityProjectRaw[]).map((p) => ({
@@ -71,6 +84,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     setActiveProjectIndex: (index) => set({ activeProjectIndex: index }),
 
     setFilter: (filter) => set({ filter }),
+
+    setLanguage: (lang) => {
+        set({ language: lang });
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('cyber-neuro-language', lang);
+        }
+        get().fetchProjects();
+    },
 
     nextProject: () => {
         const { projects, activeProjectId } = get();

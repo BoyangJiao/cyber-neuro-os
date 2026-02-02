@@ -115,7 +115,7 @@ export const MissionBriefing = ({
             gsap.killTweensOf(contentEl);
             gsap.killTweensOf(titleEl);
         };
-    }, [project?.id]); // 每次项目切换触发
+    }, [project?.id, project?.title]); // 每次项目切换或标题变化时触发
 
     // Null状态处理
     if (!project) {
@@ -141,6 +141,23 @@ export const MissionBriefing = ({
 
     const hasImage = project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/');
     const hasLiveUrl = !!project.liveUrl;
+
+    // Helper to normalize tags
+    const getTags = () => {
+        const types = Array.isArray(project.projectType)
+            ? project.projectType
+            : project.projectType
+                ? [project.projectType]
+                : [];
+
+        // If no types, fallback to first tech stack item or default
+        if (types.length === 0) {
+            return [project.techStack?.[0] || 'PROJECT'];
+        }
+        return types;
+    };
+
+    const tags = getTags();
 
     return (
         <div
@@ -218,21 +235,30 @@ export const MissionBriefing = ({
                 </div>
 
                 {/* Briefing Content */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {/* Title */}
-                    <h2
-                        ref={titleRef}
-                        className="text-xl 2xl:text-2xl font-display font-bold text-[var(--color-text-primary)] tracking-wider uppercase min-h-[1.5em]"
-                    />
+                    <div className="min-h-[1.5em] overflow-hidden">
+                        <h2
+                            ref={titleRef}
+                            className="text-xl 2xl:text-2xl font-display font-bold text-[var(--color-text-primary)] tracking-wider uppercase"
+                        />
+                    </div>
 
                     {/* Description */}
-                    <p className="text-sm 2xl:text-base text-[var(--color-text-secondary)] leading-relaxed">
+                    <p className="text-sm 2xl:text-base text-[var(--color-text-secondary)] leading-relaxed line-clamp-4">
                         {project.description}
                     </p>
 
-                    {/* Project Type */}
-                    <div className="text-xs font-mono text-[var(--color-brand-primary)] tracking-wider uppercase">
-                        {project.projectType || project.techStack?.[0] || 'PROJECT'}
+                    {/* Project Tags */}
+                    <div className="flex flex-wrap gap-2">
+                        {tags.map((tag, i) => (
+                            <div
+                                key={i}
+                                className="px-3 py-1 bg-[var(--color-bg-surface-2)] border border-[var(--color-brand-primary)]/30 text-xs font-mono text-[var(--color-brand-primary)] tracking-wider uppercase"
+                            >
+                                {tag}
+                            </div>
+                        ))}
                     </div>
                 </div>
 

@@ -2,8 +2,8 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useGLTF, Float } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useAppStore } from '../../../store/useAppStore';
 import { useSettingsStore } from '../../../store/useSettingsStore';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 import { createFullUniforms, fresnelVertexShader, fresnelFragmentShader } from '../shaders';
 
 /**
@@ -20,16 +20,9 @@ export const CrystalCore = () => {
 
     const glitchSettings = useSettingsStore((state) => state.glitchSettings);
     const cyberRgbSettings = useSettingsStore((state) => state.cyberRgbSettings);
-    const brandTheme = useAppStore((state) => state.brandTheme);
+    const { primary } = useThemeColors();
 
     const { scene } = useGLTF('/models/CrystalCore_v2.glb');
-
-    // Theme color mapping
-    const themeColors = {
-        cyan: '#00F0FF',
-        green: '#00FF88',
-        red: '#FF0055'
-    };
 
     // 同步效果设置到 shader uniforms
     useEffect(() => {
@@ -37,9 +30,8 @@ export const CrystalCore = () => {
             const u = materialRef.current.uniforms;
 
             // Update theme colors
-            const themeColor = themeColors[brandTheme] || themeColors.cyan;
-            u.uColor.value.set(themeColor);
-            u.uGlowColor.value.set(themeColor);
+            u.uColor.value.set(primary);
+            u.uGlowColor.value.set(primary);
 
             // Glitch uniforms
             const gMaster = glitchSettings.enabled ? glitchSettings.masterIntensity : 0;
@@ -65,7 +57,7 @@ export const CrystalCore = () => {
             u.uCyberScanWidth.value = cyberRgbSettings.scanlineWidth;
             u.uCyberScanDir.value = cyberRgbSettings.scanlineDirection === 'horizontal' ? 0 : cyberRgbSettings.scanlineDirection === 'vertical' ? 1 : 2;
         }
-    }, [glitchSettings, cyberRgbSettings, brandTheme]);
+    }, [glitchSettings, cyberRgbSettings, primary]);
 
     useFrame((_, delta) => {
         if (groupRef.current) groupRef.current.rotation.y += delta * 0.1;

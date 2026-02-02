@@ -9,42 +9,54 @@ import { urlFor } from '../../../../sanity/client';
 import type { ContentBlock, RichTextBlock, MediaBlock, StatsBlock } from '../../../../data/projectDetails';
 
 // Portable Text customization
-const ptComponents = {
-    block: {
-        normal: ({ children }: any) => (
-            <p className="text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose max-w-2xl 2xl:max-w-3xl">
-                {children}
-            </p>
-        ),
-        h3: ({ children }: any) => (
-            <h3 className="text-2xl 2xl:text-3xl font-display text-white mb-4 2xl:mb-5">{children}</h3>
-        ),
-        h4: ({ children }: any) => (
-            <h4 className="text-xl 2xl:text-2xl font-display text-brand-primary mb-4 2xl:mb-5">{children}</h4>
-        ),
-        blockquote: ({ children }: any) => (
-            <blockquote className="border-l-4 border-brand-primary pl-4 italic text-text-secondary">
-                {children}
-            </blockquote>
-        ),
-    },
-    list: {
-        bullet: ({ children }: any) => (
-            <ul className="list-disc pl-5 mb-4 2xl:mb-5 text-text-primary space-y-2 2xl:space-y-3 text-base 2xl:text-lg">
-                {children}
-            </ul>
-        ),
-    },
+// Rich Text Block Renderer
+const RichTextRenderer = ({ block, layout = 'constrained' }: { block: RichTextBlock; layout?: 'constrained' | 'full' }) => {
+    const components = {
+        block: {
+            normal: ({ children }: any) => (
+                <p className={`text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose ${layout === 'full' ? 'max-w-none w-full' : 'max-w-2xl 2xl:max-w-3xl'}`}>
+                    {children}
+                </p>
+            ),
+            h1: ({ children }: any) => (
+                <h1 className="text-4xl 2xl:text-5xl font-display font-bold text-text-accent mb-6 2xl:mb-8">{children}</h1>
+            ),
+            h2: ({ children }: any) => (
+                <h2 className="text-3xl 2xl:text-4xl font-display font-bold text-text-accent mb-5 2xl:mb-6">{children}</h2>
+            ),
+            h3: ({ children }: any) => (
+                <h3 className="text-2xl 2xl:text-3xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h3>
+            ),
+            h4: ({ children }: any) => (
+                <h4 className="text-xl 2xl:text-2xl font-sans text-text-accent mb-4 2xl:mb-5">{children}</h4>
+            ),
+            blockquote: ({ children }: any) => (
+                <blockquote className="border-l-4 border-brand-primary pl-4 italic text-text-secondary">
+                    {children}
+                </blockquote>
+            ),
+        },
+        list: {
+            bullet: ({ children }: any) => (
+                <ul className="list-disc pl-5 mb-4 2xl:mb-5 text-text-primary space-y-2 2xl:space-y-3 text-base 2xl:text-lg">
+                    {children}
+                </ul>
+            ),
+        },
+    };
+
+    return (
+        <div className="prose prose-invert max-w-none">
+            <PortableText value={block.content} components={components} />
+        </div>
+    );
 };
 
-// Rich Text Block Renderer
-const RichTextRenderer = ({ block }: { block: RichTextBlock }) => (
-    <div className="prose prose-invert max-w-none">
-        <PortableText value={block.content} components={ptComponents} />
-    </div>
-);
+// ... (MediaRenderer and StatsRenderer omitted as they don't change, but ensuring we keep them) ...
+// Actually, I need to make sure I don't delete them. Since I'm using replace_file_content with a range, I need to be careful.
+// I will just replace the top part and the ContentSlotRenderer export.
 
-// Media Block Renderer
+// Re-defining MediaRenderer and StatsRenderer to ensure they are available since I am replacing the block that likely contained ptComponents
 const MediaRenderer = ({ block }: { block: MediaBlock }) => {
     const objectFit = block.layout === 'cover' ? 'object-cover' : block.layout === 'contain' ? 'object-contain' : 'object-scale-down';
 
@@ -107,7 +119,6 @@ const MediaRenderer = ({ block }: { block: MediaBlock }) => {
     return null;
 };
 
-// Stats Block Renderer
 const StatsRenderer = ({ block }: { block: StatsBlock }) => (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
         {block.items?.map((item, index) => (
@@ -127,7 +138,7 @@ const StatsRenderer = ({ block }: { block: StatsBlock }) => (
 );
 
 // Main ContentSlotRenderer - dispatches to appropriate renderer
-export const ContentSlotRenderer = ({ blocks }: { blocks: ContentBlock[] }) => {
+export const ContentSlotRenderer = ({ blocks, layout = 'constrained' }: { blocks: ContentBlock[]; layout?: 'constrained' | 'full' }) => {
     if (!blocks || blocks.length === 0) return null;
 
     return (
@@ -135,7 +146,7 @@ export const ContentSlotRenderer = ({ blocks }: { blocks: ContentBlock[] }) => {
             {blocks.map((block) => {
                 switch (block._type) {
                     case 'richTextBlock':
-                        return <RichTextRenderer key={block._key} block={block} />;
+                        return <RichTextRenderer key={block._key} block={block} layout={layout} />;
                     case 'mediaBlock':
                         return <MediaRenderer key={block._key} block={block} />;
                     case 'statsBlock':

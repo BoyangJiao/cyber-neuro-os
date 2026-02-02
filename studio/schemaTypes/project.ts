@@ -18,6 +18,24 @@ export default {
             options: {
                 source: 'title',
                 maxLength: 96,
+                isUnique: (value, context) => {
+                    const { document, getClient } = context
+                    const client = getClient({ apiVersion: '2024-01-01' })
+                    const id = document._id.replace(/^drafts\./, '')
+                    const params = {
+                        draft: `drafts.${id}`,
+                        published: id,
+                        slug: value,
+                        language: document.language || 'en'
+                    }
+                    const query = `!defined(*[
+                        !(_id in [$draft, $published]) &&
+                        _type == "project" &&
+                        slug.current == $slug &&
+                        language == $language
+                    ][0]._id)`
+                    return client.fetch(query, params)
+                }
             },
         },
         {
@@ -91,6 +109,12 @@ export default {
                 { type: 'layoutSplit' },
                 { type: 'layoutGrid' },
             ],
+        },
+        {
+            name: 'language',
+            type: 'string',
+            readOnly: true,
+            hidden: true,
         },
     ],
 };

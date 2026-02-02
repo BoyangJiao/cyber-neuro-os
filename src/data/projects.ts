@@ -5,7 +5,7 @@ export interface Project {
     techStack: string[];
     status: string | 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
     thumbnail: string;
-    projectType?: string;  // e.g. 'UI/UX', 'Game', 'Web3'
+    projectType?: string | string[];  // e.g. 'UI/UX', 'Game', 'Web3'
     timeline?: string;     // e.g. '2024'
     liveUrl?: string;      // Live project URL
 }

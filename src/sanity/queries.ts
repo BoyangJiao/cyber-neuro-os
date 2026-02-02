@@ -1,5 +1,7 @@
 // Query for Project Deck (Landing Page)
-export const PROJECTS_QUERY = `*[_type == "project"] | order(_createdAt desc) {
+// Query for Project Deck (Landing Page)
+// Query for Project Deck (Landing Page)
+export const PROJECTS_QUERY = `*[_type == "project" && (language == $language || (!defined(language) && $language == 'en'))] | order(_createdAt desc) {
   _id,
   title,
   "slug": slug.current,
@@ -13,7 +15,7 @@ export const PROJECTS_QUERY = `*[_type == "project"] | order(_createdAt desc) {
 }`;
 
 // Query for Project Detail Page
-export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $slug][0] {
+export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $slug && (language == $language || (!defined(language) && $language == 'en'))][0] {
   _id,
   title,
   "slug": slug.current,
@@ -27,7 +29,9 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
     anchorId,
     // Full Width Layout
     _type == "layoutFullWidth" => {
-      background,
+      paddingTop,
+      paddingBottom,
+      showBottomBorder,
       content[] {
         _key,
         _type,
@@ -39,6 +43,9 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
     // Split Layout
     _type == "layoutSplit" => {
       ratio,
+      paddingTop,
+      paddingBottom,
+      showBottomBorder,
       leftSlot[] {
         _key,
         _type,
@@ -57,6 +64,9 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
     // Grid Layout
     _type == "layoutGrid" => {
       columns,
+      paddingTop,
+      paddingBottom,
+      showBottomBorder,
       items[] {
         _key,
         _type,

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface CyberVisualizerProps {
     isPlaying: boolean;
@@ -6,8 +7,10 @@ interface CyberVisualizerProps {
     bpm?: number;
 }
 
-export const CyberVisualizer = ({ isPlaying, color = "#00f0ff", bpm = 120 }: CyberVisualizerProps) => {
+export const CyberVisualizer = ({ isPlaying, color, bpm = 120 }: CyberVisualizerProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { primary } = useThemeColors();
+    const activeColor = color || primary;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -66,9 +69,9 @@ export const CyberVisualizer = ({ isPlaying, color = "#00f0ff", bpm = 120 }: Cyb
             const barWidth = width / bars.length;
             const gap = 3; // Wider gap for cleaner look
 
-            ctx.fillStyle = color;
+            ctx.fillStyle = activeColor;
             ctx.shadowBlur = 10;
-            ctx.shadowColor = color; // Glow effect
+            ctx.shadowColor = activeColor; // Glow effect
 
             bars.forEach((h, i) => {
                 const x = i * barWidth;
@@ -88,7 +91,7 @@ export const CyberVisualizer = ({ isPlaying, color = "#00f0ff", bpm = 120 }: Cyb
         requestAnimationFrame(render);
 
         return () => cancelAnimationFrame(animationId);
-    }, [isPlaying, color, bpm]);
+    }, [isPlaying, activeColor, bpm]);
 
     return (
         <canvas
