@@ -4,6 +4,14 @@ import { CyberLine } from '../ui/CyberLine';
 import { GhostText } from '../ui/GhostText';
 import { useTranslation } from '../../i18n';
 
+const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
 export const Header = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -16,13 +24,7 @@ export const Header = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString('en-US', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
+
 
     return (
         <header className="relative z-50 flex-none w-full">

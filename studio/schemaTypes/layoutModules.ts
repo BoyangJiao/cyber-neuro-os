@@ -26,6 +26,8 @@ export const layoutFullWidth = {
                 { type: 'richTextBlock' },
                 { type: 'mediaBlock' },
                 { type: 'statsBlock' },
+                { type: 'compareBlock' },
+                { type: 'tabBlock' },
             ],
         },
 
@@ -101,6 +103,8 @@ export const layoutSplit = {
                 { type: 'richTextBlock' },
                 { type: 'mediaBlock' },
                 { type: 'statsBlock' },
+                { type: 'compareBlock' },
+                { type: 'tabBlock' },
             ],
         },
         {
@@ -111,6 +115,8 @@ export const layoutSplit = {
                 { type: 'richTextBlock' },
                 { type: 'mediaBlock' },
                 { type: 'statsBlock' },
+                { type: 'compareBlock' },
+                { type: 'tabBlock' },
             ],
         },
         // Layout Options
@@ -184,6 +190,8 @@ export const layoutGrid = {
             of: [
                 { type: 'mediaBlock' },
                 { type: 'statsBlock' },
+                { type: 'compareBlock' },
+                { type: 'tabBlock' },
             ],
         },
         // Layout Options

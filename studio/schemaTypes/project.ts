@@ -54,6 +54,21 @@ export default {
             },
         },
         {
+            name: 'heroVideoFile',
+            title: 'Hero Video File (Optional)',
+            description: 'Upload a video file for the hero section (overrides image if present)',
+            type: 'file',
+            options: {
+                accept: 'video/*',
+            },
+        },
+        {
+            name: 'heroVideoUrl',
+            title: 'Hero Video URL (Optional)',
+            description: 'External URL for the hero video (e.g. mp4 link). Overrides image if present.',
+            type: 'url',
+        },
+        {
             name: 'coreMetrics',
             title: 'Core Metrics',
             type: 'array',

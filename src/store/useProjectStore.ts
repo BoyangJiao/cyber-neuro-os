@@ -62,11 +62,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
             }));
 
             // Only update store if we actually got projects so we don't wipe the mock data with nothing
-            // (Unless avoiding mock data is desired, but fallback is good for now)
             if (mappedProjects.length > 0) {
+                // Check if current active project exists in the new list
+                const currentActiveId = get().activeProjectId;
+                const activeProjectExists = mappedProjects.some(p => p.id === currentActiveId);
+
+                // If it exists (Seamless Switch for Same-Slug), keep it. 
+                // Otherwise default to first one.
+                const newActiveId = activeProjectExists ? currentActiveId : mappedProjects[0].id;
+
                 set({
                     projects: mappedProjects,
-                    activeProjectId: mappedProjects[0].id,
+                    activeProjectId: newActiveId,
                     isLoading: false
                 });
             } else {

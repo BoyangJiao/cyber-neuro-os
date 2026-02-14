@@ -112,56 +112,43 @@ export const FeaturePanel = () => {
             <div ref={containerRef} className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6">
                 <div className="relative z-10 h-full w-full flex lg:items-start lg:justify-center overflow-x-auto lg:overflow-visible no-scrollbar snap-x snap-mandatory px-8 lg:px-0">
                     <div className="flex flex-row lg:grid lg:grid-cols-3 lg:grid-rows-2 lg:w-3/4 lg:my-auto lg:gap-x-6 lg:gap-y-4 gap-2 min-w-full lg:min-w-0">
-                        {features.map((item) => (
-                            <div
-                                key={item.titleKey}
-                                className="feature-card snap-center shrink-0 w-[85vw] lg:w-full aspect-[3/4] flex flex-col"
-                            >
-                                {item.link ? (
-                                    <Link to={item.link} className="block h-full">
-                                        {is3DMode ? (
-                                            <HoloFeatureCard
-                                                title={t(item.titleKey)}
-                                                subtitle={item.subtitle}
-                                                glitchType={item.glitchType}
-                                                geometryType={item.geometryType}
-                                                icon={item.icon || item.activeImage || "/images/features/Lab_active.png"}
-                                            />
-                                        ) : (
-                                            <CyberSlotCard
-                                                title={t(item.titleKey)}
-                                                subtitle={item.subtitle}
-                                                glitchType={item.glitchType}
-                                                inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
-                                                activeImage={item.activeImage || "/images/features/Lab_active.png"}
-                                                bgSize={item.bgSize}
-                                            />
-                                        )}
-                                    </Link>
-                                ) : (
-                                    <div onClick={() => handleInterceptClick(t(item.titleKey))} className="cursor-pointer h-full">
-                                        {is3DMode ? (
-                                            <HoloFeatureCard
-                                                title={t(item.titleKey)}
-                                                subtitle={item.subtitle}
-                                                glitchType={item.glitchType}
-                                                geometryType={item.geometryType}
-                                                icon={item.icon || item.activeImage || "/images/features/Lab_active.png"}
-                                            />
-                                        ) : (
-                                            <CyberSlotCard
-                                                title={t(item.titleKey)}
-                                                subtitle={item.subtitle}
-                                                glitchType={item.glitchType}
-                                                inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
-                                                activeImage={item.activeImage || "/images/features/Lab_active.png"}
-                                                bgSize={item.bgSize}
-                                            />
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                        {features.map((item) => {
+                            const cardContent = is3DMode ? (
+                                <HoloFeatureCard
+                                    title={t(item.titleKey)}
+                                    subtitle={item.subtitle}
+                                    glitchType={item.glitchType}
+                                    geometryType={item.geometryType}
+                                    icon={item.icon || item.activeImage || "/images/features/Lab_active.png"}
+                                />
+                            ) : (
+                                <CyberSlotCard
+                                    title={t(item.titleKey)}
+                                    subtitle={item.subtitle}
+                                    glitchType={item.glitchType}
+                                    inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
+                                    activeImage={item.activeImage || "/images/features/Lab_active.png"}
+                                    bgSize={item.bgSize}
+                                />
+                            );
+
+                            return (
+                                <div
+                                    key={item.titleKey}
+                                    className="feature-card snap-center shrink-0 w-[85vw] lg:w-full aspect-[3/4] flex flex-col"
+                                >
+                                    {item.link ? (
+                                        <Link to={item.link} className="block h-full">
+                                            {cardContent}
+                                        </Link>
+                                    ) : (
+                                        <div onClick={() => handleInterceptClick(t(item.titleKey))} className="cursor-pointer h-full">
+                                            {cardContent}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                         <div className="w-1 lg:hidden shrink-0"></div>
                     </div>
                 </div>

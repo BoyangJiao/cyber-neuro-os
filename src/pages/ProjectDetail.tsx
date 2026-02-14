@@ -10,7 +10,6 @@ import { HUDSidebar } from '../components/project/detail/HUDSidebar';
 import { CyberButton } from '../components/ui/CyberButton';
 import { SectionRenderer } from '../components/project/detail/SectionRenderer';
 import type { SanityProjectDetail } from '../data/projectDetails';
-import { getProjectDetail } from '../data/projectDetails';
 
 export const ProjectDetail = () => {
     const location = useLocation();
@@ -51,18 +50,7 @@ export const ProjectDetail = () => {
             setDetail(sanityData);
             setIsLoading(false);
         } else if (!isSanityLoading && !sanityData) {
-            // Failed to find or load
-            // Fallback strategy remains similar to before
-            const legacyData = getProjectDetail(projectId || '');
-            if (legacyData) {
-                if (import.meta.env.DEV) {
-                    console.warn(`Project ${projectId} not found in Sanity. Falling back to legacy mock if available.`);
-                }
-                // For now, simple error or leave detail null
-                setError("Project not found in CMS.");
-            } else {
-                setError("Project not found.");
-            }
+            setError('Project not found.');
             setIsLoading(false);
         }
     }, [sanityData, isSanityLoading, projectId]);

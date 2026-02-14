@@ -105,7 +105,7 @@ export const MissionBriefing = ({
                 }
             },
             onComplete: () => {
-                console.log('[MissionBriefing] Animation Complete');
+                // Animation complete
                 if (titleEl) titleEl.textContent = finalTitle;
             }
         }, 0);

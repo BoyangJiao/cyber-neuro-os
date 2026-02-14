@@ -40,15 +40,15 @@ function App() {
   // Hide sidebars on detail pages to focus attention and improve performance
   const isFullWidth = isDetailPage;
 
-  // Simulate boot sequence completion and initialize theme
+  // Initialize theme
   useEffect(() => {
-    // Initialize theme on first load
     document.documentElement.setAttribute('data-theme', brandTheme);
-
-    // Fetch Content
-    useProjectStore.getState().fetchProjects();
-
   }, [brandTheme]);
+
+  // Fetch content on mount
+  useEffect(() => {
+    useProjectStore.getState().fetchProjects();
+  }, []);
 
 
 

@@ -73,16 +73,29 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                         chamferSize={20}
                         bgClassName="bg-black/20"
                     >
-                        {project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/') ? (
-                            <img
-                                src={project.thumbnail}
-                                alt={project.title}
+                        {/* Check for Video first (from Sanity detail) */}
+                        {(detail as any).heroVideoFile || (detail as any).heroVideoUrl ? (
+                            <video
+                                src={(detail as any).heroVideoFile || (detail as any).heroVideoUrl}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-cyan-950/20">
-                                <i className={`${project.thumbnail} text-6xl text-cyan-500/30`} />
-                            </div>
+                            /* Fallback to Image */
+                            project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/') ? (
+                                <img
+                                    src={project.thumbnail}
+                                    alt={project.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-cyan-950/20">
+                                    <i className={`${project.thumbnail} text-6xl text-cyan-500/30`} />
+                                </div>
+                            )
                         )}
                     </ChamferFrame>
                 </MotionDiv>

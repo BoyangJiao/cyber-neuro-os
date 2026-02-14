@@ -1,28 +1,25 @@
-import { createContext, useContext, type ReactNode } from 'react';
-import type { Language } from './translations';
 import { useProjectStore } from '../store/useProjectStore';
+import type { Language } from './translations';
 
 interface LanguageContextType {
     language: Language;
     setLanguage: (lang: Language) => void;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-    const { language, setLanguage } = useProjectStore();
-
-    return (
-        <LanguageContext.Provider value={{ language, setLanguage }}>
-            {children}
-        </LanguageContext.Provider>
-    );
+/**
+ * Direct hook for language access — delegates to Zustand store.
+ * Replaces the previous React Context wrapper to avoid redundant re-render layer.
+ */
+export const useLanguage = (): LanguageContextType => {
+    const language = useProjectStore((s) => s.language);
+    const setLanguage = useProjectStore((s) => s.setLanguage);
+    return { language, setLanguage };
 };
 
-export const useLanguage = (): LanguageContextType => {
-    const context = useContext(LanguageContext);
-    if (!context) {
-        throw new Error('useLanguage must be used within a LanguageProvider');
-    }
-    return context;
+/**
+ * @deprecated LanguageProvider is no longer needed.
+ * useLanguage now reads directly from Zustand. Keep this as a passthrough for compatibility.
+ */
+export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
+    return <>{children}</>;
 };

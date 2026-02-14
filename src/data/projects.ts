@@ -3,7 +3,7 @@ export interface Project {
     title: string;
     description: string;
     techStack: string[];
-    status: string | 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
+    status: 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
     thumbnail: string;
     projectType?: string | string[];  // e.g. 'UI/UX', 'Game', 'Web3'
     timeline?: string;     // e.g. '2024'

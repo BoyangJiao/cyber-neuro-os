@@ -6,7 +6,10 @@
  */
 import { PortableText } from '@portabletext/react';
 import { urlFor } from '../../../../sanity/client';
-import type { ContentBlock, RichTextBlock, MediaBlock, StatsBlock } from '../../../../data/projectDetails';
+import type { ContentBlock, RichTextBlock, MediaBlock, StatsBlock, CompareBlock, TabBlock } from '../../../../data/projectDetails';
+import { CustomVideoPlayer } from '../../../ui/media/CustomVideoPlayer';
+import { ComparisonSlider } from '../../../ui/media/ComparisonSlider';
+import { CyberTabPanel } from '../../../ui/media/CyberTabPanel';
 
 // Portable Text customization
 // Rich Text Block Renderer
@@ -60,16 +63,41 @@ const RichTextRenderer = ({ block, layout = 'constrained' }: { block: RichTextBl
 const MediaRenderer = ({ block }: { block: MediaBlock }) => {
     const objectFit = block.layout === 'cover' ? 'object-cover' : block.layout === 'contain' ? 'object-contain' : 'object-scale-down';
 
+    // Check for videoEmbed first (HTML embed code)
+    if (block.videoEmbed) {
+        return (
+            <div className="relative rounded-lg overflow-hidden border-0 outline-none ring-0 w-full">
+                <div
+                    dangerouslySetInnerHTML={{ __html: block.videoEmbed }}
+                    className="w-full h-full"
+                />
+                {block.caption && (
+                    <p className="text-sm text-text-secondary mt-2 italic">{block.caption}</p>
+                )}
+            </div>
+        );
+    }
+
     // Get video URL from either videoFile (local upload) or video (external URL)
     const videoUrl = block.videoFile?.asset?.url || block.video;
 
     if (videoUrl) {
+        if (block.useCustomPlayer) {
+            return (
+                <CustomVideoPlayer
+                    src={videoUrl}
+                    loop={block.loop}
+                    className="w-full"
+                />
+            );
+        }
+
         return (
-            <div className="relative rounded-lg overflow-hidden">
+            <div className="relative rounded-lg overflow-hidden border-0 outline-none ring-0">
                 <video
                     src={videoUrl}
                     autoPlay
-                    loop
+                    loop={block.loop ?? true}
                     muted
                     playsInline
                     preload="auto"
@@ -93,17 +121,17 @@ const MediaRenderer = ({ block }: { block: MediaBlock }) => {
             block.image?.asset?.extension === 'gif';
 
         // For GIFs, skip width transform to preserve animation
-        // For other images, apply width transform for performance
+        // For other images, use original URL without transforms as requested
         let imageUrl: string;
         if (isGif) {
-            // Use auto format but without width constraint to preserve GIF
             imageUrl = urlFor(block.image).url();
         } else {
-            imageUrl = urlFor(block.image).width(1200).auto('format').url();
+            // Direct original URL to avoid Sanity compression/resizing
+            imageUrl = urlFor(block.image).url();
         }
 
         return (
-            <div className="relative rounded-lg overflow-hidden">
+            <div className="relative rounded-lg overflow-hidden border-0 outline-none ring-0">
                 <img
                     src={imageUrl}
                     alt={block.alt || 'Media content'}
@@ -137,6 +165,41 @@ const StatsRenderer = ({ block }: { block: StatsBlock }) => (
     </div>
 );
 
+// Compare Renderer - Before/After Comparison (Slider or Segment Control)
+const CompareRenderer = ({ block }: { block: CompareBlock }) => {
+    // Resolve before source: videoFile > video URL > image
+    const beforeVideoUrl = block.beforeVideoFile?.asset?.url || block.beforeVideo;
+    const beforeImageUrl = block.beforeImage ? urlFor(block.beforeImage).url() : undefined;
+    const beforeSrc = beforeVideoUrl || beforeImageUrl;
+    const beforeType: 'image' | 'video' = beforeVideoUrl ? 'video' : 'image';
+
+    // Resolve after source: videoFile > video URL > image
+    const afterVideoUrl = block.afterVideoFile?.asset?.url || block.afterVideo;
+    const afterImageUrl = block.afterImage ? urlFor(block.afterImage).url() : undefined;
+    const afterSrc = afterVideoUrl || afterImageUrl;
+    const afterType: 'image' | 'video' = afterVideoUrl ? 'video' : 'image';
+
+    if (!beforeSrc || !afterSrc) return null;
+
+    const sharedProps = {
+        beforeSrc,
+        beforeType,
+        afterSrc,
+        afterType,
+        beforeLabel: block.beforeLabel,
+        afterLabel: block.afterLabel,
+        className: 'w-full',
+    };
+
+    return <ComparisonSlider {...sharedProps} />;
+};
+
+// Tab Panel Renderer - Cyberpunk Tab/Segment Control
+const TabRenderer = ({ block }: { block: TabBlock }) => {
+    if (!block.tabs || block.tabs.length === 0) return null;
+    return <CyberTabPanel tabs={block.tabs} className="w-full" />;
+};
+
 // Main ContentSlotRenderer - dispatches to appropriate renderer
 export const ContentSlotRenderer = ({ blocks, layout = 'constrained' }: { blocks: ContentBlock[]; layout?: 'constrained' | 'full' }) => {
     if (!blocks || blocks.length === 0) return null;
@@ -151,6 +214,10 @@ export const ContentSlotRenderer = ({ blocks, layout = 'constrained' }: { blocks
                         return <MediaRenderer key={block._key} block={block} />;
                     case 'statsBlock':
                         return <StatsRenderer key={block._key} block={block} />;
+                    case 'compareBlock':
+                        return <CompareRenderer key={block._key} block={block} />;
+                    case 'tabBlock':
+                        return <TabRenderer key={block._key} block={block} />;
                     default:
                         return null;
                 }

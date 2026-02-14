@@ -2,8 +2,19 @@
  * Sanity Project Types
  * 
  * This file contains type definitions for project data coming from Sanity CMS.
- * NOTE: Legacy mock data has been removed. All data should now come from Sanity.
  */
+
+// ============================================
+// Sanity Type Aliases
+// ============================================
+
+/** Sanity image reference object (from @sanity/image-url) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SanityImageObject = Record<string, any>;
+
+/** Portable Text block array */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PortableTextContent = any[];
 
 // ============================================
 // Content Block Types (Slot Content)
@@ -13,17 +24,20 @@
 export interface RichTextBlock {
     _key: string;
     _type: 'richTextBlock';
-    content: any[]; // Portable Text
+    content: PortableTextContent;
 }
 
 export interface MediaBlock {
     _key: string;
     _type: 'mediaBlock';
-    image?: any; // Sanity image reference
+    image?: SanityImageObject;
     videoFile?: { asset: { url: string } }; // Sanity file reference
     video?: string; // External URL
+    videoEmbed?: string;
     caption?: string;
     alt?: string;
+    loop?: boolean;
+    useCustomPlayer?: boolean;
     layout: 'cover' | 'contain' | 'auto';
 }
 
@@ -39,7 +53,34 @@ export interface StatsBlock {
     items: StatsItem[];
 }
 
-export type ContentBlock = RichTextBlock | MediaBlock | StatsBlock;
+export interface CompareBlock {
+    _key: string;
+    _type: 'compareBlock';
+    beforeImage?: SanityImageObject;
+    beforeVideoFile?: { asset: { url: string } };
+    beforeVideo?: string;
+    beforeLabel?: string;
+    afterImage?: SanityImageObject;
+    afterVideoFile?: { asset: { url: string } };
+    afterVideo?: string;
+    afterLabel?: string;
+}
+
+export interface TabItem {
+    _key: string;
+    label: string;
+    image?: SanityImageObject;
+    videoFile?: { asset: { url: string } };
+    video?: string;
+}
+
+export interface TabBlock {
+    _key: string;
+    _type: 'tabBlock';
+    tabs: TabItem[];
+}
+
+export type ContentBlock = RichTextBlock | MediaBlock | StatsBlock | CompareBlock | TabBlock;
 
 // ============================================
 // Layout Module Types (Row Structure)
@@ -73,7 +114,7 @@ export interface LayoutGrid {
     _type: 'layoutGrid';
     anchorId?: string;
     columns: 2 | 3 | 4;
-    items: (MediaBlock | StatsBlock)[];
+    items: ContentBlock[];
     paddingTop?: number;
     paddingBottom?: number;
     showBottomBorder?: boolean;
@@ -112,41 +153,10 @@ export interface SanityProjectDetail {
     title: string;
     slug: string;
     tagline?: string;
-    heroImage?: any;
+    heroImage?: SanityImageObject;
+    heroVideoFile?: string;
+    heroVideoUrl?: string;
     coreMetrics?: CoreMetric[];
     sidebar?: ProjectSidebar;
     contentModules?: LayoutModule[];
 }
-
-// ============================================
-// Legacy Types (deprecated)
-// ============================================
-
-/**
- * @deprecated Legacy interface - Use SanityProjectDetail instead.
- * Kept for backward compatibility only.
- */
-export interface ProjectDetail {
-    projectId: string;
-    tagline: string;
-    heroImage: string;
-    coreMetrics: CoreMetric[];
-    sidebar: ProjectSidebar;
-    sections: {
-        hook: { title: string; content: string };
-        context: { title: string; challenge: string; background: string };
-        strategy: { title: string; insights: string[]; approach: string };
-        highlights: { title: string; items: { title: string; description: string; image?: string }[] };
-        outcome: { title: string; results: string[]; reflection: string };
-    };
-}
-
-/** @deprecated Legacy fallback storage - All data should now come from Sanity. */
-const legacyProjectDetails: Record<string, ProjectDetail> = {};
-
-/**
- * @deprecated Use Sanity query instead: PROJECT_DETAIL_QUERY from sanity/queries.ts
- */
-export const getProjectDetail = (projectId: string): ProjectDetail | undefined => {
-    return legacyProjectDetails[projectId];
-};

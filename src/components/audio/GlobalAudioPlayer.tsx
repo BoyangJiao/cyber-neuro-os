@@ -39,7 +39,7 @@ export const GlobalAudioPlayer = () => {
                 audioRef.current.play().catch(e => console.warn("Autoplay blocked or playback error:", e));
             }
         }
-    }, [currentTrack]);
+    }, [currentTrack, isPlaying]);
 
     // Play/Pause sync
     useEffect(() => {

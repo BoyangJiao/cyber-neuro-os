@@ -10,11 +10,11 @@ export const client = createClient({
     projectId,
     dataset,
     apiVersion,
-    useCdn: false, // Must be false for live preview to work instantly
-    perspective: 'published', // We will swap to 'previewDrafts' via loader if needed
+    useCdn: !import.meta.env.DEV, // CDN in production, direct API in dev for live preview
+    perspective: 'published',
     stega: {
-        enabled: true, // Enable Content Source Maps
-        studioUrl: 'http://localhost:3333', // Absolute URL to Studio for correct linking
+        enabled: import.meta.env.DEV, // Only enable Content Source Maps in development
+        studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || 'http://localhost:3333',
     },
 });
 
