@@ -3,60 +3,13 @@ export interface Project {
     title: string;
     description: string;
     techStack: string[];
-    status: 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED';
+    status: 'DEPLOYED' | 'IN_DEVELOPMENT' | 'CLASSIFIED' | 'Live' | 'Archived' | 'In Development';
     thumbnail: string;
     projectType?: string | string[];  // e.g. 'UI/UX', 'Game', 'Web3'
     timeline?: string;     // e.g. '2024'
     liveUrl?: string;      // Live project URL
+    sortOrder?: number;
 }
 
-export const projects: Project[] = [
-    {
-        id: 'p1',
-        title: 'NEURAL SYNC',
-        description: 'Brain-Computer Interface data visualization dashboard.',
-        techStack: ['React', 'Three.js', 'WebSockets'],
-        status: 'DEPLOYED',
-        thumbnail: 'ri-brain-line'
-    },
-    {
-        id: 'p2',
-        title: 'CYBER MARKET',
-        description: 'Decentralized exchange for digital assets.',
-        techStack: ['Solidity', 'Next.js', 'Ethers.js'],
-        status: 'IN_DEVELOPMENT',
-        thumbnail: 'ri-shopping-cart-line'
-    },
-    {
-        id: 'p3',
-        title: 'PROJECT TITAN',
-        description: 'Top secret military simulation engine.',
-        techStack: ['Unknown', 'C++'],
-        status: 'CLASSIFIED',
-        thumbnail: 'ri-shield-star-line'
-    },
-    {
-        id: 'p4',
-        title: 'NEURAL NET',
-        description: 'AI-driven network traffic analysis tool.',
-        techStack: ['Python', 'TensorFlow', 'D3.js'],
-        status: 'DEPLOYED',
-        thumbnail: 'ri-node-tree'
-    },
-    {
-        id: 'p5',
-        title: 'VOID WALKER',
-        description: 'VR exploration game in procedural universe.',
-        techStack: ['Unity', 'C#', 'HLSL'],
-        status: 'IN_DEVELOPMENT',
-        thumbnail: 'ri-gamepad-line'
-    },
-    {
-        id: 'p6',
-        title: 'DATA CORE',
-        description: 'Secure vaulted storage for sensitive biosignals.',
-        techStack: ['Rust', 'PostgreSQL', 'WASM'],
-        status: 'DEPLOYED',
-        thumbnail: 'ri-database-2-line'
-    }
-];
+export const projects: Project[] = [];
+

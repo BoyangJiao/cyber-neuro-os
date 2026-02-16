@@ -48,19 +48,39 @@ export const ConnectionLine = () => {
         };
     }, []);
 
-    // 当 About Me 打开时计算路径
+    // 当 About Me 打开时计算路径，并在元素未加载时轮询检测
     useEffect(() => {
-        if (isAboutMeOpen) {
-            // 延迟一帧确保 DOM 已更新
-            requestAnimationFrame(() => {
-                const result = calculatePath();
+        let pollingTimer: ReturnType<typeof setTimeout>;
+        let retryCount = 0;
+        const MAX_RETRIES = 100; // 最多尝试 5 秒 (50ms * 100)
+
+        const checkAndCalculate = () => {
+            const result = calculatePath();
+
+            // 只有当路径有效且非空时才更新状态
+            if (result.path) {
                 setPathD(result.path);
                 setStartPoint(result.start);
                 setEndPoint(result.end);
-            });
+            } else if (isAboutMeOpen && retryCount < MAX_RETRIES) {
+                // 如果 About Me 打开但没找到元素（可能在 Suspense 加载中），则重试
+                retryCount++;
+                pollingTimer = setTimeout(checkAndCalculate, 50);
+            }
+        };
+
+        if (isAboutMeOpen) {
+            // 立即尝试一次
+            checkAndCalculate();
         } else {
             setPathD('');
+            setStartPoint({ x: 0, y: 0 });
+            setEndPoint({ x: 0, y: 0 });
         }
+
+        return () => {
+            if (pollingTimer) clearTimeout(pollingTimer);
+        };
     }, [isAboutMeOpen, calculatePath]);
 
     // 监听窗口大小变化

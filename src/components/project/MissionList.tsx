@@ -33,7 +33,7 @@ export const MissionList = ({
                         PROJECT
                     </span>
                     <span className="text-sm font-mono text-[var(--color-brand-primary)]">
-                        {String(activeIndex + 1).padStart(2, '0')}/{String(projects.length).padStart(2, '0')}
+                        {String(projects.length > 0 ? activeIndex + 1 : 0).padStart(2, '0')}/{String(projects.length).padStart(2, '0')}
                     </span>
                 </div>
             </div>
@@ -41,6 +41,13 @@ export const MissionList = ({
             {/* Mission Items - 可滚动容器 */}
             <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide pt-1 pr-1">
                 <div className="flex flex-col gap-2">
+                    {projects.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 opacity-50">
+                            <span className="text-[10px] font-mono tracking-[0.3em] animate-pulse">
+                                INITIALIZING CORE...
+                            </span>
+                        </div>
+                    )}
                     {projects.map((project, index) => {
                         const isActive = index === activeIndex;
 

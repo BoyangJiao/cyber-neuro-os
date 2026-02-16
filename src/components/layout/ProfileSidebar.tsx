@@ -24,6 +24,10 @@ export const ProfileSidebar = () => {
                         onMouseDown={() => setIsPressed(true)}
                         onMouseUp={() => setIsPressed(false)}
                         onMouseLeave={() => setIsPressed(false)}
+                        onMouseEnter={() => {
+                            // 预加载 AboutMePage 模块，利用浏览器缓存加速后续渲染
+                            import('../../pages/AboutMePage');
+                        }}
                         background={
                             <div className="absolute inset-[2px]">
                                 {/* Ghost Image Layer */}

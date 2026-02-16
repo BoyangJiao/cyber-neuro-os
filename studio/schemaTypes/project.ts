@@ -7,6 +7,12 @@ export default {
     type: 'document',
     fields: [
         {
+            name: 'sortOrder',
+            title: 'Sort Order',
+            description: 'Manual sorting priority (lower numbers appear first)',
+            type: 'number',
+        },
+        {
             name: 'title',
             title: 'Project Title',
             type: 'string',

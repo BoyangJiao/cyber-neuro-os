@@ -1,8 +1,19 @@
 import { create } from 'zustand';
 import { client } from '../sanity/client';
 import { PROJECTS_QUERY } from '../sanity/queries';
-import { projects as mockProjects, type Project } from '../data/projects';
+import { type Project } from '../data/projects';
 import type { SanityProjectRaw } from '../sanity/types';
+
+// Manual order requested by user as fallback
+const PROJECT_TITLE_ORDER = [
+    'Worldfirst mobile',
+    'Worldfirst mobile design system',
+    'worldfirst CN redesign',
+    'worldfirst FX redesign',
+    'Alipay+ wallet',
+    'Vodapay',
+    'Alipay+ rewards'
+].map(t => t.toLowerCase());
 
 interface ProjectState {
     projects: Project[];
@@ -34,8 +45,8 @@ const getInitialLanguage = (): 'en' | 'zh' => {
 };
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
-    projects: mockProjects, // Start with mock, replace with Sanity data if available
-    activeProjectId: mockProjects[0]?.id || '',
+    projects: [],
+    activeProjectId: '',
     activeProjectIndex: 0,
     filter: 'ALL',
     language: getInitialLanguage(),
@@ -49,36 +60,56 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
             const sanityProjects = await client.fetch(PROJECTS_QUERY, { language });
 
             // Transform Sanity data to match Project interface
-            const mappedProjects: Project[] = (sanityProjects as SanityProjectRaw[]).map((p) => ({
+            const mappedProjects: Project[] = ((sanityProjects || []) as SanityProjectRaw[]).map((p) => ({
                 id: p.slug,
                 title: p.title,
                 description: p.description || '',
                 techStack: p.techStack || [],
-                status: p.status || 'In Development',
+                status: (p.status || 'In Development') as Project['status'],
                 thumbnail: p.heroImage || 'ri-code-s-slash-line',
                 projectType: p.projectType,
                 timeline: p.timeline,
-                liveUrl: p.liveUrl
+                liveUrl: p.liveUrl,
+                sortOrder: p.sortOrder
             }));
 
-            // Only update store if we actually got projects so we don't wipe the mock data with nothing
-            if (mappedProjects.length > 0) {
-                // Check if current active project exists in the new list
-                const currentActiveId = get().activeProjectId;
-                const activeProjectExists = mappedProjects.some(p => p.id === currentActiveId);
+            // Apply manual sorting priority
+            const sortedProjects = [...mappedProjects].sort((a, b) => {
+                // 1. Sanity sortOrder takes ultimate priority
+                if (typeof a.sortOrder === 'number' && typeof b.sortOrder === 'number') {
+                    return a.sortOrder - b.sortOrder;
+                }
+                if (typeof a.sortOrder === 'number') return -1;
+                if (typeof b.sortOrder === 'number') return 1;
 
-                // If it exists (Seamless Switch for Same-Slug), keep it. 
-                // Otherwise default to first one.
-                const newActiveId = activeProjectExists ? currentActiveId : mappedProjects[0].id;
+                // 2. Fallback to the hardcoded list sequence
+                const indexA = PROJECT_TITLE_ORDER.indexOf(a.title.toLowerCase());
+                const indexB = PROJECT_TITLE_ORDER.indexOf(b.title.toLowerCase());
 
-                set({
-                    projects: mappedProjects,
-                    activeProjectId: newActiveId,
-                    isLoading: false
-                });
-            } else {
-                set({ isLoading: false });
-            }
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+
+                return 0; // Maintain original creation date sort from query
+            });
+
+            // Always update store with Sanity data to ensure sync
+            const currentActiveId = get().activeProjectId;
+            const activeProjectExists = sortedProjects.some(p => p.id === currentActiveId);
+
+            // Re-calculate the best active ID and Index
+            const newActiveId = activeProjectExists ? currentActiveId : (sortedProjects[0]?.id || '');
+            const newActiveIndex = activeProjectExists
+                ? sortedProjects.findIndex(p => p.id === currentActiveId)
+                : 0;
+
+            set({
+                projects: sortedProjects,
+                activeProjectId: newActiveId,
+                activeProjectIndex: newActiveIndex,
+                isLoading: false,
+                error: null
+            });
 
         } catch (err) {
             console.error('Failed to fetch projects:', err);
@@ -86,9 +117,23 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         }
     },
 
-    setActiveProject: (id) => set({ activeProjectId: id }),
+    setActiveProject: (id) => {
+        const { projects } = get();
+        const index = projects.findIndex(p => p.id === id);
+        set({
+            activeProjectId: id,
+            activeProjectIndex: index === -1 ? 0 : index
+        });
+    },
 
-    setActiveProjectIndex: (index) => set({ activeProjectIndex: index }),
+    setActiveProjectIndex: (index) => {
+        const { projects } = get();
+        const project = projects[index];
+        set({
+            activeProjectIndex: index,
+            activeProjectId: project?.id || ''
+        });
+    },
 
     setFilter: (filter) => set({ filter }),
 

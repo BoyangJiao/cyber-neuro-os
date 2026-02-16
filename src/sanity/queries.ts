@@ -1,11 +1,12 @@
 // Query for Project Deck (Landing Page)
 // Query for Project Deck (Landing Page)
 // Query for Project Deck (Landing Page)
-export const PROJECTS_QUERY = `*[_type == "project" && (language == $language || (!defined(language) && $language == 'en'))] | order(_createdAt desc) {
+export const PROJECTS_QUERY = `*[_type == "project" && (language == $language || (!defined(language) && $language == 'en'))] | order(sortOrder asc, _createdAt desc) {
   _id,
   title,
   "slug": slug.current,
   description,
+  sortOrder,
   "status": sidebar.status,
   "techStack": sidebar.techStack,
   "projectType": sidebar.projectType,

@@ -10,6 +10,7 @@ export interface SanityProjectRaw {
     title: string;
     slug: string;
     description?: string;
+    sortOrder?: number;
 
     status?: string;
     techStack?: string[];
