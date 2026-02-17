@@ -4,9 +4,14 @@ import { ChamferFrame } from '../ui/frames/ChamferFrame';
 import { CyberButton } from '../ui/CyberButton';
 import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
-import { useRef, useLayoutEffect, useState } from 'react';
+import { useRef, useLayoutEffect, useEffect, useState } from 'react';
 import { ScanlineEffect, PixelGridEffect } from '../ui/effects';
+import { ShimmerLoader } from '../ui/loading/ShimmerLoader';
 import gsap from 'gsap';
+
+// Module-level cache: tracks which media URLs have been loaded
+// Persists across component re-mounts and navigation
+const loadedMediaCache = new Set<string>();
 
 interface MissionBriefingProps {
     project: Project | null;
@@ -36,6 +41,36 @@ export const MissionBriefing = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
+
+    // Determine current media URL
+    const mediaUrl = project?.videoFile || project?.video || (
+        (project?.thumbnail?.startsWith('http') || project?.thumbnail?.startsWith('/'))
+            ? project?.thumbnail
+            : null
+    );
+
+    // Check if already loaded (from cache or previous render)
+    const isAlreadyCached = mediaUrl ? loadedMediaCache.has(mediaUrl) : true;
+    const [isMediaLoaded, setIsMediaLoaded] = useState(isAlreadyCached);
+
+    // When project changes, check cache immediately instead of blindly resetting to false
+    useEffect(() => {
+        if (!mediaUrl) {
+            setIsMediaLoaded(true); // No media to load, skip shimmer
+        } else if (loadedMediaCache.has(mediaUrl)) {
+            setIsMediaLoaded(true); // Already loaded before
+        } else {
+            // Check if image is already in browser cache (synchronous check)
+            const img = new Image();
+            img.src = mediaUrl;
+            if (img.complete) {
+                loadedMediaCache.add(mediaUrl);
+                setIsMediaLoaded(true);
+            } else {
+                setIsMediaLoaded(false);
+            }
+        }
+    }, [project?.id, mediaUrl]);
 
     // GSAP Smooth Transition Animation - 内容扫描 + 标题乱码解密
     useLayoutEffect(() => {
@@ -142,19 +177,63 @@ export const MissionBriefing = ({
     const hasImage = project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/');
     const hasLiveUrl = !!project.liveUrl;
 
+    // Helper to map projects to specific display modes (Case Study / Snapshot)
+    const getDisplayMode = (title: string, originalType: any) => {
+        const t = title.toLowerCase();
+
+        // Case Study matches
+        if (
+            (t.includes('world') && t.includes('mobile') && !t.includes('design') && !t.includes('system')) ||
+            t.includes('scene') ||
+            t.includes('cn redesign') ||
+            (t.includes('alipay') && (t.includes('wallet') || t.includes('digital'))) ||
+            t === 'world first mobile' ||
+            t === 'world first scene redesign' ||
+            t === 'alipay digital wallet'
+        ) {
+            return 'Case Study';
+        }
+
+        // Snapshot matches
+        if (
+            t.includes('design system') ||
+            t.includes('forex') ||
+            t.includes('fx redesign') ||
+            t.includes('trading') ||
+            t.includes('borderpay') ||
+            t.includes('super app') ||
+            t.includes('vodapay') ||
+            t === 'world first design system' ||
+            t === 'world first forex trading redesign' ||
+            t === 'borderpay super app'
+        ) {
+            return 'Snapshot';
+        }
+
+        // Fallback
+        if (Array.isArray(originalType)) return originalType[0] || 'PROJECT';
+        return (originalType as string) || 'PROJECT';
+    };
+
     // Helper to normalize tags
     const getTags = () => {
+        const displayMode = getDisplayMode(project.title, project.projectType);
+
         const types = Array.isArray(project.projectType)
             ? project.projectType
             : project.projectType
                 ? [project.projectType]
                 : [];
 
-        // If no types, fallback to first tech stack item or default
-        if (types.length === 0) {
-            return [project.techStack?.[0] || 'PROJECT'];
+        // If the displayMode is one of our special ones, we make sure it's present/first
+        const result = [...types];
+        if ((displayMode === 'Case Study' || displayMode === 'Snapshot') && !result.includes(displayMode)) {
+            result.unshift(displayMode);
+        } else if (result.length === 0) {
+            result.push(project.techStack?.[0] || 'PROJECT');
         }
-        return types;
+
+        return result;
     };
 
     const tags = getTags();
@@ -200,12 +279,40 @@ export const MissionBriefing = ({
                             }}
                             onMouseLeave={() => setIsImageHovered(false)}
                         >
-                            {hasImage ? (
+                            {/* Shimmer skeleton - visible while media loads */}
+                            <ShimmerLoader
+                                show={!isMediaLoaded}
+                                variant="overlay"
+                                label="LOADING FEED..."
+                            />
+
+                            {project.videoFile || project.video ? (
+                                <>
+                                    <video
+                                        src={project.videoFile || project.video}
+                                        className="w-full h-full object-cover"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        onLoadedData={() => { if (mediaUrl) loadedMediaCache.add(mediaUrl); setIsMediaLoaded(true); }}
+                                    />
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                        <PixelGridEffect active={isImageHovered} />
+                                        <ScanlineEffect variant="flash" active={isImageHovered} />
+                                    </div>
+                                    <div className={twMerge(
+                                        "absolute inset-0 transition-colors duration-300",
+                                        isImageHovered ? "bg-[var(--color-brand-dim)]/10" : "bg-transparent"
+                                    )} />
+                                </>
+                            ) : hasImage ? (
                                 <>
                                     <img
                                         src={project.thumbnail}
                                         alt={project.title}
                                         className="w-full h-full object-cover"
+                                        onLoad={() => { if (mediaUrl) loadedMediaCache.add(mediaUrl); setIsMediaLoaded(true); }}
                                     />
 
                                     <div className="absolute inset-0 pointer-events-none overflow-hidden">

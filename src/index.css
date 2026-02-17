@@ -17,15 +17,17 @@
     mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
-/* Hide scrollbar utility */
-.scrollbar-hide {
+/* Hide scrollbar utility — both class names supported */
+.scrollbar-hide,
+.no-scrollbar {
     -ms-overflow-style: none;
     /* IE and Edge */
     scrollbar-width: none;
     /* Firefox */
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
     display: none;
     /* Chrome, Safari, Opera */
 }
@@ -80,33 +82,118 @@ body {
     min-height: 100vh;
 }
 
-/* Global Grid Background */
+/* ============================================================
+   LAYER 1: Ambient Gradient (Deep Space / Industrial Depth)
+   ============================================================
+   Multi-stop radial gradient creating a subtle center illumination
+   with dark edges. Inspired by Destiny's deep-space UI panels.
+   ============================================================ */
+body {
+    background:
+        /* Primary center glow - very subtle warm-cool shift */
+        radial-gradient(ellipse 70% 60% at 50% 45%,
+            color-mix(in srgb, var(--color-brand-primary) 4%, #0a0e14) 0%,
+            color-mix(in srgb, var(--color-brand-primary) 2%, #060a0f) 40%,
+            #020406 80%,
+            #000000 100%),
+        /* Secondary edge vignette - reinforces depth */
+        radial-gradient(ellipse 120% 100% at 50% 50%,
+            transparent 30%,
+            rgba(0, 0, 0, 0.6) 100%),
+        /* Base color */
+        var(--color-bg-app);
+}
+
+/* ============================================================
+   LAYER 2: Blueprint Grid Texture (Industrial / Engineering)
+   ============================================================
+   Multi-scale grid system with crosshairs and diagonal accents.
+   Inspired by Arknights: Endfield blueprint aesthetics and
+   Cyberpunk 2077 tactical overlays.
+   ============================================================ */
 body::before {
     content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 0;
+
     background-image:
-        linear-gradient(color-mix(in srgb, var(--color-brand-primary), transparent 96%) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in srgb, var(--color-brand-primary), transparent 96%) 1px, transparent 1px);
-    background-size: 40px 40px;
-    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        /* 1. Fine micro-grid (20px) - surface texture */
+        linear-gradient(color-mix(in srgb, var(--color-brand-primary), transparent 97%) 1px,
+            transparent 1px),
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--color-brand-primary), transparent 97%) 1px,
+            transparent 1px),
+        /* 2. Major grid (80px) - structural lines, slightly brighter */
+        linear-gradient(color-mix(in srgb, var(--color-brand-primary), transparent 93%) 1px,
+            transparent 1px),
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--color-brand-primary), transparent 93%) 1px,
+            transparent 1px),
+        /* 3. Crosshair intersection dots - small radial dots at major grid crossings */
+        radial-gradient(circle 1.5px at center,
+            color-mix(in srgb, var(--color-brand-primary), transparent 88%) 0%,
+            transparent 100%),
+        /* 4. Diagonal accent lines (45°) - fixed tiling, no viewport stretch */
+        repeating-linear-gradient(45deg,
+            transparent,
+            transparent 158px,
+            color-mix(in srgb, var(--color-brand-primary), transparent 96%) 158px,
+            color-mix(in srgb, var(--color-brand-primary), transparent 96%) 159px,
+            transparent 159px,
+            transparent 320px),
+        /* 5. Diagonal accent lines (-45°) - fixed tiling, no viewport stretch */
+        repeating-linear-gradient(-45deg,
+            transparent,
+            transparent 198px,
+            color-mix(in srgb, var(--color-brand-primary), transparent 97%) 198px,
+            color-mix(in srgb, var(--color-brand-primary), transparent 97%) 199px,
+            transparent 199px,
+            transparent 400px);
+
+    /* All sizes in fixed pixels - immune to viewport resize */
+    background-size:
+        20px 20px,
+        /* micro-grid vertical */
+        20px 20px,
+        /* micro-grid horizontal */
+        80px 80px,
+        /* major grid vertical */
+        80px 80px,
+        /* major grid horizontal */
+        80px 80px,
+        /* crosshair dots */
+        320px 320px,
+        /* diagonal 45° - fixed tile */
+        400px 400px;
+    /* diagonal -45° - fixed tile */
+
     background-position: center top;
+    background-attachment: fixed;
+
+    /* Fixed-size elliptical mask - does NOT deform with viewport aspect ratio */
+    mask-image:
+        radial-gradient(1200px 900px at 50% 50%,
+            black 15%,
+            rgba(0, 0, 0, 0.4) 45%,
+            rgba(0, 0, 0, 0.08) 75%,
+            transparent 100%);
+    mask-size: cover;
+    mask-position: center;
 }
 
-/* Global Noise Overlay */
+/* Global Noise Overlay - Fine grain film texture */
 body::after {
     content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    /* Just above the grid (z-index: 0) */
-    opacity: 0.5;
-    /* Start subtle, you can increase this */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    filter: contrast(150%) brightness(100%);
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 300px 300px;
+    filter: contrast(120%) brightness(100%);
     mix-blend-mode: overlay;
 }
 
@@ -137,6 +224,83 @@ body::after {
 ::selection {
     background: var(--color-brand-primary);
     color: #000;
+}
+
+/* ============================================================
+   LAYER 3: Ambient Light Orb Animations
+   ============================================================
+   Slow, organic drifting patterns for atmospheric depth.
+   Inspired by Death Stranding's chiral atmosphere and
+   Cyberpunk 2077's ambient neon bleed through fog.
+   ============================================================ */
+@keyframes orb-drift-1 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    25% {
+        transform: translate(-60px, 40px) scale(1.1);
+    }
+
+    50% {
+        transform: translate(-30px, 80px) scale(0.95);
+    }
+
+    75% {
+        transform: translate(40px, 30px) scale(1.05);
+    }
+}
+
+@keyframes orb-drift-2 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    30% {
+        transform: translate(50px, -40px) scale(1.08);
+    }
+
+    60% {
+        transform: translate(20px, -70px) scale(0.92);
+    }
+
+    80% {
+        transform: translate(-30px, -20px) scale(1.04);
+    }
+}
+
+@keyframes orb-drift-3 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.015;
+    }
+
+    40% {
+        transform: translate(20px, -50px) scale(1.15);
+        opacity: 0.025;
+    }
+
+    70% {
+        transform: translate(-20px, 30px) scale(0.9);
+        opacity: 0.01;
+    }
+}
+
+/* Shimmer scan for media loading skeleton */
+@keyframes shimmer-scan {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(200%);
+    }
 }
 
 @keyframes scanline {

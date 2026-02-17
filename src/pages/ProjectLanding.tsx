@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { MissionList } from '../components/project/MissionList';
 import { MissionBriefing } from '../components/project/MissionBriefing';
 import { MotionDiv } from '../components/motion/MotionWrappers';
@@ -6,6 +6,9 @@ import { HoloFrame } from '../components/ui/HoloFrame';
 import { CyberButton } from '../components/ui/CyberButton';
 import { useProjectStore } from '../store/useProjectStore';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '../sanity/client';
+import { PROJECTS_QUERY } from '../sanity/queries';
+import type { SanityProjectRaw } from '../sanity/types';
 
 /**
  * ProjectLanding - Mission 风格的项目展示页
@@ -15,7 +18,16 @@ import { useNavigate } from 'react-router-dom';
  */
 export const ProjectLanding = () => {
     const navigate = useNavigate();
-    const { projects, activeProjectIndex, setActiveProjectIndex } = useProjectStore();
+    const { projects, activeProjectIndex, setActiveProjectIndex, setProjects, language } = useProjectStore();
+
+    // Enable Real-time synchronization for Sanity Presentation mode
+    const { data: sanityProjects } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
+
+    useEffect(() => {
+        if (sanityProjects) {
+            setProjects(sanityProjects);
+        }
+    }, [sanityProjects, setProjects]);
 
     // 获取所有项目
     const visibleProjects = projects;
@@ -36,7 +48,7 @@ export const ProjectLanding = () => {
         >
             <HoloFrame
                 variant="lines"
-                className="w-full h-full bg-[var(--color-bg-app)] relative overflow-hidden p-0"
+                className="w-full h-full bg-black/40 backdrop-blur-[1px] relative overflow-hidden p-0"
                 showAtmosphere={true}
                 showMask={true}
             >
@@ -51,7 +63,7 @@ export const ProjectLanding = () => {
                         {/* 中央标题 */}
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                PROJECT DIRECTORY
+                                WORK
                             </h1>
                         </div>
 

@@ -108,6 +108,24 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                     </Suspense>
                 </div>
 
+                {/* Scan line overlay - sweeps down with progress */}
+                {progress < 100 && (
+                    <div
+                        className="absolute left-0 w-full z-[5] pointer-events-none transition-opacity duration-300"
+                        style={{
+                            top: `${progress}%`,
+                            opacity: progress > 0 ? 1 : 0,
+                        }}
+                    >
+                        {/* Main bright line */}
+                        <div className="w-full h-px bg-[var(--color-brand-primary)] shadow-[0_0_8px_var(--color-brand-glow),0_0_20px_var(--color-brand-glow)]" />
+                        {/* Soft glow spread below */}
+                        <div className="w-full h-6 bg-gradient-to-b from-[var(--color-brand-primary)]/15 to-transparent" />
+                        {/* Soft glow spread above */}
+                        <div className="absolute bottom-full w-full h-4 bg-gradient-to-t from-[var(--color-brand-primary)]/10 to-transparent" />
+                    </div>
+                )}
+
                 {/* HUD Overlay - Positioned over 3D scene */}
                 <div className="absolute inset-0 z-10 flex flex-col pointer-events-none">
 

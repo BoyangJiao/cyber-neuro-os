@@ -20,7 +20,7 @@ export const translations = {
 
         // Feature Panel
         features: {
-            project: 'ARCHIVES',
+            project: 'WORK',
             video: 'VISION',
             game: 'SIMULATION',
             sound: 'SYNTHESIS',
@@ -93,6 +93,14 @@ export const translations = {
             illness: 'ILLNESS',
             energy: 'ENERGY',
         },
+
+        // Mobile Gate
+        mobile: {
+            title: 'DESKTOP VIEWPORT REQUIRED',
+            description: 'NeuralOS is architected for wide-screen interfaces. The current viewport cannot render the neural dashboard correctly.',
+            instruction: 'Please switch to a desktop browser or increase your window width to continue.',
+            dismiss: 'FORCE ENTRY',
+        },
     },
 
     zh: {
@@ -111,7 +119,7 @@ export const translations = {
 
         // Feature Panel
         features: {
-            project: '项目',
+            project: '作品',
             video: '视频',
             game: '游戏',
             sound: '声音',
@@ -183,6 +191,14 @@ export const translations = {
             overload: '神经过载',
             illness: '生理异常',
             energy: '能量水平',
+        },
+
+        // Mobile Gate
+        mobile: {
+            title: '需要桌面端视口',
+            description: 'NeuralOS 为宽屏界面设计，当前视口无法正确渲染神经仪表盘。',
+            instruction: '请切换到桌面浏览器，或增大窗口宽度以继续使用。',
+            dismiss: '强制进入',
         },
     },
 } as const;

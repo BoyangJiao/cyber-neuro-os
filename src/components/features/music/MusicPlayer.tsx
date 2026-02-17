@@ -80,7 +80,7 @@ export const MusicPlayer = () => {
                 <div className="flex items-center gap-4 text-[10px] font-mono text-brand-secondary/60">
                     <span className="min-w-[40px] tabular-nums">{formatTime(currentTime)}</span>
                     <div
-                        className="flex-1 h-1 bg-brand-primary/10 rounded-full overflow-hidden relative group cursor-pointer lg:hover:h-1.5 transition-all"
+                        className="flex-1 h-2 bg-brand-primary/10 rounded-full overflow-hidden relative group cursor-pointer lg:hover:h-3 transition-all"
                         onClick={handleSeek}
                     >
                         <div

@@ -9,10 +9,13 @@ import { FeaturePanel } from './components/layout/FeaturePanel'
 import { ProjectLanding } from './pages/ProjectLanding'
 import { ProjectDetail } from './pages/ProjectDetail'
 // Lazy load heavy components
-const AboutMePage = lazy(() => import('./pages/AboutMePage').then(module => ({ default: module.AboutMePage })));
+const aboutMeImport = () => import('./pages/AboutMePage').then(module => ({ default: module.AboutMePage }));
+const AboutMePage = lazy(aboutMeImport);
 const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage').then(module => ({ default: module.DesignSystemPage })));
 const MusicPage = lazy(() => import('./pages/MusicPage').then(module => ({ default: module.MusicPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
+import { AmbientBackground } from './components/ui/effects/AmbientBackground'
+import { MobileGate } from './components/layout/MobileGate'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
 import { useAppStore } from './store/useAppStore'
@@ -28,13 +31,28 @@ import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
 
+import { useQuery } from './sanity/client'
+import { PROJECTS_QUERY } from './sanity/queries'
+import type { SanityProjectRaw } from './sanity/types'
+
 function App() {
-  // Enable live mode for Sanity drafts
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
+  const { language, setProjects } = useProjectStore();
+
+  // Enable live mode for Sanity drafts in Presentation mode
   useLiveMode({
     allowStudioOrigin: 'http://localhost:3333',
   });
 
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
+  // Global subscription for projects data to ensure UI sync in Presentation mode
+  const { data: sanityProjects } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
+
+  useEffect(() => {
+    if (sanityProjects) {
+      setProjects(sanityProjects);
+    }
+  }, [sanityProjects, setProjects]);
+
   const location = useLocation();
   const isDetailPage = !!matchPath('/projects/:projectId', location.pathname);
   // Hide sidebars on detail pages to focus attention and improve performance
@@ -45,11 +63,17 @@ function App() {
     document.documentElement.setAttribute('data-theme', brandTheme);
   }, [brandTheme]);
 
-  // Fetch content on mount
+  // Initial fetch as fallback
   useEffect(() => {
     useProjectStore.getState().fetchProjects();
   }, []);
 
+  // Preload AboutMePage chunk after boot to avoid first-open flash
+  useEffect(() => {
+    if (!isBootSequenceActive) {
+      aboutMeImport();
+    }
+  }, [isBootSequenceActive]);
 
 
   // Pre-load Main Layout by rendering it hidden/behind BootScreen
@@ -71,6 +95,8 @@ function App() {
       </AnimatePresence>
 
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
+        {/* Layer 3+4: Ambient atmospheric effects */}
+        {!isBootSequenceActive && <AmbientBackground />}
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
           <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">
@@ -105,7 +131,7 @@ function App() {
                 {/* About Me Modal - 覆盖在 main-mid 区域内 */}
                 <AnimatePresence>
                   {isAboutMeOpen && (
-                    <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm text-brand-primary animate-pulse tracking-widest">[ IDENTITY_VERIFYING... ]</div>}>
+                    <Suspense fallback={<div className="absolute inset-0 z-50" />}>
                       <AboutMePage />
                     </Suspense>
                   )}
@@ -163,6 +189,9 @@ function App() {
 
       {/* Tactical HUD Cursor - Topmost Layer */}
       <TacticalCursor />
+
+      {/* Mobile viewport gate - blocks access on narrow screens */}
+      <MobileGate />
     </LanguageProvider>
   )
 }

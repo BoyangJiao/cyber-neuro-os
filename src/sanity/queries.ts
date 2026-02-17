@@ -12,7 +12,9 @@ export const PROJECTS_QUERY = `*[_type == "project" && (language == $language ||
   "projectType": sidebar.projectType,
   "timeline": sidebar.timeline,
   "liveUrl": sidebar.liveUrl,
-  "heroImage": heroImage.asset->url
+  "heroImage": heroImage.asset->url,
+  "heroVideoFile": heroVideoFile.asset->url,
+  "heroVideoUrl": heroVideoUrl
 }`;
 
 // Query for Project Detail Page

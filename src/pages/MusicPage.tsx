@@ -18,7 +18,7 @@ export const MusicPage = () => {
         >
             <HoloFrame
                 variant="lines"
-                className="w-full h-full bg-[var(--color-bg-app)] relative overflow-hidden p-0"
+                className="w-full h-full bg-black/40 backdrop-blur-[1px] relative overflow-hidden p-0"
                 showAtmosphere={true}
                 showMask={true}
             >

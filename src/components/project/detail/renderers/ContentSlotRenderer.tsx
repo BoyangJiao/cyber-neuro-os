@@ -66,11 +66,13 @@ const MediaRenderer = ({ block }: { block: MediaBlock }) => {
     // Check for videoEmbed first (HTML embed code)
     if (block.videoEmbed) {
         return (
-            <div className="relative rounded-lg overflow-hidden border-0 outline-none ring-0 w-full">
-                <div
-                    dangerouslySetInnerHTML={{ __html: block.videoEmbed }}
-                    className="w-full h-full"
-                />
+            <div className="w-full">
+                <div className="relative rounded-lg overflow-hidden border-0 outline-none ring-0 w-full aspect-video">
+                    <div
+                        dangerouslySetInnerHTML={{ __html: block.videoEmbed }}
+                        className="absolute inset-0 w-full h-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:w-full [&_iframe]:h-full [&_video]:w-full [&_video]:h-full"
+                    />
+                </div>
                 {block.caption && (
                     <p className="text-sm text-text-secondary mt-2 italic">{block.caption}</p>
                 )}

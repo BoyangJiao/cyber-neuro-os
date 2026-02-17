@@ -9,11 +9,10 @@ export const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2024-01-01
 export const client = createClient({
     projectId,
     dataset,
-    apiVersion,
-    useCdn: !import.meta.env.DEV, // CDN in production, direct API in dev for live preview
-    perspective: 'published',
+    apiVersion: '2024-05-01', // Use a more recent API version for better stega support
+    useCdn: false, // Always disable CDN when working with live queries in dev
     stega: {
-        enabled: import.meta.env.DEV, // Only enable Content Source Maps in development
+        enabled: true, // Always enable stega metadata in dev for Visual Editing
         studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || 'http://localhost:3333',
     },
 });

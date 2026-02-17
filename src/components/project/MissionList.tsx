@@ -24,6 +24,44 @@ export const MissionList = ({
 }: MissionListProps) => {
     const { playHover, playClick } = useSoundSystem();
 
+    // Helper to map projects to specific display modes (Case Study / Snapshot)
+    const getDisplayMode = (title: string, originalType: any) => {
+        const t = title.toLowerCase();
+
+        // Case Study matches
+        if (
+            (t.includes('world') && t.includes('mobile') && !t.includes('design') && !t.includes('system')) ||
+            t.includes('scene') ||
+            t.includes('cn redesign') ||
+            (t.includes('alipay') && (t.includes('wallet') || t.includes('digital'))) ||
+            t === 'world first mobile' ||
+            t === 'world first scene redesign' ||
+            t === 'alipay digital wallet'
+        ) {
+            return 'Case Study';
+        }
+
+        // Snapshot matches
+        if (
+            t.includes('design system') ||
+            t.includes('forex') ||
+            t.includes('fx redesign') ||
+            t.includes('trading') ||
+            t.includes('borderpay') ||
+            t.includes('super app') ||
+            t.includes('vodapay') ||
+            t === 'world first design system' ||
+            t === 'world first forex trading redesign' ||
+            t === 'borderpay super app'
+        ) {
+            return 'Snapshot';
+        }
+
+        // Fallback
+        if (Array.isArray(originalType)) return originalType[0] || 'PROJECT';
+        return (originalType as string) || 'PROJECT';
+    };
+
     return (
         <div className={twMerge("flex flex-col h-full", className)}>
             {/* Header - 仅显示 PROJECT 01/06 */}
@@ -83,14 +121,14 @@ export const MissionList = ({
                                         {project.title}
                                     </h4>
 
-                                    {/* 项目类型 */}
+                                    {/* 项目类型/展示方式 */}
                                     <div className={twMerge(
                                         "text-xs font-mono tracking-wider mt-1 uppercase",
                                         isActive
                                             ? "text-[var(--color-brand-primary)]"
                                             : "text-[var(--color-text-muted)]"
                                     )}>
-                                        {project.projectType || project.techStack?.[0] || 'PROJECT'}
+                                        {getDisplayMode(project.title, project.projectType)}
                                     </div>
                                 </button>
                             </ChamferFrame>

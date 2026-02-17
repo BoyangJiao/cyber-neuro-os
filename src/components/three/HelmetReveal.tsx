@@ -76,6 +76,7 @@ const WireframeHelmet = ({ progress }: { progress: number }) => {
             time: globalUniforms.time,
             progress: { value: 0 },
             color: { value: new THREE.Color('#ffffff') }, // White wireframe for dark background
+            glowColor: { value: new THREE.Color('#00e5ff') }, // Cyan scan line glow
         },
         vertexShader: `
             varying float vYVal;
@@ -90,27 +91,46 @@ const WireframeHelmet = ({ progress }: { progress: number }) => {
         `,
         fragmentShader: `
             uniform float progress;
+            uniform float time;
             uniform vec3 color;
+            uniform vec3 glowColor;
             
             varying float vYVal;
             
             void main() {
                 // Top-to-bottom scan: progress 0 = nothing, progress 1 = all visible
-                // Use very wide range to ensure ALL parts of helmet are visible
                 float topY = 1.5;
                 float bottomY = -1.5;
                 float currentScanY = mix(topY, bottomY, progress);
                 
-                // Show wireframe for parts ABOVE the scan line (already scanned)
-                float scanned = step(currentScanY, vYVal);
+                // Distance from scan line (positive = above/already scanned, negative = below/not yet)
+                float dist = vYVal - currentScanY;
                 
-                // Alpha: visible if scanned
-                float alpha = scanned * 0.55;
+                // Soft gradient reveal: smoothstep over a small band instead of hard step
+                // Fragments smoothly fade in as the scan line passes over them
+                float fadeWidth = 0.15;
+                float scanned = smoothstep(-fadeWidth, fadeWidth * 0.5, dist);
                 
-                // Discard if not yet scanned
-                if (alpha < 0.01) discard;
+                // Scan line glow: bright band right at the scan edge
+                // Gaussian-like glow centered on the scan line
+                float glowWidth = 0.12;
+                float glowIntensity = exp(-dist * dist / (2.0 * glowWidth * glowWidth));
+                // Only show glow near the active scan region (not when fully scanned)
+                glowIntensity *= step(0.001, progress) * step(progress, 0.999);
+                // Subtle pulse on the glow
+                glowIntensity *= 0.9 + 0.1 * sin(time * 6.0);
                 
-                gl_FragColor = vec4(color, alpha);
+                // Base wireframe alpha
+                float baseAlpha = scanned * 0.55;
+                
+                // Combine: base wireframe + additive scan line glow
+                vec3 finalColor = mix(color, glowColor, glowIntensity * 0.8);
+                float finalAlpha = baseAlpha + glowIntensity * 0.6;
+                
+                // Discard if nothing to show
+                if (finalAlpha < 0.01) discard;
+                
+                gl_FragColor = vec4(finalColor, finalAlpha);
             }
         `,
         transparent: true,

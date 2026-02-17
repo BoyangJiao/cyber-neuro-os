@@ -18,4 +18,6 @@ export interface SanityProjectRaw {
     timeline?: string;
     liveUrl?: string;
     heroImage?: string;
+    heroVideoFile?: string;
+    heroVideoUrl?: string;
 }

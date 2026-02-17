@@ -20,7 +20,7 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
             </header>
 
             {/* 4. Main Body: Flex-1 to fill remaining space, NO horizontal padding here */}
-            <main className="relative z-10 flex-1 w-full min-h-0 overflow-y-auto py-3 lg:py-4 xl:py-6">
+            <main className="relative z-10 flex-1 w-full min-h-0 overflow-y-auto no-scrollbar py-3 lg:py-4 xl:py-6">
                 {/* Inner Container: Full width for custom layouts */}
                 <div className="w-full h-full relative">
                     {children}
