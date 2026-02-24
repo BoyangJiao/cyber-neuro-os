@@ -45,6 +45,7 @@ const features: FeatureItem[] = [
     },
     {
         titleKey: 'features.game',
+        link: '/games',
         geometryType: 'game',
         activeImage: '/images/features/game_active.png',
         inactiveImage: '/images/features/game_inactive.png',

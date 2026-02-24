@@ -144,6 +144,38 @@ export const translations = {
             deploy: 'DEPLOY',
             loadingFeed: 'LOADING FEED...',
         },
+
+        // Simulation Landing (Mini Games)
+        simulation: {
+            title: 'MINI GAMES',
+            sidebar: 'HERE YOU WILL SEE A FEW MINI GAMES I IMPLEMENTED IN REACT OR IN CANVAS.\n\nHAVE FUN!',
+            games: {
+                gainLife: {
+                    title: 'GAIN LIFE',
+                    desc: 'CLICK THE HEARTS'
+                },
+                escapeStorm: {
+                    title: 'ESCAPE THE STORM',
+                    desc: 'BULLET-HELL LIKE GAME'
+                },
+                drMario: {
+                    title: 'DR MARIO',
+                    desc: 'A DR. MARIO CLONE'
+                },
+                snake2: {
+                    title: 'SNAKE 2!',
+                    desc: 'CLASSIC SNAKE GAME'
+                },
+                arcanoid: {
+                    title: 'ARCANOID',
+                    desc: 'DESTROY THE BRICKS GAME'
+                },
+                snake: {
+                    title: 'SNAKE',
+                    desc: 'CLASSIC SNAKE GAME'
+                }
+            }
+        },
     },
 
     zh: {
@@ -285,6 +317,38 @@ export const translations = {
             noMission: '[ 未选择任何任务 ]',
             deploy: '部署并启动',
             loadingFeed: '获取画面流...',
+        },
+
+        // Simulation Landing (Mini Games)
+        simulation: {
+            title: '小型游戏',
+            sidebar: '在这里你会看到一些我用 REACT 或 CANVAS 实现的小游戏。\n\n玩得开心！',
+            games: {
+                gainLife: {
+                    title: '增加生命值',
+                    desc: '点击红心'
+                },
+                escapeStorm: {
+                    title: '逃离风暴',
+                    desc: '类弹幕射击游戏'
+                },
+                drMario: {
+                    title: '马里奥医生',
+                    desc: '马里奥医生复刻版'
+                },
+                snake2: {
+                    title: '贪吃蛇 2!',
+                    desc: '经典贪吃蛇游戏'
+                },
+                arcanoid: {
+                    title: '打砖块',
+                    desc: '摧毁砖块游戏'
+                },
+                snake: {
+                    title: '贪吃蛇',
+                    desc: '经典贪吃蛇游戏'
+                }
+            }
         },
     },
 } as const;

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import type { PluginOption } from 'vite'
 import { fetch as undiciFetch, ProxyAgent } from 'undici'
+import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
 
 /**
  * Local Gemini API proxy plugin
@@ -51,11 +52,7 @@ function geminiProxy(apiKey: string | undefined, proxyUrl: string | undefined): 
 
             const systemInstruction = {
               parts: [{
-                text: `You are NEXUS, the AI neural interface embedded in a designer's portfolio system.
-You speak concisely and professionally, with a subtle cyberpunk undertone.
-You are bilingual: respond in the same language the user writes in (English or Chinese).
-Keep responses concise and focused (under 300 words unless asked for detail).
-If asked about something you don't know, say so honestly.`
+                text: SYSTEM_PROMPT
               }],
             }
 

@@ -13,6 +13,7 @@ const aboutMeImport = () => import('./pages/AboutMePage').then(module => ({ defa
 const AboutMePage = lazy(aboutMeImport);
 const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage').then(module => ({ default: module.DesignSystemPage })));
 const MusicPage = lazy(() => import('./pages/MusicPage').then(module => ({ default: module.MusicPage })));
+const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module => ({ default: module.GameLandingPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
 import { MobileGate } from './components/layout/MobileGate'
@@ -130,6 +131,11 @@ function App() {
                   <Route path="/music" element={
                     <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ AUDIO_LINKing... ]</div>}>
                       <MusicPage />
+                    </Suspense>
+                  } />
+                  <Route path="/games" element={
+                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ SIMULATION_LOADING... ]</div>}>
+                      <GameLandingPage />
                     </Suspense>
                   } />
                 </Routes>
