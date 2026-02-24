@@ -44,7 +44,8 @@ export const MissionList = ({
             tTitle.includes('钱包') ||
             (tTitle.includes('场景') && !tTitle.includes('设计')) ||
             (tTitle.includes('移动') && !tTitle.includes('规范')) ||
-            tTitle.includes('官网改版')
+            tTitle.includes('官网改版') ||
+            tTitle.includes('中国区')
         ) {
             return t('projectLanding.caseStudy');
         }

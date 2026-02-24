@@ -128,21 +128,14 @@ const mockStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
 
 /**
  * Send a chat message and receive streaming response.
- * Tries the real API endpoint first; falls back to mock if /api/chat returns 404.
+ * Tries real /api/chat first; falls back to mock if unavailable.
  */
 export const streamChat = async (options: StreamChatOptions) => {
     try {
-        // Quick check: is the API available? (only on deployed Vercel)
-        const probe = await fetch('/api/chat', { method: 'HEAD' }).catch(() => null);
-
-        if (probe && probe.status !== 404) {
-            return realStreamChat(options);
-        }
+        await realStreamChat(options);
     } catch {
-        // API not available, fall through to mock
+        // If real API fails completely, try mock
+        console.info('[NEXUS] Real API unavailable, falling back to mock');
+        return mockStreamChat(options);
     }
-
-    // Fallback to mock for local development
-    console.info('[NEXUS] API not available, using mock responses');
-    return mockStreamChat(options);
 };
