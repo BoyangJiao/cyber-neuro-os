@@ -13,11 +13,11 @@ import { CyberTabPanel } from '../../../ui/media/CyberTabPanel';
 
 // Portable Text customization
 // Rich Text Block Renderer
-const RichTextRenderer = ({ block, layout = 'constrained' }: { block: RichTextBlock; layout?: 'constrained' | 'full' }) => {
+const RichTextRenderer = ({ block }: { block: RichTextBlock }) => {
     const components = {
         block: {
             normal: ({ children }: any) => (
-                <p className={`text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose ${layout === 'full' ? 'max-w-none w-full' : 'max-w-2xl 2xl:max-w-3xl'}`}>
+                <p className="text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose w-full">
                     {children}
                 </p>
             ),
@@ -203,7 +203,7 @@ const TabRenderer = ({ block }: { block: TabBlock }) => {
 };
 
 // Main ContentSlotRenderer - dispatches to appropriate renderer
-export const ContentSlotRenderer = ({ blocks, layout = 'constrained' }: { blocks: ContentBlock[]; layout?: 'constrained' | 'full' }) => {
+export const ContentSlotRenderer = ({ blocks }: { blocks: ContentBlock[] }) => {
     if (!blocks || blocks.length === 0) return null;
 
     return (
@@ -211,7 +211,7 @@ export const ContentSlotRenderer = ({ blocks, layout = 'constrained' }: { blocks
             {blocks.map((block) => {
                 switch (block._type) {
                     case 'richTextBlock':
-                        return <RichTextRenderer key={block._key} block={block} layout={layout} />;
+                        return <RichTextRenderer key={block._key} block={block} />;
                     case 'mediaBlock':
                         return <MediaRenderer key={block._key} block={block} />;
                     case 'statsBlock':

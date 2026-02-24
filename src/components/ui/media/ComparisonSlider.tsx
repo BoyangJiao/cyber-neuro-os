@@ -196,15 +196,17 @@ export const ComparisonSlider = ({
 
             {/* Labels */}
             <motion.div
-                className="absolute top-3 left-3 px-2 py-1 rounded bg-black/60 backdrop-blur-sm border border-[var(--color-border-subtle)] font-mono text-xs tracking-widest uppercase text-[var(--color-text-secondary)]"
-                animate={{ opacity: isHovering || isDragging ? 1 : 0.6 }}
+                className="absolute top-4 left-4 px-3 py-1.5 rounded-sm bg-black/70 backdrop-blur-md border border-[var(--color-brand-primary)]/30 font-mono text-xs tracking-[0.15em] uppercase text-white shadow-lg flex items-center gap-2"
+                animate={{ opacity: isHovering || isDragging ? 1 : 0.8 }}
             >
+                <i className="ri-history-line text-[var(--color-brand-primary)]"></i>
                 {beforeLabel}
             </motion.div>
             <motion.div
-                className="absolute top-3 right-3 px-2 py-1 rounded bg-black/60 backdrop-blur-sm border border-[var(--color-border-subtle)] font-mono text-xs tracking-widest uppercase text-[var(--color-brand-primary)]"
-                animate={{ opacity: isHovering || isDragging ? 1 : 0.6 }}
+                className="absolute top-4 right-4 px-3 py-1.5 rounded-sm bg-black/70 backdrop-blur-md border border-[var(--color-brand-primary)]/30 font-mono text-xs tracking-[0.15em] uppercase text-white shadow-lg flex items-center gap-2"
+                animate={{ opacity: isHovering || isDragging ? 1 : 0.8 }}
             >
+                <i className="ri-magic-line text-[var(--color-brand-primary)]"></i>
                 {afterLabel}
             </motion.div>
         </div>

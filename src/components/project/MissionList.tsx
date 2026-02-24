@@ -2,6 +2,7 @@ import { type Project } from '../../data/projects';
 import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { ChamferFrame } from '../ui/frames/ChamferFrame';
+import { useTranslation } from '../../i18n';
 
 interface MissionListProps {
     projects: Project[];
@@ -23,43 +24,55 @@ export const MissionList = ({
     className,
 }: MissionListProps) => {
     const { playHover, playClick } = useSoundSystem();
+    const { t } = useTranslation();
 
     // Helper to map projects to specific display modes (Case Study / Snapshot)
-    const getDisplayMode = (title: string, originalType: any) => {
-        const t = title.toLowerCase();
+    const getDisplayMode = (title: string) => {
+        const tTitle = title.toLowerCase();
 
         // Case Study matches
         if (
-            (t.includes('world') && t.includes('mobile') && !t.includes('design') && !t.includes('system')) ||
-            t.includes('scene') ||
-            t.includes('cn redesign') ||
-            (t.includes('alipay') && (t.includes('wallet') || t.includes('digital'))) ||
-            t === 'world first mobile' ||
-            t === 'world first scene redesign' ||
-            t === 'alipay digital wallet'
+            (tTitle.includes('world') && tTitle.includes('mobile') && !tTitle.includes('design') && !tTitle.includes('system')) ||
+            tTitle.includes('scene') ||
+            tTitle.includes('cn redesign') ||
+            (tTitle.includes('alipay') && (tTitle.includes('wallet') || tTitle.includes('digital'))) ||
+            tTitle === 'world first mobile' ||
+            tTitle === 'world first scene redesign' ||
+            tTitle === 'alipay digital wallet' ||
+            // Chinese matches
+            tTitle.includes('支付宝') ||
+            tTitle.includes('钱包') ||
+            (tTitle.includes('场景') && !tTitle.includes('设计')) ||
+            (tTitle.includes('移动') && !tTitle.includes('规范')) ||
+            tTitle.includes('官网改版')
         ) {
-            return 'Case Study';
+            return t('projectLanding.caseStudy');
         }
 
         // Snapshot matches
         if (
-            t.includes('design system') ||
-            t.includes('forex') ||
-            t.includes('fx redesign') ||
-            t.includes('trading') ||
-            t.includes('borderpay') ||
-            t.includes('super app') ||
-            t.includes('vodapay') ||
-            t === 'world first design system' ||
-            t === 'world first forex trading redesign' ||
-            t === 'borderpay super app'
+            tTitle.includes('design system') ||
+            tTitle.includes('forex') ||
+            tTitle.includes('fx redesign') ||
+            tTitle.includes('trading') ||
+            tTitle.includes('borderpay') ||
+            tTitle.includes('super app') ||
+            tTitle.includes('vodapay') ||
+            tTitle === 'world first design system' ||
+            tTitle === 'world first forex trading redesign' ||
+            tTitle === 'borderpay super app' ||
+            // Chinese matches
+            tTitle.includes('设计规范') ||
+            tTitle.includes('设计系统') ||
+            tTitle.includes('外汇') ||
+            tTitle.includes('交易') ||
+            tTitle.includes('超级应用')
         ) {
-            return 'Snapshot';
+            return t('projectLanding.snapshot');
         }
 
-        // Fallback
-        if (Array.isArray(originalType)) return originalType[0] || 'PROJECT';
-        return (originalType as string) || 'PROJECT';
+        // Fallback to generic project label if none matches
+        return t('projectLanding.project');
     };
 
     return (
@@ -68,7 +81,7 @@ export const MissionList = ({
             <div className="shrink-0 pb-2 border-b border-[var(--color-border-subtle)]">
                 <div className="flex items-center justify-between">
                     <span className="text-sm font-mono text-[var(--color-brand-secondary)] tracking-[0.2em] uppercase">
-                        PROJECT
+                        {t('projectLanding.project')}
                     </span>
                     <span className="text-sm font-mono text-[var(--color-brand-primary)]">
                         {String(projects.length > 0 ? activeIndex + 1 : 0).padStart(2, '0')}/{String(projects.length).padStart(2, '0')}
@@ -82,7 +95,7 @@ export const MissionList = ({
                     {projects.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 opacity-50">
                             <span className="text-[10px] font-mono tracking-[0.3em] animate-pulse">
-                                INITIALIZING CORE...
+                                {t('projectLanding.initializing')}
                             </span>
                         </div>
                     )}
@@ -128,7 +141,7 @@ export const MissionList = ({
                                             ? "text-[var(--color-brand-primary)]"
                                             : "text-[var(--color-text-muted)]"
                                     )}>
-                                        {getDisplayMode(project.title, project.projectType)}
+                                        {getDisplayMode(project.title)}
                                     </div>
                                 </button>
                             </ChamferFrame>

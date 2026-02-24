@@ -88,7 +88,7 @@ body {
    Multi-stop radial gradient creating a subtle center illumination
    with dark edges. Inspired by Destiny's deep-space UI panels.
    ============================================================ */
-body {
+body.app-ready {
     background:
         /* Primary center glow - very subtle warm-cool shift */
         radial-gradient(ellipse 70% 60% at 50% 45%,
@@ -111,7 +111,7 @@ body {
    Inspired by Arknights: Endfield blueprint aesthetics and
    Cyberpunk 2077 tactical overlays.
    ============================================================ */
-body::before {
+body.app-ready::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -184,7 +184,7 @@ body::before {
 }
 
 /* Global Noise Overlay - Fine grain film texture */
-body::after {
+body.app-ready::after {
     content: '';
     position: fixed;
     inset: 0;

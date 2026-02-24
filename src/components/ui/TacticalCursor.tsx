@@ -13,6 +13,7 @@ export const TacticalCursor = () => {
     // 状态 ref，用于避免 react render loop 中断动画流畅性
     const mousePos = useRef({ x: 0, y: 0 });
     const cursorOrder = useRef({ x: 0, y: 0 }); // 用于计算平滑跟随
+    const isHoveringRef = useRef(false);
 
     // 战术准星的四个角 Ref
     const tlRef = useRef<HTMLDivElement>(null);
@@ -78,6 +79,7 @@ export const TacticalCursor = () => {
                 window.getComputedStyle(target).cursor === 'pointer';
 
             setIsHovering(!!isClickable);
+            isHoveringRef.current = !!isClickable;
         };
 
         // Click handlers
@@ -99,13 +101,14 @@ export const TacticalCursor = () => {
         document.addEventListener('mouseleave', onMouseLeave);
         document.addEventListener('mouseenter', onMouseEnter);
 
+        let rafId: number;
+
         // RAF 动画循环 (这是流畅的关键)
         const render = () => {
             if (!cursor) return;
 
-            // 1. 位置跟随：使用极小的 lerp 实现微平滑，或者直接 1.0 实现绝对跟手
-            // 为了战术感，我们希望它绝对跟手 (lag = 0.15 比较舒服，既不粘滞又有重量感)
-            const lerpFactor = 0.25;
+            // 1. 位置跟随：使用 1.0 实现绝对跟手，零延迟
+            const lerpFactor = 1.0;
             cursorOrder.current.x += (mousePos.current.x - cursorOrder.current.x) * lerpFactor;
             cursorOrder.current.y += (mousePos.current.y - cursorOrder.current.y) * lerpFactor;
 
@@ -121,11 +124,11 @@ export const TacticalCursor = () => {
 
             // 3. 动态扩散逻辑：速度越快，扩散越大 (max spread 12px)
             // 如果 Hover，则强制收缩 (spread = 0)
-            const spread = isHovering ? 0 : Math.min(velocity * 0.5, 12);
+            const spread = isHoveringRef.current ? 0 : Math.min(velocity * 0.5, 12);
 
             // 四个角的动态位置
             // 默认基础偏移是 6px (形成一个 12x12 的空心)
-            const baseOffset = isHovering ? 8 : 4;
+            const baseOffset = isHoveringRef.current ? 8 : 4;
             const currentOffset = baseOffset + spread;
 
             // 应用动画到四个角 (使用 gsap.set 保证高性能)
@@ -138,16 +141,10 @@ export const TacticalCursor = () => {
             // BR: +x, +y
             gsap.set(br, { x: currentOffset, y: currentOffset });
 
-            // 4. Hover 旋转动画
-            // 如果 Hover，整个容器旋转；否则复位
-            if (isHovering) {
-                // 持续旋转在 CSS 中定义可能更稳，这里只控制状态类
-            }
-
-            requestAnimationFrame(render);
+            rafId = requestAnimationFrame(render);
         };
 
-        const rafId = requestAnimationFrame(render);
+        rafId = requestAnimationFrame(render);
 
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
@@ -158,7 +155,7 @@ export const TacticalCursor = () => {
             document.removeEventListener('mouseenter', onMouseEnter);
             cancelAnimationFrame(rafId);
         };
-    }, [isActive, isHovering]); // 依赖 isHovering 重新绑定 RAF 可能有点重，优化一下
+    }, [isActive]); // 移除了 isHovering 依赖，避免频繁重新绑定事件和动画循环
 
     if (!isActive) return null;
 

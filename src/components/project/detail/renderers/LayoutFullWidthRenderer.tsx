@@ -47,7 +47,7 @@ export const LayoutFullWidthRenderer = ({ module, sectionId, onViewportEnter }: 
                 onViewportEnter={onViewportEnter}
                 className={`w-full`}
             >
-                <ContentSlotRenderer blocks={module.content || []} layout="full" />
+                <ContentSlotRenderer blocks={module.content || []} />
             </MotionDiv>
         </section>
     );

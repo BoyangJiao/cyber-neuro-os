@@ -8,6 +8,7 @@ import { useRef, useLayoutEffect, useEffect, useState } from 'react';
 import { ScanlineEffect, PixelGridEffect } from '../ui/effects';
 import { ShimmerLoader } from '../ui/loading/ShimmerLoader';
 import gsap from 'gsap';
+import { useTranslation } from '../../i18n';
 
 // Module-level cache: tracks which media URLs have been loaded
 // Persists across component re-mounts and navigation
@@ -41,6 +42,7 @@ export const MissionBriefing = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
+    const { t } = useTranslation();
 
     // Determine current media URL
     const mediaUrl = project?.videoFile || project?.video || (
@@ -157,7 +159,7 @@ export const MissionBriefing = ({
         return (
             <div className={twMerge("flex items-center justify-center h-full", className)}>
                 <span className="text-sm text-[var(--color-text-dim)] font-mono">
-                    [ NO MISSION SELECTED ]
+                    {t('projectLanding.noMission')}
                 </span>
             </div>
         );
@@ -177,60 +179,17 @@ export const MissionBriefing = ({
     const hasImage = project.thumbnail?.startsWith('http') || project.thumbnail?.startsWith('/');
     const hasLiveUrl = !!project.liveUrl;
 
-    // Helper to map projects to specific display modes (Case Study / Snapshot)
-    const getDisplayMode = (title: string, originalType: any) => {
-        const t = title.toLowerCase();
-
-        // Case Study matches
-        if (
-            (t.includes('world') && t.includes('mobile') && !t.includes('design') && !t.includes('system')) ||
-            t.includes('scene') ||
-            t.includes('cn redesign') ||
-            (t.includes('alipay') && (t.includes('wallet') || t.includes('digital'))) ||
-            t === 'world first mobile' ||
-            t === 'world first scene redesign' ||
-            t === 'alipay digital wallet'
-        ) {
-            return 'Case Study';
-        }
-
-        // Snapshot matches
-        if (
-            t.includes('design system') ||
-            t.includes('forex') ||
-            t.includes('fx redesign') ||
-            t.includes('trading') ||
-            t.includes('borderpay') ||
-            t.includes('super app') ||
-            t.includes('vodapay') ||
-            t === 'world first design system' ||
-            t === 'world first forex trading redesign' ||
-            t === 'borderpay super app'
-        ) {
-            return 'Snapshot';
-        }
-
-        // Fallback
-        if (Array.isArray(originalType)) return originalType[0] || 'PROJECT';
-        return (originalType as string) || 'PROJECT';
-    };
-
     // Helper to normalize tags
     const getTags = () => {
-        const displayMode = getDisplayMode(project.title, project.projectType);
-
         const types = Array.isArray(project.projectType)
             ? project.projectType
             : project.projectType
                 ? [project.projectType]
                 : [];
 
-        // If the displayMode is one of our special ones, we make sure it's present/first
         const result = [...types];
-        if ((displayMode === 'Case Study' || displayMode === 'Snapshot') && !result.includes(displayMode)) {
-            result.unshift(displayMode);
-        } else if (result.length === 0) {
-            result.push(project.techStack?.[0] || 'PROJECT');
+        if (result.length === 0) {
+            result.push(project.techStack?.[0] || t('projectLanding.project'));
         }
 
         return result;
@@ -283,7 +242,7 @@ export const MissionBriefing = ({
                             <ShimmerLoader
                                 show={!isMediaLoaded}
                                 variant="overlay"
-                                label="LOADING FEED..."
+                                label={t('projectLanding.loadingFeed')}
                             />
 
                             {project.videoFile || project.video ? (
@@ -378,7 +337,7 @@ export const MissionBriefing = ({
                             className="w-full"
                         >
                             <i className="ri-external-link-line mr-2" />
-                            DEPLOY
+                            {t('projectLanding.deploy')}
                         </CyberButton>
                     </div>
                 )}

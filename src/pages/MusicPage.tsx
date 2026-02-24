@@ -4,9 +4,11 @@ import { HoloFrame } from '../components/ui/HoloFrame';
 import { CyberButton } from '../components/ui/CyberButton';
 import { StationList } from '../components/features/music/StationList';
 import { MusicPlayer } from '../components/features/music/MusicPlayer';
+import { useTranslation } from '../i18n';
 
 export const MusicPage = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <MotionDiv
@@ -33,7 +35,7 @@ export const MusicPage = () => {
                         {/* Center Title */}
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                BROADCAST
+                                {t('features.music')}
                             </h1>
                         </div>
 

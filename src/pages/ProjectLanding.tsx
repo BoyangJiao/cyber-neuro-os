@@ -8,6 +8,7 @@ import { useProjectStore } from '../store/useProjectStore';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '../sanity/client';
 import { PROJECTS_QUERY } from '../sanity/queries';
+import { useTranslation } from '../i18n';
 import type { SanityProjectRaw } from '../sanity/types';
 
 /**
@@ -19,6 +20,7 @@ import type { SanityProjectRaw } from '../sanity/types';
 export const ProjectLanding = () => {
     const navigate = useNavigate();
     const { projects, activeProjectIndex, setActiveProjectIndex, setProjects, language } = useProjectStore();
+    const { t } = useTranslation();
 
     // Enable Real-time synchronization for Sanity Presentation mode
     const { data: sanityProjects } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
@@ -63,7 +65,7 @@ export const ProjectLanding = () => {
                         {/* 中央标题 */}
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                WORK
+                                {t('projectLanding.title')}
                             </h1>
                         </div>
 

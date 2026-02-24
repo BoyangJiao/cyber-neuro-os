@@ -245,13 +245,13 @@ export const BiometricMonitor = () => {
     // Time-based status text
     const getTimeStatus = useCallback(() => {
         const h = new Date().getHours();
-        if (h >= 23 || h < 6) return { text: 'DEEP_REST', color: 'text-blue-400' };
-        if (h >= 6 && h < 9) return { text: 'BOOT_SEQ', color: 'text-amber-400' };
-        if (h >= 9 && h < 12) return { text: 'PEAK_FOCUS', color: 'text-green-400' };
-        if (h >= 12 && h < 14) return { text: 'RECHARGE', color: 'text-amber-400' };
-        if (h >= 14 && h < 18) return { text: 'ACTIVE', color: 'text-brand-primary' };
-        return { text: 'WIND_DOWN', color: 'text-purple-400' };
-    }, []);
+        if (h >= 23 || h < 6) return { text: t('biometric.deepRest'), color: 'text-blue-400' };
+        if (h >= 6 && h < 9) return { text: t('biometric.bootSeq'), color: 'text-amber-400' };
+        if (h >= 9 && h < 12) return { text: t('biometric.peakFocus'), color: 'text-green-400' };
+        if (h >= 12 && h < 14) return { text: t('biometric.recharge'), color: 'text-amber-400' };
+        if (h >= 14 && h < 18) return { text: t('biometric.active'), color: 'text-brand-primary' };
+        return { text: t('biometric.windDown'), color: 'text-purple-400' };
+    }, [t]);
 
     const timeStatus = getTimeStatus();
 
@@ -302,7 +302,7 @@ export const BiometricMonitor = () => {
                     <div className="flex justify-between">
                         <span className="text-[8px] font-mono text-text-muted">α {neuralFreq.toFixed(1)}Hz</span>
                         <span className={`text-[8px] font-mono ${glitch ? 'text-red-400' : 'text-green-400/60'}`}>
-                            {glitch ? '△ JITTER' : t('biometric.stable')}
+                            {glitch ? t('biometric.jitter') : t('biometric.stable')}
                         </span>
                     </div>
                 </div>
@@ -346,8 +346,8 @@ export const BiometricMonitor = () => {
                                 <div
                                     key={i}
                                     className={`h-full flex-1 border transition-all duration-700 ${isFilled
-                                            ? `border-brand-primary/40 bg-brand-primary/35 ${isEdge ? 'animate-pulse' : ''}`
-                                            : 'border-brand-primary/15 bg-transparent'
+                                        ? `border-brand-primary/40 bg-brand-primary/35 ${isEdge ? 'animate-pulse' : ''}`
+                                        : 'border-brand-primary/15 bg-transparent'
                                         }`}
                                 />
                             );

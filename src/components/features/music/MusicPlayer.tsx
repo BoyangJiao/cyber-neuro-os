@@ -34,7 +34,7 @@ export const MusicPlayer = () => {
         seek(newTime);
     };
 
-    if (!currentTrack) return <div className="text-white/50">NO DISC INSERTED</div>;
+    if (!currentTrack) return <div className="text-white/50">{t('music.noDisc')}</div>;
 
     return (
         <div className="flex flex-col h-full w-full relative">

@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Header } from './Header';
 import { useLayoutMetrics } from '../../hooks/useLayoutMetrics';
+import { useTranslation } from '../../i18n';
 
 interface MainLayoutProps {
     children: ReactNode;
@@ -10,6 +11,7 @@ interface MainLayoutProps {
 export const MainLayout = ({ children, footer }: MainLayoutProps) => {
     // Dynamically measure header/footer and set CSS variables
     useLayoutMetrics();
+    const { t } = useTranslation();
 
     return (
         <div className="relative w-full h-screen bg-transparent overflow-hidden font-sans text-cyan-50 selection:bg-cyan-500/30 flex flex-col">
@@ -41,12 +43,12 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
                                     <div className="h-[2px] w-4 bg-brand-secondary"></div>
                                     <div className="h-[2px] w-4 bg-brand-secondary translate-x-[-4px]"></div>
                                 </div>
-                                <span className="text-[9px] font-mono text-brand-secondary tracking-widest uppercase">SYS_READY</span>
+                                <span className="text-[9px] font-mono text-brand-secondary tracking-widest uppercase">{t('layout.sysReady')}</span>
                             </div>
 
                             {/* Right: Version Info */}
                             <div className="flex items-center gap-4 opacity-60">
-                                <span className="text-[9px] font-mono text-text-muted tracking-widest uppercase">NEURAL_CORE_ACTIVE</span>
+                                <span className="text-[9px] font-mono text-text-muted tracking-widest uppercase">{t('layout.neuralCoreActive')}</span>
                             </div>
                         </>
                     )}

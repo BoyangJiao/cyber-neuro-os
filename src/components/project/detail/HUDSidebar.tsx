@@ -1,15 +1,16 @@
 import { ChamferFrame } from '../../ui/frames/ChamferFrame';
-import type { ProjectDetail, SanityProjectDetail } from '../../../data/projectDetails';
+import { useTranslation } from '../../../i18n';
+import type { ProjectDetailData } from '../../../data/projectDetails';
 
 interface HUDSidebarProps {
-    detail: ProjectDetail | SanityProjectDetail;
+    detail: ProjectDetailData;
     activeSection: string;
     sections: { id: string; title: string }[];
     onNavigate: (sectionId: string) => void;
 }
 
 export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
-
+    const { t } = useTranslation();
     const { sidebar } = detail;
 
     // Guard clause: if sidebar data is not available, don't render
@@ -28,21 +29,21 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
 
             {/* My Role */}
-            <SidebarSection label="My Role">
+            <SidebarSection label={t('projectDetail.sidebar.myRole')}>
                 <span className="text-sm 2xl:text-base text-brand-primary font-semibold">
                     {sidebar.role}
                 </span>
             </SidebarSection>
 
             {/* Team */}
-            <SidebarSection label="Team">
+            <SidebarSection label={t('projectDetail.sidebar.team')}>
                 <span className="text-sm 2xl:text-base text-text-primary">
                     {sidebar.team}
                 </span>
             </SidebarSection>
 
             {/* Timeline & Status */}
-            <SidebarSection label="Timeline & Status">
+            <SidebarSection label={t('projectDetail.sidebar.timelineStatus')}>
                 <div className="flex items-center gap-2">
                     <span className="text-sm 2xl:text-base text-text-primary">
                         {sidebar.timeline}
@@ -71,7 +72,7 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             </SidebarSection>
 
             {/* Project Type */}
-            <SidebarSection label="Project Type">
+            <SidebarSection label={t('projectDetail.sidebar.projectType')}>
                 <div className="flex flex-wrap gap-1.5 2xl:gap-2">
                     {(sidebar.projectType || []).map((type: string, index: number) => (
                         <span
@@ -85,9 +86,9 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             </SidebarSection>
 
             {/* Core Contributions */}
-            <SidebarSection label="Core Contributions">
+            <SidebarSection label={t('projectDetail.sidebar.coreContributions')}>
                 <ul className="space-y-1.5 2xl:space-y-2">
-                    {(sidebar.coreContributions || []).map((contribution, index) => (
+                    {(sidebar.coreContributions || []).map((contribution: string, index: number) => (
                         <li key={index} className="flex items-start gap-2">
                             <div
                                 className="w-1 h-1 2xl:w-1.5 2xl:h-1.5 mt-2 flex-shrink-0 bg-brand-primary shadow-glow"

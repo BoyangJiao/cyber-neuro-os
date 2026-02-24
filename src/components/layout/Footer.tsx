@@ -1,11 +1,13 @@
 import { CyberButton } from '../ui/CyberButton';
 import { useAppStore } from '../../store/useAppStore';
+import { useAgentStore } from '../../store/useAgentStore';
 import { useTranslation } from '../../i18n';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AudioWaveform } from '../ui/AudioWaveform';
 
 export const Footer = () => {
     const { setSettingsOpen } = useAppStore();
+    const { togglePanel } = useAgentStore();
     const { isPlaying, togglePlay } = useMusicStore();
     const { t } = useTranslation();
 
@@ -19,6 +21,7 @@ export const Footer = () => {
                     showGhost={true}
                     ghostOffset="translate-x-[-4px] translate-y-[2px]"
                     className="min-w-[120px] lg:min-w-[160px] 2xl:min-w-[180px]"
+                    onClick={togglePanel}
                 >
                     <span className="text-xs lg:text-sm 2xl:text-base">{t('footer.neuralUplink')}</span>
                     <i className="ri-chat-ai-4-line text-base lg:text-lg 2xl:text-xl"></i>

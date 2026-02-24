@@ -30,6 +30,7 @@ import { View } from '@react-three/drei'
 import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
+import { NeuralUplinkWindow } from './components/agent/NeuralUplinkWindow'
 
 import { useQuery } from './sanity/client'
 import { PROJECTS_QUERY } from './sanity/queries'
@@ -62,6 +63,11 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', brandTheme);
   }, [brandTheme]);
+
+  // Manage body background state to prevent flash during bootscreen
+  useEffect(() => {
+    document.body.classList.toggle('app-ready', !isBootSequenceActive);
+  }, [isBootSequenceActive]);
 
   // Initial fetch as fallback
   useEffect(() => {
@@ -162,6 +168,9 @@ function App() {
         <AnimatePresence>
           {debugMode && <CyberDebugPanel />}
         </AnimatePresence>
+
+        {/* Neural Uplink — AI Agent Chat Window */}
+        <NeuralUplinkWindow />
 
         {/* Visual Editing Overlay for Sanity Presentation */}
         {/* Only render when inside an iframe (Sanity Studio) to avoid UI clutter on main site */}

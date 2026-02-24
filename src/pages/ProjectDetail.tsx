@@ -9,19 +9,22 @@ import { DetailHeroSection } from '../components/project/detail/DetailHeroSectio
 import { HUDSidebar } from '../components/project/detail/HUDSidebar';
 import { CyberButton } from '../components/ui/CyberButton';
 import { SectionRenderer } from '../components/project/detail/SectionRenderer';
-import type { SanityProjectDetail } from '../data/projectDetails';
+import { ShimmerLoader } from '../components/ui/loading/ShimmerLoader';
+import { useTranslation } from '../i18n';
+import type { ProjectDetailData } from '../data/projectDetails';
 
 export const ProjectDetail = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { projects, language } = useProjectStore();
+    const { t } = useTranslation();
 
     // Manually extract projectId since we are rendered outside of Routes
     const match = matchPath('/projects/:projectId', location.pathname);
     const projectId = match?.params.projectId;
 
     // Data State
-    const [detail, setDetail] = useState<SanityProjectDetail | null>(null);
+    const [detail, setDetail] = useState<ProjectDetailData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +41,7 @@ export const ProjectDetail = () => {
     // Live Query for Real-time Preview
     // We import useQuery from our configured client.ts
     // The initial data can be passed if we had server-side props, but here we start null/loading.
-    const { data: sanityData, loading: isSanityLoading, error: sanityError } = useQuery<SanityProjectDetail>(
+    const { data: sanityData, loading: isSanityLoading, error: sanityError } = useQuery<ProjectDetailData>(
         PROJECT_DETAIL_QUERY,
         { slug: projectId, language },
         { initial: undefined }
@@ -66,8 +69,8 @@ export const ProjectDetail = () => {
 
     // Construct Sidebar Sections from Modules (using anchorId)
     const sidebarSections = (detail?.contentModules || [])
-        .filter(module => module.anchorId) // Only include modules with anchorId
-        .map(module => ({
+        .filter((module: any) => module.anchorId) // Only include modules with anchorId
+        .map((module: any) => ({
             id: module.anchorId || module._key,
             title: module.anchorId || 'Section'
         }));
@@ -96,9 +99,22 @@ export const ProjectDetail = () => {
     // Render Logic
     if (isLoading) {
         return (
-            <div className="w-full h-full flex items-center justify-center bg-black">
-                <div className="text-brand-primary font-mono text-sm 2xl:text-base animate-pulse">LOADING NEURAL LINK...</div>
-            </div>
+            <AnimatePresence>
+                <MotionDiv
+                    className="fixed left-0 right-0 z-[40] overflow-hidden"
+                    style={{
+                        top: 'var(--header-height, 44px)',
+                        bottom: 'var(--footer-height, 48px)',
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                >
+                    <div className="absolute inset-0 z-0 bg-bg-app/98" />
+                    <ShimmerLoader show={true} variant="overlay" label={t('projectDetail.loading')} />
+                </MotionDiv>
+            </AnimatePresence>
         );
     }
 
@@ -114,13 +130,13 @@ export const ProjectDetail = () => {
                         <i className="ri-error-warning-line" />
                     </div>
                     <h1 className="text-2xl 2xl:text-3xl font-display text-brand-primary mb-2">
-                        {error || "PROJECT NOT FOUND"}
+                        {error || t('projectDetail.notFound')}
                     </h1>
                     <p className="text-text-secondary mb-6 2xl:text-lg">
-                        The requested project data is unavailable.
+                        {t('projectDetail.unavailable')}
                     </p>
                     <CyberButton variant="ghost" onClick={() => navigate('/projects')}>
-                        Return to Directory
+                        {t('projectDetail.returnToDir')}
                     </CyberButton>
                 </div>
             </MotionDiv>
@@ -186,7 +202,7 @@ export const ProjectDetail = () => {
                                 className="flex-1 min-w-0"
                             >
                                 <div className="">
-                                    {(detail.contentModules || []).map((module) => (
+                                    {(detail.contentModules || []).map((module: any) => (
                                         <SectionRenderer
                                             key={module._key}
                                             module={module}
@@ -198,11 +214,11 @@ export const ProjectDetail = () => {
                                 {/* Back Button Footer */}
                                 <div className="py-20 2xl:py-28 flex flex-col items-center justify-center border-t border-border-subtle mt-20 2xl:mt-28">
                                     <h3 className="text-2xl 2xl:text-3xl font-display text-brand-primary mb-6 2xl:mb-8">
-                                        End of Case Study
+                                        {t('projectDetail.endOfCase')}
                                     </h3>
                                     <CyberButton variant="chamfer" onClick={handleClose}>
                                         <i className="ri-arrow-left-line mr-2" />
-                                        Back to Directory
+                                        {t('projectDetail.backToDir')}
                                     </CyberButton>
                                 </div>
                             </MotionDiv>

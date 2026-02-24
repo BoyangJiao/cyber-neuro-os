@@ -31,6 +31,7 @@ export const translations = {
         // Music Page
         music: {
             nowPlaying: 'NOW PLAYING',
+            noDisc: 'NO DISC INSERTED',
         },
 
         // Profile Sidebar
@@ -63,6 +64,12 @@ export const translations = {
             },
         },
 
+        // Layout
+        layout: {
+            sysReady: 'SYS_READY',
+            neuralCoreActive: 'NEURAL_CORE_ACTIVE',
+        },
+
         // Settings Modal
         settings: {
             title: 'SETTINGS',
@@ -92,6 +99,13 @@ export const translations = {
             overload: 'OVERLOAD',
             illness: 'ILLNESS',
             energy: 'ENERGY',
+            deepRest: 'DEEP_REST',
+            bootSeq: 'BOOT_SEQ',
+            peakFocus: 'PEAK_FOCUS',
+            recharge: 'RECHARGE',
+            active: 'ACTIVE',
+            windDown: 'WIND_DOWN',
+            jitter: '△ JITTER',
         },
 
         // Mobile Gate
@@ -100,6 +114,35 @@ export const translations = {
             description: 'NeuralOS is architected for wide-screen interfaces. The current viewport cannot render the neural dashboard correctly.',
             instruction: 'Please switch to a desktop browser or increase your window width to continue.',
             dismiss: 'FORCE ENTRY',
+        },
+
+        // Project Detail
+        projectDetail: {
+            loading: 'LOADING NEURAL LINK...',
+            notFound: 'PROJECT NOT FOUND',
+            unavailable: 'The requested project data is unavailable.',
+            returnToDir: 'Return to Directory',
+            endOfCase: 'End of Case Study',
+            backToDir: 'Back to Directory',
+            sidebar: {
+                myRole: 'My Role',
+                team: 'Team',
+                timelineStatus: 'Timeline & Status',
+                projectType: 'Project Type',
+                coreContributions: 'Core Contributions',
+            }
+        },
+
+        // Project Landing (Mission Interface)
+        projectLanding: {
+            title: 'WORK',
+            project: 'PROJECT',
+            initializing: 'INITIALIZING CORE...',
+            caseStudy: 'Case Study',
+            snapshot: 'Snapshot',
+            noMission: '[ NO MISSION SELECTED ]',
+            deploy: 'DEPLOY',
+            loadingFeed: 'LOADING FEED...',
         },
     },
 
@@ -130,6 +173,7 @@ export const translations = {
         // Music Page
         music: {
             nowPlaying: '正在播放',
+            noDisc: '未发现音频来源',
         },
 
         // Profile Sidebar
@@ -162,6 +206,12 @@ export const translations = {
             },
         },
 
+        // Layout
+        layout: {
+            sysReady: '系统已就绪',
+            neuralCoreActive: '神经核心活跃',
+        },
+
         // Settings Modal
         settings: {
             title: '设置',
@@ -191,6 +241,13 @@ export const translations = {
             overload: '神经过载',
             illness: '生理异常',
             energy: '能量水平',
+            deepRest: '深度休眠',
+            bootSeq: '系统启动',
+            peakFocus: '深度专注',
+            recharge: '能量补给',
+            active: '活跃状态',
+            windDown: '系统降温',
+            jitter: '△ 波动异常',
         },
 
         // Mobile Gate
@@ -199,6 +256,35 @@ export const translations = {
             description: 'NeuralOS 为宽屏界面设计，当前视口无法正确渲染神经仪表盘。',
             instruction: '请切换到桌面浏览器，或增大窗口宽度以继续使用。',
             dismiss: '强制进入',
+        },
+
+        // Project Detail
+        projectDetail: {
+            loading: '正在加载神经链接...',
+            notFound: '未找到项目',
+            unavailable: '请求的项目数据不可用。',
+            returnToDir: '返回项目目录',
+            endOfCase: '案例分析结束',
+            backToDir: '返回目录',
+            sidebar: {
+                myRole: '我的角色',
+                team: '团队',
+                timelineStatus: '时间线与状态',
+                projectType: '项目类型',
+                coreContributions: '核心贡献',
+            }
+        },
+
+        // Project Landing (Mission Interface)
+        projectLanding: {
+            title: '作品集',
+            project: '项目',
+            initializing: '正在初始化核心...',
+            caseStudy: '案例分析',
+            snapshot: '项目快照',
+            noMission: '[ 未选择任何任务 ]',
+            deploy: '部署并启动',
+            loadingFeed: '获取画面流...',
         },
     },
 } as const;

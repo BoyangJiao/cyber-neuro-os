@@ -1,11 +1,11 @@
 import { MotionDiv, MotionH1, MotionP } from '../../motion/MotionWrappers';
 import { ChamferFrame } from '../../ui/frames/ChamferFrame';
 import type { Project } from '../../../data/projects';
-import type { ProjectDetail } from '../../../data/projectDetails';
+import type { ProjectDetailData } from '../../../data/projectDetails';
 
 interface DetailHeroSectionProps {
     project: Project;
-    detail: ProjectDetail;
+    detail: ProjectDetailData;
 }
 
 export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) => {
@@ -41,7 +41,7 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     transition={{ delay: 0.4, duration: 0.5 }}
                     className="flex flex-wrap gap-4 mb-10 2xl:mb-14"
                 >
-                    {(detail.coreMetrics || []).map((metric, index) => (
+                    {(detail.coreMetrics || []).map((metric: any, index: number) => (
                         <div key={index} className="flex flex-col">
                             <div className="flex items-baseline gap-1">
                                 <span

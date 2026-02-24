@@ -148,7 +148,7 @@ export interface ProjectSidebar {
 // Full Project Detail (updated)
 // ============================================
 
-export interface SanityProjectDetail {
+export interface ProjectDetailData {
     _id: string;
     title: string;
     slug: string;
