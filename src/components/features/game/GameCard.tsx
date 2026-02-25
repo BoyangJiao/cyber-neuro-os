@@ -23,7 +23,7 @@ export const GameCard = ({ game, onClick }: GameCardProps) => {
         >
             <ChamferFrame
                 chamferSize={0}
-                className="w-full aspect-[16/10] overflow-hidden mb-3 border border-border-subtle group-hover:border-status-error transition-colors duration-300"
+                className="w-full aspect-square overflow-hidden mb-3 border border-border-subtle group-hover:border-status-error transition-colors duration-300"
                 bgClassName="bg-bg-surface"
                 showEffects={false}
             >
@@ -34,7 +34,7 @@ export const GameCard = ({ game, onClick }: GameCardProps) => {
                             src={game.image}
                             alt={t(game.titleKey)}
                             className={twMerge(
-                                "w-full h-full object-contain grayscale transition-all duration-500",
+                                "w-full h-full object-cover grayscale transition-all duration-500",
                                 isHovered ? "grayscale-0 scale-105" : "grayscale opacity-70"
                             )}
                         />
