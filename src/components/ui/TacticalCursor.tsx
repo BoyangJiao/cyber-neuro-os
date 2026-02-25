@@ -162,7 +162,7 @@ export const TacticalCursor = () => {
     return (
         <div
             ref={cursorRef}
-            className="fixed top-0 left-0 z-[100000] pointer-events-none mix-blend-difference"
+            className="fixed top-0 left-0 z-[9999999] pointer-events-none mix-blend-difference"
             style={{ willChange: 'transform' }}
         >
             {/* 准星容器：Hover 时锁定颜色变化 */}

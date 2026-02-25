@@ -93,10 +93,10 @@ function App() {
   // This ensures no frame drop when boot sequence finishes
   return (
     <LanguageProvider>
-      {/* Dev-only Annotation Tool */}
+      {/* Agentation v2.2.1 - Visual Feedback Tool for AI Collaboration */}
       {import.meta.env.DEV && (
-        <div className="fixed z-[9999] pointer-events-none *:pointer-events-auto">
-          <Agentation />
+        <div className="fixed z-[99999] pointer-events-none *:pointer-events-auto">
+          <Agentation copyToClipboard={true} />
         </div>
       )}
 
