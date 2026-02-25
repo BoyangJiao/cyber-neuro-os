@@ -34,7 +34,7 @@ export const GameCard = ({ game, onClick }: GameCardProps) => {
                             src={game.image}
                             alt={t(game.titleKey)}
                             className={twMerge(
-                                "w-full h-full object-cover grayscale transition-all duration-500",
+                                "w-full h-full object-contain grayscale transition-all duration-500",
                                 isHovered ? "grayscale-0 scale-105" : "grayscale opacity-70"
                             )}
                         />
