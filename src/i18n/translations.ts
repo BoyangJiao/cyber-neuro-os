@@ -162,29 +162,13 @@ export const translations = {
             title: 'MINI GAMES',
             sidebar: 'HERE YOU WILL SEE A FEW MINI GAMES I IMPLEMENTED IN REACT OR IN CANVAS.\n\nHAVE FUN!',
             games: {
-                pokemonEmerald: {
-                    title: 'POKÉMON EMERALD',
-                    desc: 'GAME BOY ADVANCE, 2004'
+                doomGba: {
+                    title: 'DOOM GBA',
+                    desc: 'ID SOFTWARE / DAVID A. PALMER PROD, 2001'
                 },
-                zeldaMinish: {
-                    title: 'ZELDA: MINISH CAP',
-                    desc: 'GAME BOY ADVANCE, 2004'
-                },
-                kirbyMirror: {
-                    title: 'KIRBY AMAZING MIRROR',
-                    desc: 'GAME BOY ADVANCE, 2004'
-                },
-                marioAdvance: {
-                    title: 'SUPER MARIO ADV 4',
-                    desc: 'GAME BOY ADVANCE, 2003'
-                },
-                metroidFusion: {
-                    title: 'METROID FUSION',
-                    desc: 'GAME BOY ADVANCE, 2002'
-                },
-                castlevaniaAria: {
-                    title: 'ARIAS OF SORROW',
-                    desc: 'GAME BOY ADVANCE, 2003'
+                pacmanGba: {
+                    title: 'PAC-MAN (GAPMAN)',
+                    desc: 'GBA HOMEBREW CLONE'
                 }
             }
         },
@@ -384,29 +368,13 @@ export const translations = {
             title: '小型游戏',
             sidebar: '此模块内置了基于 WebAssembly 编译的 EmulatorJS。点击右侧的卡带插入并启动对应的 GBA 模拟序列。',
             games: {
-                pokemonEmerald: {
-                    title: '宝可梦 绿宝石',
-                    desc: 'GAME BOY ADVANCE, 2004'
+                doomGba: {
+                    title: '毁灭战士 GBA',
+                    desc: 'ID SOFTWARE / DAVID A. PALMER PROD, 2001'
                 },
-                zeldaMinish: {
-                    title: '塞尔达传说：神奇的帽子',
-                    desc: 'GAME BOY ADVANCE, 2004'
-                },
-                kirbyMirror: {
-                    title: '星之卡比：镜之大迷宫',
-                    desc: 'GAME BOY ADVANCE, 2004'
-                },
-                marioAdvance: {
-                    title: '超级马里奥 Advance 4',
-                    desc: 'GAME BOY ADVANCE, 2003'
-                },
-                metroidFusion: {
-                    title: '银河战士 融合',
-                    desc: 'GAME BOY ADVANCE, 2002'
-                },
-                castlevaniaAria: {
-                    title: '恶魔城 晓月圆舞曲',
-                    desc: 'GAME BOY ADVANCE, 2003'
+                pacmanGba: {
+                    title: '吃豆人 (GAPMAN)',
+                    desc: 'GBA 自制版克隆'
                 }
             }
         },

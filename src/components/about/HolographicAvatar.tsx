@@ -48,11 +48,6 @@ export const HolographicAvatar = ({
                     />
                 </Canvas>
             </div>
-
-            {/* 扫描线覆盖效果 */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent holo-scanline" />
-            </div>
         </div>
     );
 };

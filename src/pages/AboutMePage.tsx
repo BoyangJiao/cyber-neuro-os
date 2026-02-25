@@ -90,7 +90,7 @@ export const AboutMePage = () => {
                         <div className="flex items-center gap-3 justify-center">
                             <div id="about-title-dot" className="w-1.5 h-1.5 bg-brand-secondary/50 rounded-full" />
                             <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                {isCharacterStatsOpen ? 'OPERATOR PROFILE' : t('about.title')}
+                                {t('about.title')}
                             </h1>
                         </div>
 

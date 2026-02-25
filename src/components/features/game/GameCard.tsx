@@ -4,15 +4,14 @@ import { ChamferFrame } from '../../ui/frames/ChamferFrame';
 import { PixelGridEffect, ScanlineEffect } from '../../ui/effects';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useNavigate } from 'react-router-dom';
 
 interface GameCardProps {
     game: Game;
+    onClick?: () => void;
 }
 
-export const GameCard = ({ game }: GameCardProps) => {
+export const GameCard = ({ game, onClick }: GameCardProps) => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -20,7 +19,7 @@ export const GameCard = ({ game }: GameCardProps) => {
             className="flex flex-col items-center group cursor-pointer"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            onClick={() => navigate(`/games/${game.id}`)}
+            onClick={onClick}
         >
             <ChamferFrame
                 chamferSize={0}

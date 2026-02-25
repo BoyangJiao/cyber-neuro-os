@@ -98,19 +98,21 @@ export const LabLandingPage = () => {
                     </div>
 
                     {/* Main Carousel Area */}
-                    <div className="flex-1 w-full relative flex items-center justify-center px-4 md:px-12 py-8">
+                    <div className="flex-1 w-full max-w-[1600px] mx-auto relative flex items-center justify-between px-2 md:px-8 relative py-8">
 
                         {/* Left Navigation */}
-                        <CyberButton
-                            variant="ghost"
-                            icon={<i className="ri-arrow-left-s-line text-4xl" />}
-                            onClick={handlePrev}
-                            className="absolute left-2 md:left-8 z-20 text-text-muted hover:text-brand-primary"
-                            iconOnly
-                        />
+                        <div className="shrink-0 flex items-center justify-center w-12 md:w-20 z-20">
+                            <CyberButton
+                                variant="ghost"
+                                icon={<i className="ri-arrow-left-s-line text-4xl" />}
+                                onClick={handlePrev}
+                                className="text-text-muted hover:text-brand-primary"
+                                iconOnly
+                            />
+                        </div>
 
                         {/* App Viewer Container */}
-                        <div className="w-full max-w-6xl relative h-full flex items-center justify-center overflow-hidden">
+                        <div className="flex-1 relative h-full flex items-center justify-center overflow-hidden">
                             <AnimatePresence initial={false} custom={direction} mode="wait">
                                 <motion.div
                                     key={currentIndex}
@@ -119,7 +121,7 @@ export const LabLandingPage = () => {
                                     initial="enter"
                                     animate="center"
                                     exit="exit"
-                                    className="w-full flex justify-center px-8 md:px-16"
+                                    className="w-full flex justify-center px-4 md:px-8"
                                 >
                                     <LabAppViewer app={labApps[currentIndex]} />
                                 </motion.div>
@@ -127,13 +129,15 @@ export const LabLandingPage = () => {
                         </div>
 
                         {/* Right Navigation */}
-                        <CyberButton
-                            variant="ghost"
-                            icon={<i className="ri-arrow-right-s-line text-4xl" />}
-                            onClick={handleNext}
-                            className="absolute right-2 md:right-8 z-20 text-text-muted hover:text-brand-primary"
-                            iconOnly
-                        />
+                        <div className="shrink-0 flex items-center justify-center w-12 md:w-20 z-20">
+                            <CyberButton
+                                variant="ghost"
+                                icon={<i className="ri-arrow-right-s-line text-4xl" />}
+                                onClick={handleNext}
+                                className="text-text-muted hover:text-brand-primary"
+                                iconOnly
+                            />
+                        </div>
 
                         {/* Bottom Pagination Indicators */}
                         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">

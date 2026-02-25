@@ -16,7 +16,7 @@ const AboutMePage = lazy(aboutMeImport);
 const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage').then(module => ({ default: module.DesignSystemPage })));
 const MusicPage = lazy(() => import('./pages/MusicPage').then(module => ({ default: module.MusicPage })));
 const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module => ({ default: module.GameLandingPage })));
-const GamePlayerPage = lazy(() => import('./pages/GamePlayerPage').then(module => ({ default: module.GamePlayerPage })));
+
 const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').then(module => ({ default: module.SynthesisLandingPage })));
 const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
@@ -150,11 +150,6 @@ function App() {
                   <Route path="/games" element={
                     <Suspense fallback={<ShimmerLoader variant="overlay" label="[ SIMULATION_LOADING... ]" />}>
                       <GameLandingPage />
-                    </Suspense>
-                  } />
-                  <Route path="/games/:gameId" element={
-                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ LOADING_EMULATOR_MATRIX... ]" />}>
-                      <GamePlayerPage />
                     </Suspense>
                   } />
                   <Route path="/synthesis" element={
