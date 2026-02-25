@@ -23,5 +23,13 @@ export const games: Game[] = [
         image: '/images/games/pacman-gba.png',
         romUrl: '/roms/GapMan.gba',
         core: 'gba'
+    },
+    {
+        id: 'golden-sun-2',
+        titleKey: 'simulation.games.goldenSun2.title',
+        descKey: 'simulation.games.goldenSun2.desc',
+        image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=500', // Temporary placeholder
+        romUrl: '/roms/GoldenSun2.gba',
+        core: 'gba'
     }
 ];

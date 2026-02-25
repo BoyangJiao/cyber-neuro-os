@@ -169,6 +169,10 @@ export const translations = {
                 pacmanGba: {
                     title: 'PAC-MAN (GAPMAN)',
                     desc: 'GBA HOMEBREW CLONE'
+                },
+                goldenSun2: {
+                    title: 'GOLDEN SUN: THE LOST AGE',
+                    desc: 'CAMELOT / NINTENDO, 2002'
                 }
             }
         },
@@ -375,6 +379,10 @@ export const translations = {
                 pacmanGba: {
                     title: '吃豆人 (GAPMAN)',
                     desc: 'GBA 自制版克隆'
+                },
+                goldenSun2: {
+                    title: '黄金太阳：失落的时代',
+                    desc: 'CAMELOT / 任天堂, 2002'
                 }
             }
         },
