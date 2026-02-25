@@ -28,7 +28,7 @@ export const games: Game[] = [
         id: 'golden-sun-2',
         titleKey: 'simulation.games.goldenSun2.title',
         descKey: 'simulation.games.goldenSun2.desc',
-        image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=500', // Temporary placeholder
+        image: '/images/games/golden-sun.png',
         romUrl: '/roms/GoldenSun2.gba',
         core: 'gba'
     }
