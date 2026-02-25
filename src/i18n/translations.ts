@@ -59,9 +59,17 @@ export const translations = {
                 content: 'I have experience across a large spectrum of projects ranging from mobile apps, websites, and new retail services for consumers, SMEs, corporations, and nonprofits. Areas include Fintech, social media, gaming, e-commerce, education, and automobile.',
             },
             educationAndPassions: {
-                label: 'BRIEF OF EDUCATION AND PERSONAL PASSIONS',
-                content: "I'm originally from Hangzhou, China, and I have a bachelor's degree in Psychology from the University of Missouri and a master's degree in Human-Computer Interaction design from California College of the Arts (CCA). My Passions are social Impact, systems thinking, accessibility, and lifetime learning.",
+                label: 'EDUCATION & PASSIONS',
+                content: 'I hold a Master\'s degree in Human-Computer Interaction from California College of the Arts (CCA) and a Bachelor\'s degree in Psychology from the University of Missouri (Mizzou). I\'m passionate about the intersection of design, technology, and human behavior. Whether it\'s exploring new tools, developing design systems, or understanding user complexities, I am constantly learning and adapting in this ever-evolving digital landscape.'
             },
+            stats: {
+                productDesign: { name: 'PRODUCT DESIGN', desc: 'End-to-end design strategy & execution' },
+                leadership: { name: 'LEADERSHIP', desc: 'Cross-functional team management' },
+                designSystems: { name: 'DESIGN SYSTEMS', desc: 'Scalable component architecture' },
+                engineering: { name: 'ENGINEERING', desc: 'Frontend & Creative Coding' },
+                research: { name: 'RESEARCH', desc: 'Data-driven user insights' },
+                strategicThinking: { name: 'STRATEGIC THINKING', desc: 'Business acumen & product strategy' }
+            }
         },
 
         // Layout
@@ -70,9 +78,13 @@ export const translations = {
             neuralCoreActive: 'NEURAL_CORE_ACTIVE',
         },
 
-        // Settings Modal
+        // Systems Modal
         settings: {
-            title: 'SETTINGS',
+            title: 'SYSTEMS',
+            tabs: {
+                about: 'ABOUT SYSTEM',
+                settings: 'SETTINGS',
+            },
             language: 'LANGUAGE',
             languageDesc: 'Select display language',
             mode3d: '3D MODE',
@@ -150,29 +162,65 @@ export const translations = {
             title: 'MINI GAMES',
             sidebar: 'HERE YOU WILL SEE A FEW MINI GAMES I IMPLEMENTED IN REACT OR IN CANVAS.\n\nHAVE FUN!',
             games: {
-                gainLife: {
-                    title: 'GAIN LIFE',
-                    desc: 'CLICK THE HEARTS'
+                pokemonEmerald: {
+                    title: 'POKÉMON EMERALD',
+                    desc: 'GAME BOY ADVANCE, 2004'
                 },
-                escapeStorm: {
-                    title: 'ESCAPE THE STORM',
-                    desc: 'BULLET-HELL LIKE GAME'
+                zeldaMinish: {
+                    title: 'ZELDA: MINISH CAP',
+                    desc: 'GAME BOY ADVANCE, 2004'
                 },
-                drMario: {
-                    title: 'DR MARIO',
-                    desc: 'A DR. MARIO CLONE'
+                kirbyMirror: {
+                    title: 'KIRBY AMAZING MIRROR',
+                    desc: 'GAME BOY ADVANCE, 2004'
                 },
-                snake2: {
-                    title: 'SNAKE 2!',
-                    desc: 'CLASSIC SNAKE GAME'
+                marioAdvance: {
+                    title: 'SUPER MARIO ADV 4',
+                    desc: 'GAME BOY ADVANCE, 2003'
                 },
-                arcanoid: {
-                    title: 'ARCANOID',
-                    desc: 'DESTROY THE BRICKS GAME'
+                metroidFusion: {
+                    title: 'METROID FUSION',
+                    desc: 'GAME BOY ADVANCE, 2002'
                 },
-                snake: {
-                    title: 'SNAKE',
-                    desc: 'CLASSIC SNAKE GAME'
+                castlevaniaAria: {
+                    title: 'ARIAS OF SORROW',
+                    desc: 'GAME BOY ADVANCE, 2003'
+                }
+            }
+        },
+
+        // Synthesis Landing (Soundboard)
+        synthesis: {
+            title: 'SOUNDBOARD',
+            sidebar: 'AN INTERACTIVE INDEX OF SYSTEM AUDITORY FEEDBACK AND SYNTHESIZED SOUNDSCAPES USED WITHIN THE NEURAL OS ENVIRONMENT.',
+            sounds: {
+                sysBoot: 'SYS BOOT UP',
+                accessGranted: 'ACCESS GRTD',
+                accessDenied: 'ACCESS DNYD',
+                dataTransfer: 'DATA FLOW',
+                glitchHeavy: 'FATAL GLITCH',
+                scanComplete: 'SCAN DONE',
+                notification: 'NEW MESSAGE',
+                warningAlarm: 'CORE ALARM'
+            }
+        },
+
+        // Lab Landing (Experimental Apps)
+        lab: {
+            title: 'LABORATORY',
+            launchApp: 'LAUNCH SYS',
+            apps: {
+                colorDecoder: {
+                    title: 'COLOR DECODER',
+                    desc: 'A utility for extracting and decoding Hex, RGB, and HSL color values from various input spaces. Designed for rapid palette prototyping and accessibility contrast checking within the Neural framework.'
+                },
+                hashGen: {
+                    title: 'HASH GENERATOR',
+                    desc: 'Cryptographic hashing tool utilizing MD5, SHA-1, and SHA-256 algorithms. Essential for verifying data integrity and encrypting sensitive user payloads prior to cortex transmission.'
+                },
+                base64Term: {
+                    title: 'BASE64 TERMINAL',
+                    desc: 'A terminal interface dedicated entirely to bidirectional Base64 encoding and decoding. Provides a raw text output stream suitable for embedding binary data into text files seamlessly.'
                 }
             }
         },
@@ -233,9 +281,17 @@ export const translations = {
                 content: '我拥有广泛的项目经验，涵盖移动应用、网站和新零售服务，服务对象包括消费者、中小企业、大型企业和非营利组织。涉及领域包括金融科技、社交媒体、游戏、电商、教育和汽车。',
             },
             educationAndPassions: {
-                label: '教育背景与个人热情',
-                content: '我来自中国杭州，本科毕业于密苏里大学心理学专业，硕士毕业于加州艺术学院（CCA）人机交互设计专业。我热衷于社会影响、系统思维、无障碍设计和终身学习。',
+                label: '教育背景与热情',
+                content: '我拥有加州艺术学院 (CCA) 的人机交互硕士学位，以及密苏里大学 (Mizzou) 的心理学学士学位。我热衷于探索设计、技术和人类行为的交汇点。无论是尝试新工具、开发设计系统，还是深入理解用户复杂性，我都在这个不断演变的数字时代中持续学习和适应。'
             },
+            stats: {
+                productDesign: { name: '产品设计', desc: '端到端的产品体验与设计架构' },
+                leadership: { name: '团队领导', desc: '跨部门协作与设计团队赋能' },
+                designSystems: { name: '设计系统', desc: '可扩展的组件规范体系' },
+                engineering: { name: '工程研发', desc: '前端开发与 AI 技术集成' },
+                research: { name: '用户研究', desc: '数据驱动的用研方法论' },
+                strategicThinking: { name: '战略思维', desc: '商业洞察与产品长期规划' }
+            }
         },
 
         // Layout
@@ -244,9 +300,13 @@ export const translations = {
             neuralCoreActive: '神经核心活跃',
         },
 
-        // Settings Modal
+        // Systems Modal
         settings: {
-            title: '设置',
+            title: '系统',
+            tabs: {
+                about: '关于系统',
+                settings: '系统设置',
+            },
             language: '语言',
             languageDesc: '选择显示语言',
             mode3d: '3D 模式',
@@ -322,31 +382,67 @@ export const translations = {
         // Simulation Landing (Mini Games)
         simulation: {
             title: '小型游戏',
-            sidebar: '在这里你会看到一些我用 REACT 或 CANVAS 实现的小游戏。\n\n玩得开心！',
+            sidebar: '此模块内置了基于 WebAssembly 编译的 EmulatorJS。点击右侧的卡带插入并启动对应的 GBA 模拟序列。',
             games: {
-                gainLife: {
-                    title: '增加生命值',
-                    desc: '点击红心'
+                pokemonEmerald: {
+                    title: '宝可梦 绿宝石',
+                    desc: 'GAME BOY ADVANCE, 2004'
                 },
-                escapeStorm: {
-                    title: '逃离风暴',
-                    desc: '类弹幕射击游戏'
+                zeldaMinish: {
+                    title: '塞尔达传说：神奇的帽子',
+                    desc: 'GAME BOY ADVANCE, 2004'
                 },
-                drMario: {
-                    title: '马里奥医生',
-                    desc: '马里奥医生复刻版'
+                kirbyMirror: {
+                    title: '星之卡比：镜之大迷宫',
+                    desc: 'GAME BOY ADVANCE, 2004'
                 },
-                snake2: {
-                    title: '贪吃蛇 2!',
-                    desc: '经典贪吃蛇游戏'
+                marioAdvance: {
+                    title: '超级马里奥 Advance 4',
+                    desc: 'GAME BOY ADVANCE, 2003'
                 },
-                arcanoid: {
-                    title: '打砖块',
-                    desc: '摧毁砖块游戏'
+                metroidFusion: {
+                    title: '银河战士 融合',
+                    desc: 'GAME BOY ADVANCE, 2002'
                 },
-                snake: {
-                    title: '贪吃蛇',
-                    desc: '经典贪吃蛇游戏'
+                castlevaniaAria: {
+                    title: '恶魔城 晓月圆舞曲',
+                    desc: 'GAME BOY ADVANCE, 2003'
+                }
+            }
+        },
+
+        // Synthesis Landing (Soundboard)
+        synthesis: {
+            title: '效果声库',
+            sidebar: '赛博原生操作系统环境内部使用的所有系统级听觉反馈、通知音效和合成声音文件的交互式可视化索引板。',
+            sounds: {
+                sysBoot: '系统启动音',
+                accessGranted: '授权通过',
+                accessDenied: '授权拒绝',
+                dataTransfer: '数据流传输',
+                glitchHeavy: '严重故障音',
+                scanComplete: '扫描完成',
+                notification: '收到新消息',
+                warningAlarm: '核心警报音'
+            }
+        },
+
+        // Lab Landing (Experimental Apps)
+        lab: {
+            title: '实验工坊',
+            launchApp: '启动终端',
+            apps: {
+                colorDecoder: {
+                    title: '色彩解码器',
+                    desc: '一个用于从各种输入空间提取和解码 Hex、RGB 和 HSL 颜色值的实用程序。专为 Neural 框架内的快速调色板原型设计和可访问性对比度检查而设计。'
+                },
+                hashGen: {
+                    title: '哈希生成器',
+                    desc: '利用 MD5、SHA-1 和 SHA-256 算法的加密哈希工具。对于在皮层传输之前验证数据完整性和加密敏感用户有效负载至关重要。'
+                },
+                base64Term: {
+                    title: 'BASE64 终端',
+                    desc: '一个完全专用于双向 Base64 编码和解码的终端接口。提供适合将二进制数据无缝嵌入文本文件的原始文本输出流。'
                 }
             }
         },

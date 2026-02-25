@@ -6,19 +6,25 @@ import { Footer } from './components/layout/Footer'
 import { ProfileSidebar } from './components/layout/ProfileSidebar'
 import { StatusSidebar } from './components/layout/StatusSidebar'
 import { FeaturePanel } from './components/layout/FeaturePanel'
-import { ProjectLanding } from './pages/ProjectLanding'
-import { ProjectDetail } from './pages/ProjectDetail'
 // Lazy load heavy components
+const projectLandingImport = () => import('./pages/ProjectLanding').then(module => ({ default: module.ProjectLanding }));
+const ProjectLanding = lazy(projectLandingImport);
+const projectDetailImport = () => import('./pages/ProjectDetail').then(module => ({ default: module.ProjectDetail }));
+const ProjectDetail = lazy(projectDetailImport);
 const aboutMeImport = () => import('./pages/AboutMePage').then(module => ({ default: module.AboutMePage }));
 const AboutMePage = lazy(aboutMeImport);
 const DesignSystemPage = lazy(() => import('./pages/DesignSystemPage').then(module => ({ default: module.DesignSystemPage })));
 const MusicPage = lazy(() => import('./pages/MusicPage').then(module => ({ default: module.MusicPage })));
 const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module => ({ default: module.GameLandingPage })));
+const GamePlayerPage = lazy(() => import('./pages/GamePlayerPage').then(module => ({ default: module.GamePlayerPage })));
+const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').then(module => ({ default: module.SynthesisLandingPage })));
+const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
 import { MobileGate } from './components/layout/MobileGate'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
+import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
 import { LanguageProvider } from './i18n'
@@ -121,21 +127,44 @@ function App() {
                 {/* Routes without key - prevents unnecessary re-mounting */}
                 <Routes location={location}>
                   <Route path="/" element={<FeaturePanel />} />
-                  <Route path="/projects" element={<ProjectLanding />} />
-                  <Route path="/projects/:projectId" element={<ProjectDetail />} />
+                  <Route path="/projects" element={
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ ACCESSING_PROJECTS... ]" />}>
+                      <ProjectLanding />
+                    </Suspense>
+                  } />
+                  <Route path="/projects/:projectId" element={
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ LOADING_NEURAL_LINK... ]" />}>
+                      <ProjectDetail />
+                    </Suspense>
+                  } />
                   <Route path="/design-system" element={
-                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ SYSTEM_ACCESSING... ]</div>}>
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ SYSTEM_ACCESSING... ]" />}>
                       <DesignSystemPage />
                     </Suspense>
                   } />
                   <Route path="/music" element={
-                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ AUDIO_LINKing... ]</div>}>
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ AUDIO_LINKing... ]" />}>
                       <MusicPage />
                     </Suspense>
                   } />
                   <Route path="/games" element={
-                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center text-brand-primary animate-pulse tracking-widest">[ SIMULATION_LOADING... ]</div>}>
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ SIMULATION_LOADING... ]" />}>
                       <GameLandingPage />
+                    </Suspense>
+                  } />
+                  <Route path="/games/:gameId" element={
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ LOADING_EMULATOR_MATRIX... ]" />}>
+                      <GamePlayerPage />
+                    </Suspense>
+                  } />
+                  <Route path="/synthesis" element={
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ LOADING_SOUNDBOARD... ]" />}>
+                      <SynthesisLandingPage />
+                    </Suspense>
+                  } />
+                  <Route path="/lab" element={
+                    <Suspense fallback={<ShimmerLoader variant="overlay" label="[ ACCESSING_LABORATORY... ]" />}>
+                      <LabLandingPage />
                     </Suspense>
                   } />
                 </Routes>

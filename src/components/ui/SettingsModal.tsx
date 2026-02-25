@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { HoloFrame } from './HoloFrame';
 import { CyberButton } from './CyberButton';
 import { MotionDiv } from '../motion/MotionWrappers';
@@ -32,6 +33,7 @@ const themes: ThemeOption[] = [
 ];
 
 export const SettingsModal = () => {
+    const [activeTab, setActiveTab] = useState<'about' | 'settings'>('about');
     const { setSettingsOpen, debugMode, setDebugMode, is3DMode, set3DMode, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
     const { volume, setVolume } = useMusicStore();
     const { language, setLanguage } = useLanguage();
@@ -84,255 +86,322 @@ export const SettingsModal = () => {
                         </CyberButton>
                     </div>
 
-                    {/* Settings Content */}
-                    <div className="space-y-6">
-                        {/* Language Section */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <i className="ri-global-line text-[var(--color-brand-primary)]/60" />
-                                <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                    {t('settings.language')}
-                                </span>
-                            </div>
-                            <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
-                                {t('settings.languageDesc')}
-                            </p>
+                    {/* Tabs Navigation */}
+                    <div className="flex border-b border-[var(--color-border-subtle)]/50 mb-6">
+                        <button
+                            onClick={() => setActiveTab('about')}
+                            className={`flex-1 py-3 text-sm font-bold tracking-widest uppercase transition-colors ${activeTab === 'about'
+                                    ? 'text-[var(--color-brand-primary)] border-b-2 border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/10'
+                                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-black/20'
+                                }`}
+                        >
+                            {t('settings.tabs.about')}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('settings')}
+                            className={`flex-1 py-3 text-sm font-bold tracking-widest uppercase transition-colors ${activeTab === 'settings'
+                                    ? 'text-[var(--color-brand-primary)] border-b-2 border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/10'
+                                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-black/20'
+                                }`}
+                        >
+                            {t('settings.tabs.settings')}
+                        </button>
+                    </div>
 
-                            {/* Language Toggle */}
-                            <div className="flex gap-2">
-                                {languages.map((lang) => (
-                                    <button
-                                        key={lang.code}
-                                        onClick={() => setLanguage(lang.code)}
-                                        className={`
+                    {/* About System Content */}
+                    {activeTab === 'about' && (
+                        <div className="space-y-6 animate-in fade-in duration-300">
+
+                            <div className="space-y-2">
+                                <h3 className="text-[var(--color-brand-primary)] font-bold tracking-widest uppercase text-sm border-b border-[var(--color-border-subtle)]/30 pb-2">
+                                    SYSTEM.VER
+                                </h3>
+                                <p className="text-sm font-mono text-[var(--color-text-secondary)]">CYBER NEURO.OS v1.2.0-rc1</p>
+                                <p className="text-xs font-mono text-[var(--color-text-subtle)] mt-1">BUILD: 2026.02.25_1105</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h3 className="text-[var(--color-brand-primary)] font-bold tracking-widest uppercase text-sm border-b border-[var(--color-border-subtle)]/30 pb-2">
+                                    DEVELOPMENT PROTOCOL
+                                </h3>
+                                <p className="text-sm font-mono text-[var(--color-text-primary)] leading-relaxed">
+                                    Architected utilizing React, Three.js, and framer-motion. Engineered for maximum immersion and
+                                    high-performance rendering within Neural interface environments.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h3 className="text-[var(--color-brand-primary)] font-bold tracking-widest uppercase text-sm border-b border-[var(--color-border-subtle)]/30 pb-2">
+                                    SYSTEM ARCHITECTS
+                                </h3>
+                                <div className="flex justify-between items-center text-sm font-mono">
+                                    <span className="text-[var(--color-text-secondary)]">LEAD DEVELOPER</span>
+                                    <span className="text-[var(--color-text-primary)] tracking-widest">BOYANG JIAO</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm font-mono mt-1">
+                                    <span className="text-[var(--color-text-secondary)]">UI/UX DESIGN</span>
+                                    <span className="text-[var(--color-text-primary)] tracking-widest">ANT GROUP</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm font-mono mt-1">
+                                    <span className="text-[var(--color-text-secondary)]">AI CO-PILOT</span>
+                                    <span className="text-[var(--color-text-primary)] tracking-widest">ANTIGRAVITY</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+
+                    {/* Settings Content */}
+                    {activeTab === 'settings' && (
+                        <div className="space-y-6 animate-in fade-in duration-300">
+                            {/* Language Section */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <i className="ri-global-line text-[var(--color-brand-primary)]/60" />
+                                    <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                        {t('settings.language')}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
+                                    {t('settings.languageDesc')}
+                                </p>
+
+                                {/* Language Toggle */}
+                                <div className="flex gap-2">
+                                    {languages.map((lang) => (
+                                        <button
+                                            key={lang.code}
+                                            onClick={() => setLanguage(lang.code)}
+                                            className={`
                                             relative flex-1 py-3 px-4 
                                             border transition-all duration-300
                                             group overflow-hidden
                                             ${language === lang.code
-                                                ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/20 text-[var(--color-text-primary)]'
-                                                : 'border-[var(--color-text-secondary)]/30 bg-[var(--color-text-brand)]/5 text-[var(--color-text-brand)] hover:border-[var(--color-brand-primary)]/60 hover:text-[var(--color-text-primary)]'
-                                            }
+                                                    ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/20 text-[var(--color-text-primary)]'
+                                                    : 'border-[var(--color-text-secondary)]/30 bg-[var(--color-text-brand)]/5 text-[var(--color-text-brand)] hover:border-[var(--color-brand-primary)]/60 hover:text-[var(--color-text-primary)]'
+                                                }
                                         `}
-                                    >
-                                        {/* Glow effect for active */}
-                                        {language === lang.code && (
-                                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-brand-primary)]/10 via-[var(--color-brand-secondary)]/20 to-[var(--color-brand-primary)]/10" />
-                                        )}
+                                        >
+                                            {/* Glow effect for active */}
+                                            {language === lang.code && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-brand-primary)]/10 via-[var(--color-brand-secondary)]/20 to-[var(--color-brand-primary)]/10" />
+                                            )}
 
-                                        {/* Corner dots */}
-                                        <div className={`absolute top-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
-                                        <div className={`absolute top-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
-                                        <div className={`absolute bottom-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
-                                        <div className={`absolute bottom-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                            {/* Corner dots */}
+                                            <div className={`absolute top-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                            <div className={`absolute top-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                            <div className={`absolute bottom-0 left-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
+                                            <div className={`absolute bottom-0 right-0 w-[2px] h-[2px] ${language === lang.code ? 'bg-[var(--color-brand-secondary)]' : 'bg-[var(--color-text-subtle)]'}`} />
 
-                                        <div className="relative z-10 flex flex-col items-center gap-1">
-                                            <span className="text-lg font-bold tracking-wider">
-                                                {lang.labelNative}
-                                            </span>
-                                            <span className="text-[10px] tracking-widest uppercase opacity-70">
-                                                {lang.label}
-                                            </span>
-                                        </div>
+                                            <div className="relative z-10 flex flex-col items-center gap-1">
+                                                <span className="text-lg font-bold tracking-wider">
+                                                    {lang.labelNative}
+                                                </span>
+                                                <span className="text-[10px] tracking-widest uppercase opacity-70">
+                                                    {lang.label}
+                                                </span>
+                                            </div>
 
-                                        {/* Active indicator */}
-                                        {language === lang.code && (
-                                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[var(--color-brand-secondary)] shadow-[0_0_8px_var(--color-brand-primary)]" />
-                                        )}
-                                    </button>
-                                ))}
+                                            {/* Active indicator */}
+                                            {language === lang.code && (
+                                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[var(--color-brand-secondary)] shadow-[0_0_8px_var(--color-brand-primary)]" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Theme Section */}
-                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
-                            <div className="flex items-center gap-2">
-                                <i className="ri-palette-line text-[var(--color-brand-primary)]/60" />
-                                <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                    品牌主题
-                                </span>
-                            </div>
-                            <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
-                                选择你喜欢的赛博主题色
-                            </p>
+                            {/* Theme Section */}
+                            <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <i className="ri-palette-line text-[var(--color-brand-primary)]/60" />
+                                    <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                        品牌主题
+                                    </span>
+                                </div>
+                                <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
+                                    选择你喜欢的赛博主题色
+                                </p>
 
-                            {/* Theme Toggle */}
-                            <div className="flex gap-2">
-                                {themes.map((theme) => (
-                                    <button
-                                        key={theme.code}
-                                        onClick={() => setBrandTheme(theme.code)}
-                                        className={`
+                                {/* Theme Toggle */}
+                                <div className="flex gap-2">
+                                    {themes.map((theme) => (
+                                        <button
+                                            key={theme.code}
+                                            onClick={() => setBrandTheme(theme.code)}
+                                            className={`
                                             relative flex-1 py-3 px-4 
                                             border transition-all duration-300
                                             group overflow-hidden
                                             ${brandTheme === theme.code
-                                                ? 'border-current bg-current/20'
-                                                : 'border-neutral-700 bg-neutral-900/50 hover:border-neutral-500'
-                                            }
+                                                    ? 'border-current bg-current/20'
+                                                    : 'border-neutral-700 bg-neutral-900/50 hover:border-neutral-500'
+                                                }
                                         `}
-                                        style={{
-                                            color: theme.color,
-                                            borderColor: brandTheme === theme.code ? theme.color : undefined,
-                                        }}
-                                    >
-                                        {/* Glow effect for active */}
-                                        {brandTheme === theme.code && (
+                                            style={{
+                                                color: theme.color,
+                                                borderColor: brandTheme === theme.code ? theme.color : undefined,
+                                            }}
+                                        >
+                                            {/* Glow effect for active */}
+                                            {brandTheme === theme.code && (
+                                                <div
+                                                    className="absolute inset-0 opacity-20"
+                                                    style={{ backgroundColor: theme.color }}
+                                                />
+                                            )}
+
+                                            {/* Corner dots */}
                                             <div
-                                                className="absolute inset-0 opacity-20"
-                                                style={{ backgroundColor: theme.color }}
+                                                className="absolute top-0 left-0 w-[2px] h-[2px]"
+                                                style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
                                             />
-                                        )}
-
-                                        {/* Corner dots */}
-                                        <div
-                                            className="absolute top-0 left-0 w-[2px] h-[2px]"
-                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
-                                        />
-                                        <div
-                                            className="absolute top-0 right-0 w-[2px] h-[2px]"
-                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
-                                        />
-                                        <div
-                                            className="absolute bottom-0 left-0 w-[2px] h-[2px]"
-                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
-                                        />
-                                        <div
-                                            className="absolute bottom-0 right-0 w-[2px] h-[2px]"
-                                            style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
-                                        />
-
-                                        <div className="relative z-10 flex flex-col items-center gap-1">
-                                            {/* Color swatch */}
                                             <div
-                                                className="w-6 h-6 border border-white/20"
-                                                style={{
-                                                    backgroundColor: theme.color,
-                                                    boxShadow: brandTheme === theme.code ? `0 0 12px ${theme.color}` : 'none'
-                                                }}
+                                                className="absolute top-0 right-0 w-[2px] h-[2px]"
+                                                style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
                                             />
-                                            <span
-                                                className="text-[10px] tracking-widest uppercase mt-1"
-                                                style={{ color: brandTheme === theme.code ? theme.color : '#888' }}
-                                            >
-                                                {theme.label}
-                                            </span>
-                                        </div>
-
-                                        {/* Active indicator */}
-                                        {brandTheme === theme.code && (
                                             <div
-                                                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px]"
-                                                style={{
-                                                    backgroundColor: theme.color,
-                                                    boxShadow: `0 0 8px ${theme.color}`
-                                                }}
+                                                className="absolute bottom-0 left-0 w-[2px] h-[2px]"
+                                                style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
                                             />
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                                            <div
+                                                className="absolute bottom-0 right-0 w-[2px] h-[2px]"
+                                                style={{ backgroundColor: brandTheme === theme.code ? theme.color : '#555' }}
+                                            />
 
-                        {/* Audio Section */}
-                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-4">
-                            <div className="flex items-center gap-2">
-                                <i className="ri-volume-up-line text-[var(--color-brand-primary)]/60" />
-                                <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                    AUDIO
-                                </span>
-                            </div>
+                                            <div className="relative z-10 flex flex-col items-center gap-1">
+                                                {/* Color swatch */}
+                                                <div
+                                                    className="w-6 h-6 border border-white/20"
+                                                    style={{
+                                                        backgroundColor: theme.color,
+                                                        boxShadow: brandTheme === theme.code ? `0 0 12px ${theme.color}` : 'none'
+                                                    }}
+                                                />
+                                                <span
+                                                    className="text-[10px] tracking-widest uppercase mt-1"
+                                                    style={{ color: brandTheme === theme.code ? theme.color : '#888' }}
+                                                >
+                                                    {theme.label}
+                                                </span>
+                                            </div>
 
-                            {/* Music Volume */}
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
-                                    <span>Music</span>
-                                    <span>{Math.round(volume)}%</span>
+                                            {/* Active indicator */}
+                                            {brandTheme === theme.code && (
+                                                <div
+                                                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px]"
+                                                    style={{
+                                                        backgroundColor: theme.color,
+                                                        boxShadow: `0 0 8px ${theme.color}`
+                                                    }}
+                                                />
+                                            )}
+                                        </button>
+                                    ))}
                                 </div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={volume}
-                                    onChange={(e) => setVolume(Number(e.target.value))}
-                                    className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-brand-secondary)] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--color-brand-primary)] [&::-webkit-slider-thumb]:shadow-[0_0_5px_var(--color-brand-secondary)]"
-                                />
                             </div>
 
-                            {/* SFX Volume */}
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
-                                    <span>SFX</span>
-                                    <span>{Math.round(sfxVolume)}%</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={sfxVolume}
-                                    onChange={(e) => setSfxVolume(Number(e.target.value))}
-                                    className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-brand-secondary)] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--color-brand-primary)] [&::-webkit-slider-thumb]:shadow-[0_0_5px_var(--color-brand-secondary)]"
-                                />
-                            </div>
-                        </div>
-
-                        {/* 3D Mode Section */}
-                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
-                            <div className="flex items-center justify-between">
+                            {/* Audio Section */}
+                            <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-4">
                                 <div className="flex items-center gap-2">
-                                    <i className="ri-box-3-line text-[var(--color-brand-primary)]/60" />
-                                    <span className="text-xs font-semibold text-[var(--color-text-subtle)] tracking-widest uppercase">
-                                        {t('settings.mode3d')}
+                                    <i className="ri-volume-up-line text-[var(--color-brand-primary)]/60" />
+                                    <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                        AUDIO
                                     </span>
                                 </div>
-                                <button
-                                    onClick={() => set3DMode(!is3DMode)}
-                                    className={`
+
+                                {/* Music Volume */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+                                        <span>Music</span>
+                                        <span>{Math.round(volume)}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        value={volume}
+                                        onChange={(e) => setVolume(Number(e.target.value))}
+                                        className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-brand-secondary)] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--color-brand-primary)] [&::-webkit-slider-thumb]:shadow-[0_0_5px_var(--color-brand-secondary)]"
+                                    />
+                                </div>
+
+                                {/* SFX Volume */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+                                        <span>SFX</span>
+                                        <span>{Math.round(sfxVolume)}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        value={sfxVolume}
+                                        onChange={(e) => setSfxVolume(Number(e.target.value))}
+                                        className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-brand-secondary)] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--color-brand-primary)] [&::-webkit-slider-thumb]:shadow-[0_0_5px_var(--color-brand-secondary)]"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 3D Mode Section */}
+                            <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <i className="ri-box-3-line text-[var(--color-brand-primary)]/60" />
+                                        <span className="text-xs font-semibold text-[var(--color-text-subtle)] tracking-widest uppercase">
+                                            {t('settings.mode3d')}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => set3DMode(!is3DMode)}
+                                        className={`
                                         w-12 h-6 relative rounded-none border transition-all duration-300
                                         ${is3DMode
-                                            ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30'
-                                            : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'
-                                        }
+                                                ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30'
+                                                : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'
+                                            }
                                     `}
-                                >
-                                    <div
-                                        className={`
+                                    >
+                                        <div
+                                            className={`
                                             absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300
                                             ${is3DMode ? 'left-7' : 'left-1'}
                                         `}
-                                    />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Debug Mode Section */}
-                        <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <i className="ri-bug-line text-[var(--color-brand-primary)]/60" />
-                                    <span className="text-xs font-semibold text-[var(--color-text-subtle)] tracking-widest uppercase">
-                                        DEBUG MODE
-                                    </span>
+                                        />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => setDebugMode(!debugMode)}
-                                    className={`
+                            </div>
+
+                            {/* Debug Mode Section */}
+                            <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <i className="ri-bug-line text-[var(--color-brand-primary)]/60" />
+                                        <span className="text-xs font-semibold text-[var(--color-text-subtle)] tracking-widest uppercase">
+                                            DEBUG MODE
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => setDebugMode(!debugMode)}
+                                        className={`
                                         w-12 h-6 relative rounded-none border transition-all duration-300
                                         ${debugMode
-                                            ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30'
-                                            : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'
-                                        }
+                                                ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30'
+                                                : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'
+                                            }
                                     `}
-                                >
-                                    <div
-                                        className={`
+                                    >
+                                        <div
+                                            className={`
                                             absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300
                                             ${debugMode ? 'left-7' : 'left-1'}
                                         `}
-                                    />
-                                </button>
+                                        />
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </HoloFrame>
             </MotionDiv>
         </MotionDiv>

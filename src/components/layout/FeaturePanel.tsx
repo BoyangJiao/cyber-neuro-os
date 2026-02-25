@@ -55,6 +55,7 @@ const features: FeatureItem[] = [
     },
     {
         titleKey: 'features.sound',
+        link: '/synthesis',
         geometryType: 'sound',
         activeImage: '/images/features/SFX_active.png',
         inactiveImage: '/images/features/SFX_inactive.png',
@@ -73,6 +74,7 @@ const features: FeatureItem[] = [
     },
     {
         titleKey: 'features.lab',
+        link: '/lab',
         geometryType: 'lab',
         activeImage: '/images/features/Lab_active.png',
         inactiveImage: '/images/features/Lab_inactive.png',

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Emulator</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent !important;
+            overflow: hidden;
+            /* Cyber OS Theme matching */
+            font-family: monospace;
+            color: #00ffcc;
+        }
+
+        #game {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game"></div>
+    <script>
+        // Use URL parameters to pass configuration
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameUrl = urlParams.get('gameUrl');
+        const core = urlParams.get('core') || 'gba';
+
+        window.EJS_player = '#game';
+        window.EJS_core = core;
+        // Optionally pass game name 
+        window.EJS_gameName = urlParams.get('gameName') || 'Game';
+
+        // Primary configuration for EmulatorJS
+        window.EJS_color = '#ef4444'; // Cyber OS Red accent
+        window.EJS_startOnLoaded = true;
+        window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs@main/data/';
+
+        if (gameUrl) {
+            window.EJS_gameUrl = gameUrl;
+        }
+
+        // Inject EmulatorJS script
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs@main/data/loader.js';
+        document.body.appendChild(script);
+    </script>
+</body>
+
+</html>
