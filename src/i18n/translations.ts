@@ -15,7 +15,7 @@ export const translations = {
         // Footer
         footer: {
             neuralUplink: 'NEURAL UPLINK',
-            settings: 'SETTINGS',
+            system: 'SYSTEM',
         },
 
         // Feature Panel
@@ -82,8 +82,9 @@ export const translations = {
         settings: {
             title: 'SYSTEMS',
             tabs: {
-                about: 'ABOUT SYSTEM',
-                settings: 'SETTINGS',
+                about: 'ABOUT',
+                appearance: 'APPEARANCE',
+                audio: 'AUDIO',
             },
             language: 'LANGUAGE',
             languageDesc: 'Select display language',
@@ -102,10 +103,17 @@ export const translations = {
         // Biometric Monitor
         biometric: {
             sysMon: 'SYS.MON',
+            cortexLoad: 'CORTEX_LOAD',
+            syncRatio: 'SYNC_RATIO',
+            cogLoad: 'COGNITIVE_LOAD',
+            archiveCap: 'ARCHIVE_CAP',
+            coreTemp: 'CORE_TEMP',
+            vitals: 'VITALS',
+            uplink: 'UPLINK',
+            aligning: 'ALIGNING...',
             cortex: 'CORTEX',
             sync: 'SYNC',
             stable: 'STABLE',
-            vitals: 'VITALS',
             normal: 'NORMAL',
             stress: 'STRESS',
             overload: 'OVERLOAD',
@@ -170,9 +178,17 @@ export const translations = {
                     title: 'PAC-MAN (GAPMAN)',
                     desc: 'GBA HOMEBREW CLONE'
                 },
-                goldenSun2: {
-                    title: 'GOLDEN SUN: THE LOST AGE',
-                    desc: 'CAMELOT / NINTENDO, 2002'
+                goldenSun: {
+                    title: 'GOLDEN SUN',
+                    desc: 'CAMELOT / NINTENDO, 2001'
+                },
+                fireEmblem: {
+                    title: 'FIRE EMBLEM: THE BINDING BLADE',
+                    desc: 'INTELLIGENT SYSTEMS / NINTENDO, 2002'
+                },
+                warioLandVb: {
+                    title: 'VIRTUAL BOY WARIO LAND',
+                    desc: 'NINTENDO R&D1, 1995'
                 }
             }
         },
@@ -196,11 +212,11 @@ export const translations = {
         // Lab Landing (Experimental Apps)
         lab: {
             title: 'LABORATORY',
-            launchApp: 'LAUNCH SYS',
+            launchApp: 'LAUNCH',
             apps: {
-                colorDecoder: {
-                    title: 'COLOR DECODER',
-                    desc: 'A utility for extracting and decoding Hex, RGB, and HSL color values from various input spaces. Designed for rapid palette prototyping and accessibility contrast checking within the Neural framework.'
+                avatarGenerator: {
+                    title: 'AVATAR GENERATOR',
+                    desc: 'A robust utility for generating and customizing unique pixel-art avatars. Equip your digital persona with procedurally generated visual identities optimized for the Neural framework.'
                 },
                 hashGen: {
                     title: 'HASH GENERATOR',
@@ -225,7 +241,7 @@ export const translations = {
         // Footer
         footer: {
             neuralUplink: '神经链接',
-            settings: '设置',
+            system: '系统',
         },
 
         // Feature Panel
@@ -292,8 +308,9 @@ export const translations = {
         settings: {
             title: '系统',
             tabs: {
-                about: '关于系统',
-                settings: '系统设置',
+                about: '关于',
+                appearance: '外观',
+                audio: '音频',
             },
             language: '语言',
             languageDesc: '选择显示语言',
@@ -312,10 +329,17 @@ export const translations = {
         // Biometric Monitor
         biometric: {
             sysMon: '系统监控',
+            cortexLoad: '皮层负载',
+            syncRatio: '神经同步',
+            cogLoad: '认知负荷',
+            archiveCap: '档案容量',
+            coreTemp: '核心体温',
+            vitals: '生命体征',
+            uplink: '遥测链路',
+            aligning: '重新同步中...',
             cortex: '皮层负荷',
             sync: '神经同步',
             stable: '稳定',
-            vitals: '生命体征',
             normal: '正常',
             stress: '精神压力',
             overload: '神经过载',
@@ -380,9 +404,17 @@ export const translations = {
                     title: '吃豆人 (GAPMAN)',
                     desc: 'GBA 自制版克隆'
                 },
-                goldenSun2: {
-                    title: '黄金太阳：失落的时代',
-                    desc: 'CAMELOT / 任天堂, 2002'
+                goldenSun: {
+                    title: '黄金太阳：开启的封印',
+                    desc: 'CAMELOT / 任天堂, 2001'
+                },
+                fireEmblem: {
+                    title: '火焰之纹章：封印之剑',
+                    desc: 'INTELLIGENT SYSTEMS / 任天堂, 2002'
+                },
+                warioLandVb: {
+                    title: 'VIRTUAL BOY 瓦力欧乐园',
+                    desc: '任天堂 R&D1, 1995'
                 }
             }
         },
@@ -406,11 +438,11 @@ export const translations = {
         // Lab Landing (Experimental Apps)
         lab: {
             title: '实验工坊',
-            launchApp: '启动终端',
+            launchApp: '启动',
             apps: {
-                colorDecoder: {
-                    title: '色彩解码器',
-                    desc: '一个用于从各种输入空间提取和解码 Hex、RGB 和 HSL 颜色值的实用程序。专为 Neural 框架内的快速调色板原型设计和可访问性对比度检查而设计。'
+                avatarGenerator: {
+                    title: '角色生成器',
+                    desc: '一个用于生成和自定义像素风格头像的实用工具。为您配置专为 Neural 框架优化的程序化可视数字身份。'
                 },
                 hashGen: {
                     title: '哈希生成器',

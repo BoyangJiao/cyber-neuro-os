@@ -38,7 +38,7 @@ export const Footer = () => {
                     className="border-none group px-3 lg:px-4 2xl:px-5"
                     onClick={() => setSettingsOpen(true)}
                 >
-                    <span className="mr-1 lg:mr-2 text-xs lg:text-sm 2xl:text-base transition-colors">{t('footer.settings')}</span>
+                    <span className="mr-1 lg:mr-2 text-xs lg:text-sm 2xl:text-base transition-colors">{t('footer.system')}</span>
                     <i className="ri-settings-line animate-spin-slow text-base lg:text-lg 2xl:text-xl"></i>
                 </CyberButton>
                 <div className="w-[1px] h-5 lg:h-6 2xl:h-7 bg-border-default"></div>

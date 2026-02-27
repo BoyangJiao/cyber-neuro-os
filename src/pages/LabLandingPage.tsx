@@ -97,66 +97,66 @@ export const LabLandingPage = () => {
                         </div>
                     </div>
 
-                    {/* Main Carousel Area */}
-                    <div className="flex-1 w-full max-w-[1600px] mx-auto relative flex items-center justify-between px-2 md:px-8 relative py-8">
+                    {/* Main Content Area */}
+                    <div className="flex-1 w-full relative overflow-hidden min-h-0">
 
-                        {/* Left Navigation */}
-                        <div className="shrink-0 flex items-center justify-center w-12 md:w-20 z-20">
+                        {/* Left Navigation — absolute, flush to edge */}
+                        <div className="absolute left-1 lg:left-3 top-1/2 -translate-y-1/2 z-20">
                             <CyberButton
                                 variant="ghost"
-                                icon={<i className="ri-arrow-left-s-line text-4xl" />}
+                                icon={<i className="ri-arrow-left-s-line text-3xl lg:text-4xl" />}
                                 onClick={handlePrev}
                                 className="text-text-muted hover:text-brand-primary"
                                 iconOnly
                             />
                         </div>
 
-                        {/* App Viewer Container */}
-                        <div className="flex-1 relative h-full flex items-center justify-center overflow-hidden">
-                            <AnimatePresence initial={false} custom={direction} mode="wait">
-                                <motion.div
-                                    key={currentIndex}
-                                    custom={direction}
-                                    variants={variants}
-                                    initial="enter"
-                                    animate="center"
-                                    exit="exit"
-                                    className="w-full flex justify-center px-4 md:px-8"
-                                >
-                                    <LabAppViewer app={labApps[currentIndex]} />
-                                </motion.div>
-                            </AnimatePresence>
+                        {/* App Viewer Centered Content */}
+                        <div className="w-full h-full max-w-[1400px] mx-auto flex items-center justify-center px-12 lg:px-16 xl:px-20 py-4 lg:py-6">
+                            <div className="w-full max-h-full">
+                                <AnimatePresence initial={false} custom={direction} mode="wait">
+                                    <motion.div
+                                        key={currentIndex}
+                                        custom={direction}
+                                        variants={variants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        className="w-full"
+                                    >
+                                        <LabAppViewer app={labApps[currentIndex]} />
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
                         </div>
 
-                        {/* Right Navigation */}
-                        <div className="shrink-0 flex items-center justify-center w-12 md:w-20 z-20">
+                        {/* Right Navigation — absolute, flush to edge */}
+                        <div className="absolute right-1 lg:right-3 top-1/2 -translate-y-1/2 z-20">
                             <CyberButton
                                 variant="ghost"
-                                icon={<i className="ri-arrow-right-s-line text-4xl" />}
+                                icon={<i className="ri-arrow-right-s-line text-3xl lg:text-4xl" />}
                                 onClick={handleNext}
                                 className="text-text-muted hover:text-brand-primary"
                                 iconOnly
                             />
                         </div>
 
-                        {/* Bottom Pagination Indicators */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">
-                            {labApps.map((_, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => {
-                                        setDirection(idx > currentIndex ? 1 : -1);
-                                        setCurrentIndex(idx);
-                                    }}
-                                    className={`h-1 transition-all duration-300 ${idx === currentIndex
-                                        ? 'w-8 bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary)]'
-                                        : 'w-4 bg-border-subtle hover:bg-text-muted'
-                                        }`}
-                                    aria-label={`View app ${idx + 1}`}
-                                />
-                            ))}
-                        </div>
-
+                    </div>                        {/* Bottom Pagination Indicators (Fixed at bottom) */}
+                    <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-[60] pointer-events-none">
+                        {labApps.map((_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => {
+                                    setDirection(idx > currentIndex ? 1 : -1);
+                                    setCurrentIndex(idx);
+                                }}
+                                className={`h-1 transition-all pointer-events-auto duration-300 ${idx === currentIndex
+                                    ? 'w-8 bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary)]'
+                                    : 'w-4 bg-border-subtle hover:bg-text-muted'
+                                    }`}
+                                aria-label={`View app ${idx + 1}`}
+                            />
+                        ))}
                     </div>
                 </div>
             </HoloFrame>

@@ -32,7 +32,7 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
             {/* Footer: Fixed height at bottom */}
             <footer id="site-footer" className="relative z-50 flex-none w-full pb-4">
                 {/* Footer Content - 48px height, bottom aligned */}
-                <div className="flex items-end justify-between px-4 lg:px-6 xl:px-10 h-auto w-full">
+                <div className="flex items-end justify-between px-4 lg:px-6 xl:px-8 2xl:px-10 h-auto w-full">
                     {footer ? (
                         footer
                     ) : (

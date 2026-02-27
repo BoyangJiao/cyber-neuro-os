@@ -1,22 +1,11 @@
-/**
- * BiometricMonitor - Neural Interface System Monitor
- * 
- * A living, breathing system panel that simulates real-time neural metrics.
- * All values drift organically over time using sine-wave composites,
- * making each visit feel unique. Inspired by:
- * - Ghost in the Shell: brain-dive readout aesthetics
- * - Cyberpunk 2077: Kiroshi optics HUD overlays
- * - Death Stranding: BB pod vitals monitor
- */
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { GhostText } from './GhostText';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 
 // ============================================================
-// Organic value generators - composites of sine waves for natural drift
+// Organic value generators
 // ============================================================
 
-/** Generate a smoothly drifting value between min and max */
 const useDriftValue = (min: number, max: number, speed: number = 1) => {
     const [value, setValue] = useState((min + max) / 2);
     const phaseRef = useRef(Math.random() * Math.PI * 2);
@@ -26,13 +15,11 @@ const useDriftValue = (min: number, max: number, speed: number = 1) => {
         const animate = () => {
             const t = Date.now() / 1000;
             const p = phaseRef.current;
-            // Composite of multiple sine waves for organic, non-repetitive motion
             const raw =
                 Math.sin(t * 0.3 * speed + p) * 0.4 +
                 Math.sin(t * 0.7 * speed + p * 2.1) * 0.3 +
                 Math.sin(t * 1.3 * speed + p * 0.7) * 0.2 +
-                Math.sin(t * 0.13 * speed + p * 3.3) * 0.1; // ultra-slow drift
-            // Normalize -1..1 → min..max
+                Math.sin(t * 0.13 * speed + p * 3.3) * 0.1;
             const normalized = (raw + 1) / 2;
             setValue(min + normalized * (max - min));
             frame = requestAnimationFrame(animate);
@@ -45,25 +32,243 @@ const useDriftValue = (min: number, max: number, speed: number = 1) => {
 };
 
 // ============================================================
-// Live EKG/Waveform component (Canvas-based for smooth animation)
+// 1. TELEMETRY: UPLINK LATENCY
 // ============================================================
 
-const LiveWaveform = ({
-    height = 32,
-    color = 'var(--color-brand-primary)',
-    speed = 1,
-    amplitude = 0.6,
-    type = 'ekg' // 'ekg' | 'brain' | 'sine'
-}: {
-    height?: number;
-    color?: string;
-    speed?: number;
-    amplitude?: number;
-    type?: 'ekg' | 'brain' | 'sine';
-}) => {
+const TelemetryTracker = () => {
+    const { t } = useTranslation();
+    const [latency, setLatency] = useState(12);
+    const lastMousePos = useRef({ x: 0, y: 0, time: Date.now() });
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            const now = Date.now();
+            const dt = now - lastMousePos.current.time;
+            if (dt > 50) {
+                const dx = e.clientX - lastMousePos.current.x;
+                const dy = e.clientY - lastMousePos.current.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const velocity = Math.min(distance / dt, 10); // cap velocity
+
+                // Jitter baseline 12ms up to 45ms based on mouse velocity
+                const targetLatency = 12 + Math.random() * (velocity * 3);
+
+                setLatency(prev => {
+                    // Smooth lerp
+                    const next = prev + (targetLatency - prev) * 0.8;
+                    return Math.max(8, Math.min(99, next));
+                });
+
+                lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
+            }
+        };
+
+        // Decay back to baseline when idle
+        const decayInterval = setInterval(() => {
+            setLatency(prev => {
+                if (prev > 14) return prev - (prev - 12) * 0.2;
+                return 12 + Math.random() * 2; // Ambient tick
+            });
+            // Update time to prevent huge dt on next move
+            lastMousePos.current.time = Date.now();
+        }, 300);
+
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            clearInterval(decayInterval);
+        };
+    }, []);
+
+    return (
+        <div className="flex items-center gap-2 mb-1 w-full mt-1">
+            <div className="w-1.5 h-1.5 rounded-sm bg-brand-primary animate-pulse" />
+            <span className="text-[10px] font-mono text-text-muted tracking-wider">
+                {t('biometric.sysMon')} : <span className="text-brand-primary">{t('biometric.active')}</span>
+            </span>
+            <span className="text-[10px] font-mono text-brand-secondary ml-auto tabular-nums">
+                {t('biometric.uplink')}: {Math.round(latency)}ms
+            </span>
+        </div>
+    );
+};
+
+// ============================================================
+// 2. CORTEX_LOAD: 6 Vertical Independent Bars
+// ============================================================
+
+const CORTEX_LABELS = ['TXT', 'PIX', 'MOT', 'BGM', 'SFX', 'VEC'] as const;
+
+// Route-specific stable baselines for each media type
+//                                   TXT  PIX  MOT  BGM  SFX  VEC
+// Home: 6 image cards, GSAP entrance animation, SVG card frames, no audio
+// Projects: project titles+descriptions, thumbnails, page transitions, SVG UI
+// Music: minimal text, album art, player animation, continuous BGM, click SFX
+// Games: ROM labels, cartridge images, WebAssembly emulator (heavy), game audio
+// Synthesis: wave labels, canvas waveforms, playback animations, dense SFX triggers
+// Lab: tool labels, few images, interactive tool motion, SVG-heavy decorations
+// About: massive text (bio), radar SVG chart, minimal motion, no audio
+const getBaseTargets = (path: string) => {
+    if (path === '/' || path === '/cyber-neuro-os/') return [20, 55, 40, 10, 10, 60]; // Home
+    if (path.includes('/project')) return [70, 80, 35, 10, 10, 25]; // Work/Detail
+    if (path.includes('/lab')) return [25, 20, 65, 10, 30, 75]; // Lab
+    if (path.includes('/synthesis')) return [15, 10, 45, 10, 90, 55]; // Synthesis
+    if (path.includes('/music')) return [15, 45, 30, 90, 20, 25]; // Music
+    if (path.includes('/simulation') || path.includes('/games')) return [15, 60, 90, 55, 65, 30]; // Games
+    if (path.includes('/about')) return [90, 15, 15, 10, 10, 65]; // About
+    return [30, 30, 30, 30, 30, 30]; // Fallback
+};
+
+const CortexBarChart = () => {
+    const { t } = useTranslation();
+    const location = useLocation();
+
+    // Smooth tracked bar heights, initialized exactly to current route
+    const initialTargets = getBaseTargets(location.pathname);
+    const [bars, setBars] = useState<number[]>(initialTargets);
+
+    // Internal refs for the physics engine
+    const scrollBaseline = useRef(0);
+    const lastScrollY = useRef(0);
+    const targetsRef = useRef<number[]>(initialTargets);
+    const currentValsRef = useRef<number[]>(initialTargets);
+
+    // Track scroll velocity
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentY = window.scrollY;
+            const dy = Math.abs(currentY - lastScrollY.current);
+            scrollBaseline.current = Math.min(dy * 4, 90); // Max scroll burst addition
+            lastScrollY.current = currentY;
+        };
+
+        const decay = setInterval(() => {
+            if (scrollBaseline.current > 0) {
+                scrollBaseline.current = Math.max(0, scrollBaseline.current - 5);
+            }
+        }, 100);
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            clearInterval(decay);
+        };
+    }, []);
+
+    // Set stable base targets based on route
+    useEffect(() => {
+        const stableTargets = getBaseTargets(location.pathname);
+
+        // Add a deterministic route-transition spike (simulates loading impact)
+        const spikeOffsets = [25, 30, 20, 15, 20, 25];
+        targetsRef.current = stableTargets.map((b, i) => Math.min(100, b + spikeOffsets[i]));
+
+        // After a moment, settle down strictly to the true stable baseline
+        const settleTimer = setTimeout(() => {
+            targetsRef.current = stableTargets;
+        }, 1200);
+
+        return () => clearTimeout(settleTimer);
+    }, [location.pathname]);
+
+    // Animate bars towards targets using lerp, factoring in scroll
+    useEffect(() => {
+        let frame: number;
+
+        const animate = () => {
+            currentValsRef.current = currentValsRef.current.map((current, i) => {
+                const label = CORTEX_LABELS[i];
+                let target = targetsRef.current[i];
+
+                // Active scroll adds a dynamic load spike
+                if (scrollBaseline.current > 0) {
+                    const scrollImpact = (label === 'MOT' || label === 'PIX' || label === 'TXT')
+                        ? scrollBaseline.current
+                        : scrollBaseline.current * 0.3;
+                    target = Math.min(100, target + scrollImpact);
+                }
+
+                // Lerp towards target (no random jitter — bars are fully stable when idle)
+                const diff = target - current;
+                if (Math.abs(diff) < 0.3) return target; // Snap when close enough
+
+                const speed = scrollBaseline.current > 0 ? 0.15 : 0.05;
+                const next = current + diff * speed;
+
+                return Math.max(5, Math.min(100, next));
+            });
+
+            setBars([...currentValsRef.current]);
+            frame = requestAnimationFrame(animate);
+        };
+
+        frame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
+    const avgLoad = bars.reduce((a, b) => a + b, 0) / bars.length;
+
+    return (
+        <div className="flex flex-col gap-1.5 w-full">
+            <div className="flex justify-between items-baseline mb-1">
+                <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.cortexLoad')}</span>
+                <span className={`text-[10px] font-mono tabular-nums ${avgLoad > 60 ? 'text-amber-400' : 'text-brand-primary'}`}>
+                    {avgLoad.toFixed(1)}%
+                </span>
+            </div>
+            {/* 6 Bars container */}
+            <div className="flex items-start justify-between w-full h-[88px] px-1 mt-1 pr-3">
+                {bars.map((h, i) => (
+                    <div key={i} className="flex flex-col items-center h-full relative" style={{ width: '9%' }}>
+                        {/* Top Cap */}
+                        <div className="w-full h-[3px] bg-brand-primary/80 mb-1 flex-shrink-0" />
+
+                        {/* Bar Wrapper */}
+                        <div className="w-full flex-1 bg-brand-primary/15 relative flex items-end">
+                            {/* Filled portion */}
+                            <div
+                                className="w-full bg-brand-primary/80 transition-[height] duration-75"
+                                style={{ height: `${h}%` }}
+                            />
+                            {/* Pointer tracking the height */}
+                            <div
+                                className="absolute -right-[12px] text-[8px] text-brand-primary/80 font-mono tracking-tighter transition-[bottom] duration-75 translate-y-1/2"
+                                style={{ bottom: `${h}%` }}
+                            >
+                                &lt;-
+                            </div>
+                        </div>
+
+                        {/* Bottom Caps */}
+                        <div className="w-full h-[2px] bg-brand-primary/80 mt-1 flex-shrink-0" />
+                        <div className="w-full h-[3px] bg-brand-primary/80 mt-[2px] flex-shrink-0" />
+
+                        {/* Micro Label */}
+                        <div className="text-[7px] text-brand-primary/50 font-mono tracking-tighter mt-1 uppercase scale-90">
+                            {CORTEX_LABELS[i]}
+                        </div>
+
+                        {/* Rightmost decorator only on the last bar */}
+                        {i === 5 && (
+                            <div className="absolute top-2 bottom-6 -right-6 flex flex-col justify-between py-1">
+                                {[...Array(6)].map((_, j) => (
+                                    <div key={j} className="w-[3px] h-[3px] border border-brand-primary/60" />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// ============================================================
+// 3. SYNC_RATIO: Continuous Sine Wave 
+// ============================================================
+
+const SyncSineWave = ({ glitchRate }: { glitchRate: boolean }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const frameRef = useRef(0);
-    const offsetRef = useRef(0);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -71,302 +276,492 @@ const LiveWaveform = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const computedStyle = getComputedStyle(document.documentElement);
-        const resolvedColor = color.startsWith('var(')
-            ? computedStyle.getPropertyValue(color.slice(4, -1)).trim() || '#00F0FF'
-            : color;
-
+        const dpr = window.devicePixelRatio || 1;
         const resize = () => {
-            const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         };
-
         resize();
-        const resizeObserver = new ResizeObserver(resize);
-        resizeObserver.observe(canvas);
+        const obs = new ResizeObserver(resize);
+        obs.observe(canvas);
+
+        let animationFrame: number;
+        let phase = 0;
 
         const animate = () => {
-            const w = canvas.getBoundingClientRect().width;
-            const h = height;
-            ctx.clearRect(0, 0, w, h);
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            ctx.clearRect(0, 0, width, height);
 
-            offsetRef.current += speed * 1.5;
-            const offset = offsetRef.current;
+            // Time variables
+            phase += glitchRate ? 0.2 : 0.05;
 
             ctx.beginPath();
-            ctx.strokeStyle = resolvedColor;
-            ctx.lineWidth = 1.2;
-            ctx.globalAlpha = 0.7;
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+            ctx.lineWidth = 1.5;
 
-            const midY = h / 2;
-            const amp = (h / 2) * amplitude;
+            const midY = height / 2;
+            const amp = (height / 2) * 0.8;
+            const freq = glitchRate ? 0.08 : 0.03;
+            const startX = 22;
 
-            for (let x = 0; x < w; x++) {
-                const t = (x + offset) / w;
-                let y = midY;
+            // 1. Draw Y-axis labels
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+            ctx.font = '8px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
 
-                if (type === 'ekg') {
-                    // EKG-style: flat line with periodic sharp spikes
-                    const cycle = ((x + offset) % 120) / 120;
-                    if (cycle > 0.35 && cycle < 0.4) {
-                        y = midY - amp * 0.4 * Math.sin((cycle - 0.35) / 0.05 * Math.PI);
-                    } else if (cycle > 0.4 && cycle < 0.45) {
-                        y = midY + amp * Math.sin((cycle - 0.4) / 0.05 * Math.PI);
-                    } else if (cycle > 0.45 && cycle < 0.5) {
-                        y = midY - amp * 0.6 * Math.sin((cycle - 0.45) / 0.05 * Math.PI);
-                    } else if (cycle > 0.5 && cycle < 0.55) {
-                        y = midY + amp * 0.15 * Math.sin((cycle - 0.5) / 0.05 * Math.PI);
-                    } else {
-                        y = midY + Math.sin(t * 30) * 0.5; // tiny noise on flat sections
-                    }
-                } else if (type === 'brain') {
-                    // Brain wave: composite of alpha/beta/theta rhythms
-                    y = midY +
-                        Math.sin(t * 8 + offset * 0.01) * amp * 0.5 +     // alpha (8-12Hz)
-                        Math.sin(t * 20 + offset * 0.02) * amp * 0.25 +   // beta (13-30Hz)
-                        Math.sin(t * 3 + offset * 0.005) * amp * 0.25;    // theta (4-7Hz)
-                } else {
-                    // Clean sine
-                    y = midY + Math.sin(t * 12 + offset * 0.01) * amp;
-                }
+            const labels = [
+                { text: '1.0', y: midY - amp },
+                { text: '0.5', y: midY - amp / 2 },
+                { text: '0.5', y: midY + amp / 2 },
+                { text: '1.0', y: midY + amp }
+            ];
 
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
+            labels.forEach(l => {
+                ctx.fillText(l.text, 0, l.y);
+            });
 
+            // 2. Draw Ticks and Center Line
+            ctx.beginPath();
+            labels.forEach(l => {
+                ctx.moveTo(17, l.y);
+                ctx.lineTo(20, l.y);
+            });
+            // center line from tick to end
+            ctx.moveTo(17, midY);
+            ctx.lineTo(width, midY);
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
+            ctx.lineWidth = 1;
             ctx.stroke();
 
-            // Trailing glow at the right edge (current readout point)
-            const glowX = w - 2;
-            const lastY = midY; // approximate
+            // 3. Draw the Sine Wave (Beat frequency for amplitude modulation)
             ctx.beginPath();
-            ctx.arc(glowX, lastY, 2, 0, Math.PI * 2);
-            ctx.fillStyle = resolvedColor;
-            ctx.globalAlpha = 0.9;
-            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+            ctx.lineWidth = 1.5;
 
-            // Glow halo
+            const getWaveY = (x: number) => {
+                const wave1 = Math.sin((x - startX) * freq + phase * 1.5);
+                const wave2 = Math.sin((x - startX) * (freq * 1.15) + phase * 1.5);
+                return midY + ((wave1 + wave2) / 2) * amp; // Beating effect
+            };
+
+            for (let x = startX; x < width; x++) {
+                let y = getWaveY(x);
+
+                // Add micro-noise during glitch
+                if (glitchRate) {
+                    y += (Math.random() - 0.5) * 4;
+                    // Horizontal slice breaks occasionally
+                    if (Math.random() > 0.98) continue;
+                }
+
+                if (x === startX) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // 4. Glow line on top
             ctx.beginPath();
-            ctx.arc(glowX, lastY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = resolvedColor;
-            ctx.globalAlpha = 0.15;
-            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.9)';
+            ctx.lineWidth = 0.5;
+            for (let x = startX; x < width; x++) {
+                const y = getWaveY(x);
+                if (x === startX) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
 
-            ctx.globalAlpha = 1;
-            frameRef.current = requestAnimationFrame(animate);
+            animationFrame = requestAnimationFrame(animate);
         };
 
-        frameRef.current = requestAnimationFrame(animate);
-
+        animate();
         return () => {
-            cancelAnimationFrame(frameRef.current);
-            resizeObserver.disconnect();
+            cancelAnimationFrame(animationFrame);
+            obs.disconnect();
         };
-    }, [height, color, speed, amplitude, type]);
+    }, [glitchRate]);
 
-    return (
-        <canvas
-            ref={canvasRef}
-            className="w-full"
-            style={{ height: `${height}px` }}
-        />
-    );
+    return <canvas ref={canvasRef} className="w-full h-20" />;
 };
 
-// ============================================================
-// Mini bar chart with live animation
-// ============================================================
+const SyncRatio = () => {
+    const { t } = useTranslation();
+    const location = useLocation();
+    const [glitching, setGlitching] = useState(false);
+    const syncVal = useDriftValue(98.1, 99.9, 0.3);
 
-const LiveBarChart = ({ value, segments = 8 }: { value: number; segments?: number }) => {
-    const [bars, setBars] = useState<number[]>([]);
-
+    // Glitch on route change
     useEffect(() => {
-        let frame: number;
-        const animate = () => {
-            const t = Date.now() / 1000;
-            const newBars = Array.from({ length: segments }, (_, i) => {
-                const phase = i * 0.7;
-                const wave =
-                    Math.sin(t * 1.5 + phase) * 0.3 +
-                    Math.sin(t * 0.8 + phase * 1.5) * 0.4 +
-                    Math.sin(t * 2.5 + phase * 0.3) * 0.3;
-                return Math.max(0.05, Math.min(1, (wave + 1) / 2 * (value / 100) * 1.5));
-            });
-            setBars(newBars);
-            frame = requestAnimationFrame(animate);
-        };
-        frame = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(frame);
-    }, [value, segments]);
+        setGlitching(true);
+        const timer = setTimeout(() => setGlitching(false), 1200);
+        return () => clearTimeout(timer);
+    }, [location.pathname]);
 
     return (
-        <div className="w-full h-5 flex items-end gap-[2px]">
-            {bars.map((h, i) => (
-                <div
-                    key={i}
-                    className="flex-1 bg-brand-primary/50 transition-[height] duration-150"
-                    style={{ height: `${h * 100}%` }}
-                />
-            ))}
+        <div className="flex flex-col gap-1.5 w-full">
+            <div className="flex justify-between items-baseline">
+                <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.syncRatio')}</span>
+                <span className={`text-[10px] font-mono tabular-nums ${glitching ? 'text-amber-400 animate-pulse' : 'text-brand-primary'}`}>
+                    {glitching ? t('biometric.aligning') : `${syncVal.toFixed(2)}%`}
+                </span>
+            </div>
+            <SyncSineWave glitchRate={glitching} />
         </div>
     );
 };
+
+// ============================================================
+// 4. COGNITIVE_LOAD: Hexagon Dual Row Grid (Static indicator)
+// ============================================================
+
+const Hexagon = ({ state }: { state: 'active' | 'filled' | 'empty' }) => {
+    const isAct = state === 'active';
+    const isFil = state === 'filled';
+
+    const outerClass = isAct
+        ? 'stroke-white'
+        : isFil
+            ? 'stroke-white/80'
+            : 'stroke-white/30';
+
+    const innerClass = isAct
+        ? 'fill-white'
+        : isFil
+            ? 'fill-white/40'
+            : 'fill-white/10';
+
+    return (
+        <svg width="36" height="12" viewBox="0 0 36 12" className="inline-block flex-shrink-0">
+            {/* Outer Ring */}
+            <polygon
+                points="1,6 8,1 28,1 35,6 28,11 8,11"
+                className={`fill-transparent ${outerClass} stroke-[1.5px] transition-colors duration-1000`}
+                strokeLinejoin="round"
+            />
+            {/* Inner Core */}
+            <polygon
+                points="5,6 10,3 26,3 31,6 26,9 10,9"
+                className={`${innerClass} transition-colors duration-1000`}
+            />
+        </svg>
+    );
+};
+
+const CognitiveLoad = () => {
+    const { t } = useTranslation();
+    const totalHexes = 16;
+    const filledHexes = 10;
+
+    // Define the stagger pattern based on reference (wide 3 rows)
+    const rows = [
+        { count: 5, dots: true },
+        { count: 6, dots: false },
+        { count: 5, dots: true },
+    ];
+
+    let currentIdx = 0;
+
+    return (
+        <div className="flex flex-col gap-1.5 w-full">
+            <div className="flex justify-between items-baseline mb-1">
+                <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.cogLoad')}</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-[8px] font-mono text-text-muted">{t('biometric.archiveCap')}</span>
+                    <span className="text-[10px] font-mono text-brand-primary/70">
+                        {filledHexes}/{totalHexes}
+                    </span>
+                </div>
+            </div>
+
+            {/* Hexagon Grid Container */}
+            <div className="relative w-full py-1 flex items-center justify-center scale-95 origin-center -ml-2">
+                <div className="flex flex-col gap-[1px]">
+                    {rows.map((r, rowIdx) => {
+                        const cols = [];
+                        for (let i = 0; i < r.count; i++) {
+                            const idx = currentIdx++;
+                            const isFilled = idx < filledHexes;
+                            // Match a few active/white states from the design
+                            const isActive = idx === 4 || idx === 8 || idx === 11 || idx === 14;
+
+                            cols.push(
+                                <Hexagon key={idx} state={isActive ? 'active' : isFilled ? 'filled' : 'empty'} />
+                            );
+                        }
+                        return (
+                            <div key={rowIdx} className="flex items-center justify-center gap-[4px] w-full">
+                                {r.dots && <div className="w-[3px] h-[3px] bg-white/60 rotate-45 mr-1" />}
+                                {cols}
+                                {r.dots && <div className="w-[3px] h-[3px] bg-white/60 rotate-45 ml-1" />}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ============================================================
+// 5. VITALS & TEMP: Spiky Area Chart connected to hovering
+// ============================================================
+
+const VitalsAreaChart = ({ stressLevel }: { stressLevel: number }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const historyRef = useRef<number[]>(new Array(40).fill(0));
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const resize = () => {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+        resize();
+        // Skip observer here since parent handles width usually, but just in case
+        window.addEventListener('resize', resize);
+
+        let animationFrame: number;
+        let tick = 0;
+
+        const animate = () => {
+            tick++;
+            // Push new data point every few frames to simulate chart moving left
+            if (tick % 5 === 0) {
+                // Generate next point based on stress level
+                // 0 is bottom, 1 is peak
+                let nextVal = 0;
+                if (Math.random() < stressLevel) {
+                    // Create a sharp spike based on stress
+                    nextVal = 0.2 + Math.random() * 0.8;
+                } else {
+                    // Small ambient noise
+                    nextVal = Math.random() * 0.1;
+                }
+
+                historyRef.current.shift();
+                historyRef.current.push(nextVal);
+            }
+
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw dot grid background
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
+            for (let gx = 10; gx < width; gx += 15) {
+                for (let gy = 10; gy < height; gy += 15) {
+                    ctx.fillRect(gx, gy, 1, 1);
+                }
+            }
+
+            // Draw Area Chart
+            const step = width / (historyRef.current.length - 1);
+
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+
+            historyRef.current.forEach((val, i) => {
+                const x = i * step;
+                const y = height - (val * height * 0.85) - 2; // Keep slightly off bottom
+                ctx.lineTo(x, y);
+            });
+
+            ctx.lineTo(width, height);
+            ctx.closePath();
+
+            // Gradient Fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, 'rgba(0, 240, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 240, 255, 0.05)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // Sharp Top Stroke
+            ctx.beginPath();
+            historyRef.current.forEach((val, i) => {
+                const x = i * step;
+                const y = height - (val * height * 0.85) - 2;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.9)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Base line dashed
+            ctx.beginPath();
+            ctx.setLineDash([10, 5, 2, 5]);
+            ctx.moveTo(0, height - 1);
+            ctx.lineTo(width, height - 1);
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            animationFrame = requestAnimationFrame(animate);
+        };
+
+        animate();
+        return () => {
+            cancelAnimationFrame(animationFrame);
+            window.removeEventListener('resize', resize);
+        };
+    }, [stressLevel]);
+
+    return <canvas ref={canvasRef} className="w-full h-16 border-b border-brand-primary/20" />;
+};
+
+const VitalsTempMonitor = () => {
+    const { t } = useTranslation();
+    const [bpm, setBpm] = useState(68);
+    const [temp, setTemp] = useState(36.5);
+    const [stressRate, setStressRate] = useState(0.05); // Chance of sharp spike
+    const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Track active session time for temp rise
+    useEffect(() => {
+        const start = Date.now();
+        const iv = setInterval(() => {
+            const minutes = (Date.now() - start) / 60000;
+            const newTemp = 36.5 + Math.min(minutes * 0.05, 2.4); // max 38.9
+            setTemp(newTemp);
+        }, 10000);
+        return () => clearInterval(iv);
+    }, []);
+
+    // Track hovers/clicks globally for Heart Rate
+    useEffect(() => {
+        let isClicking = false;
+
+        const handleStressClick = () => {
+            isClicking = true;
+            setBpm(115 + Math.random() * 15);
+            setStressRate(0.8); // Very high chance of sharp spikes
+            if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+        };
+
+        const handleStressHover = () => {
+            if (isClicking) return;
+            setBpm(85 + Math.random() * 10);
+            setStressRate(0.2); // Medium, occasional spikes
+            if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+        };
+
+        const handleStressOff = () => {
+            isClicking = false;
+            hoverTimeoutRef.current = setTimeout(() => {
+                setBpm(65 + Math.random() * 5); // back to baseline
+                setStressRate(0.05); // low ambient noise
+            }, 600);
+        };
+
+        // Attach listeners to interactive elements
+        const handleMouseOver = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('button, a, [role="button"], input, .interactive-el')) {
+                handleStressHover();
+            }
+        };
+
+        const handleMouseOut = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('button, a, [role="button"], input, .interactive-el')) {
+                handleStressOff();
+            }
+        };
+
+        const handleGlobalMouseDown = () => {
+            handleStressClick();
+        }
+
+        const handleGlobalMouseUp = () => {
+            handleStressOff();
+        }
+
+        document.addEventListener('mouseover', handleMouseOver);
+        document.addEventListener('mouseout', handleMouseOut);
+        document.addEventListener('mousedown', handleGlobalMouseDown);
+        document.addEventListener('mouseup', handleGlobalMouseUp);
+
+        return () => {
+            document.removeEventListener('mouseover', handleMouseOver);
+            document.removeEventListener('mouseout', handleMouseOut);
+            document.removeEventListener('mousedown', handleGlobalMouseDown);
+            document.removeEventListener('mouseup', handleGlobalMouseUp);
+        };
+    }, []);
+
+    // Ambient floating of baseline BPM
+    useEffect(() => {
+        const ambient = setInterval(() => {
+            if (stressRate < 0.1) {
+                setBpm(prev => prev + (Math.random() - 0.5) * 3);
+            }
+        }, 2000);
+        return () => clearInterval(ambient);
+    }, [stressRate]);
+
+    return (
+        <div className="mt-auto mb-2 flex flex-col w-full relative pt-2">
+            <div className="flex justify-between items-end mb-2">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.coreTemp')}</span>
+                    <span className={`text-[11px] font-mono tabular-nums ${temp > 38 ? 'text-amber-400' : 'text-brand-primary/80'}`}>
+                        {temp.toFixed(1)}°C
+                    </span>
+                </div>
+
+                <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-mono text-text-muted">{t('biometric.vitals')}</span>
+                    <span className={`text-[12px] font-mono tabular-nums ${stressRate > 0.3 ? 'text-brand-primary animate-pulse' : 'text-brand-primary'}`}>
+                        {bpm.toFixed(0)} <span className="text-[9px]">BPM</span>
+                    </span>
+                </div>
+            </div>
+
+            <VitalsAreaChart stressLevel={stressRate} />
+        </div>
+    );
+};
+
 
 // ============================================================
 // Main Component
 // ============================================================
 
 export const BiometricMonitor = () => {
-    const { t } = useTranslation();
-
-    // Living metric values that drift organically
-    const cortexLoad = useDriftValue(28, 62, 0.8);
-    const syncRate = useDriftValue(94, 99.8, 0.3);
-    const neuralFreq = useDriftValue(8.2, 13.1, 0.5); // Alpha wave range (Hz)
-    const stressLevel = useDriftValue(5, 25, 0.6);
-    const energyLevel = useDriftValue(55, 85, 0.2);
-    const heartRate = useDriftValue(64, 78, 0.4);
-
-    // Occasional micro-glitch
-    const [glitch, setGlitch] = useState(false);
-    useEffect(() => {
-        const iv = setInterval(() => {
-            if (Math.random() > 0.8) {
-                setGlitch(true);
-                setTimeout(() => setGlitch(false), 150 + Math.random() * 100);
-            }
-        }, 4000 + Math.random() * 3000);
-        return () => clearInterval(iv);
-    }, []);
-
-    // Time-based status text
-    const getTimeStatus = useCallback(() => {
-        const h = new Date().getHours();
-        if (h >= 23 || h < 6) return { text: t('biometric.deepRest'), color: 'text-blue-400' };
-        if (h >= 6 && h < 9) return { text: t('biometric.bootSeq'), color: 'text-amber-400' };
-        if (h >= 9 && h < 12) return { text: t('biometric.peakFocus'), color: 'text-green-400' };
-        if (h >= 12 && h < 14) return { text: t('biometric.recharge'), color: 'text-amber-400' };
-        if (h >= 14 && h < 18) return { text: t('biometric.active'), color: 'text-brand-primary' };
-        return { text: t('biometric.windDown'), color: 'text-purple-400' };
-    }, [t]);
-
-    const timeStatus = getTimeStatus();
-
-    const energySegments = 5;
-    const filledSegments = Math.round((energyLevel / 100) * energySegments);
-
     return (
         <div className="flex flex-col h-full w-full relative overflow-hidden px-4">
 
-            {/* Header */}
-            <div className="mb-5 flex flex-col gap-1 relative z-10">
-                <div className="flex items-center justify-between">
-                    <GhostText className="text-[10px] tracking-[0.2em] text-text-muted uppercase">
-                        {t('biometric.sysMon')}
-                    </GhostText>
-                    <span className={`text-[9px] font-mono ${timeStatus.color} tracking-wider`}>
-                        {timeStatus.text}
-                    </span>
-                </div>
-                <div className="h-[1px] w-full bg-gradient-to-r from-brand-primary/50 via-brand-primary/20 to-transparent" />
-            </div>
+            {/* Header Line - Keeps structure tight */}
+            <div className="w-full h-[1px] bg-gradient-to-r from-brand-primary/40 to-transparent mt-1 mb-3" />
 
-            {/* Modules Container */}
-            <div className="flex flex-col gap-5 lg:gap-6 flex-1 relative z-10 w-full">
+            <div className="flex flex-col gap-6 lg:gap-8 flex-1 relative z-10 w-full">
 
-                {/* 1. CORTEX — Neural processing load with live waveform */}
-                <div className="flex flex-col gap-1.5 w-full">
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.cortex')}</span>
-                        <span className={`text-[10px] font-mono tabular-nums ${cortexLoad > 50 ? 'text-amber-400' : 'text-brand-primary'}`}>
-                            {cortexLoad.toFixed(1)}%
-                        </span>
-                    </div>
-                    <LiveBarChart value={cortexLoad} segments={10} />
-                </div>
+                {/* 1. Global / Telemetry */}
+                <TelemetryTracker />
 
-                {/* 2. SYNC — Neural synchronization rate + brain wave */}
-                <div className="flex flex-col gap-1.5 w-full">
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.sync')}</span>
-                        <span className="text-[10px] font-mono text-brand-primary tabular-nums">
-                            {syncRate.toFixed(1)}%
-                        </span>
-                    </div>
-                    <div className="w-full border border-brand-primary/15 bg-brand-primary/[0.03] overflow-hidden">
-                        <LiveWaveform height={24} type="brain" speed={0.8} amplitude={0.55} />
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-[8px] font-mono text-text-muted">α {neuralFreq.toFixed(1)}Hz</span>
-                        <span className={`text-[8px] font-mono ${glitch ? 'text-red-400' : 'text-green-400/60'}`}>
-                            {glitch ? t('biometric.jitter') : t('biometric.stable')}
-                        </span>
-                    </div>
-                </div>
+                {/* 2. Cortex Load (CPU / Scroll mapping) */}
+                <CortexBarChart />
 
-                {/* 3. STRESS — Psychological load indicator */}
-                <div className="flex flex-col gap-1.5 w-full">
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.stress')}</span>
-                        <span className={`text-[10px] font-mono tabular-nums ${stressLevel > 18 ? 'text-amber-400' : 'text-brand-secondary/70'}`}>
-                            {stressLevel.toFixed(0)}%
-                        </span>
-                    </div>
-                    {/* Thin stress bar with gradient color shift */}
-                    <div className="w-full h-1 bg-brand-secondary/10 relative overflow-hidden">
-                        <div
-                            className="h-full transition-all duration-1000 ease-out"
-                            style={{
-                                width: `${stressLevel}%`,
-                                background: stressLevel > 18
-                                    ? 'linear-gradient(90deg, var(--color-brand-secondary), #fbbf24)'
-                                    : 'var(--color-brand-secondary)',
-                                opacity: 0.6,
-                            }}
-                        />
-                    </div>
-                </div>
+                {/* 3. Sync Ratio (Network / Smooth wave) */}
+                <SyncRatio />
 
-                {/* 4. ENERGY — Battery-style segmented gauge */}
-                <div className="flex flex-col gap-1.5 w-full">
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.energy')}</span>
-                        <span className="text-[10px] font-mono text-brand-primary/60 tabular-nums">
-                            {energyLevel.toFixed(0)}%
-                        </span>
-                    </div>
-                    <div className="flex gap-[2px] w-full h-2.5">
-                        {Array.from({ length: energySegments }, (_, i) => {
-                            const isFilled = i < filledSegments;
-                            const isEdge = i === filledSegments - 1;
-                            return (
-                                <div
-                                    key={i}
-                                    className={`h-full flex-1 border transition-all duration-700 ${isFilled
-                                        ? `border-brand-primary/40 bg-brand-primary/35 ${isEdge ? 'animate-pulse' : ''}`
-                                        : 'border-brand-primary/15 bg-transparent'
-                                        }`}
-                                />
-                            );
-                        })}
-                    </div>
-                </div>
+                {/* 4. Cognitive Load (Memory / Hexagon Grid) */}
+                <CognitiveLoad />
 
-                {/* 5. VITALS — Live EKG heartbeat */}
-                <div className="mt-auto mb-6 flex flex-col gap-1.5 pt-3 border-t border-brand-primary/10">
-                    <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-mono text-text-muted">{t('biometric.vitals')}</span>
-                        <span className="text-[10px] font-mono text-brand-primary tabular-nums">
-                            ♥ <span className="animate-heartbeat">{heartRate.toFixed(0)}</span> BPM
-                        </span>
-                    </div>
-                    <div className="w-full overflow-hidden border border-brand-primary/10 bg-brand-primary/[0.02]">
-                        <LiveWaveform height={28} type="ekg" speed={1.2} amplitude={0.7} />
-                    </div>
-                </div>
+                {/* 5. Vitals & Temp (Area chart / Hover spiking) */}
+                <VitalsTempMonitor />
 
             </div>
         </div>

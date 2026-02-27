@@ -5,16 +5,18 @@ export interface LabApp {
     image: string;
     componentType: string; // Identifier for when real components are loaded
     status: 'ACTIVE' | 'ARCHIVED' | 'DEVELOPMENT';
+    iframeUrl?: string; // Optional URL for embedding the app via iframe
 }
 
 export const labApps: LabApp[] = [
     {
-        id: 'color-decoder',
-        titleKey: 'lab.apps.colorDecoder.title',
-        descKey: 'lab.apps.colorDecoder.desc',
-        image: '/images/features/lab_active.png',
-        componentType: 'ColorDecoder',
-        status: 'ACTIVE'
+        id: 'avatar-generator',
+        titleKey: 'lab.apps.avatarGenerator.title',
+        descKey: 'lab.apps.avatarGenerator.desc',
+        image: '/images/features/Lab_active.png',
+        componentType: 'AvatarGenerator',
+        status: 'ACTIVE',
+        iframeUrl: 'https://avatar-generator-ruby.vercel.app/'
     },
     {
         id: 'hash-generator',

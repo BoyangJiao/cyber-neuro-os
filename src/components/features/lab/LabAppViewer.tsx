@@ -10,11 +10,18 @@ interface LabAppViewerProps {
 export const LabAppViewer = ({ app }: LabAppViewerProps) => {
     const { t } = useTranslation();
 
-    return (
-        <div className="w-full flex flex-col md:flex-row gap-8 lg:gap-16 items-center md:items-start justify-center min-h-[60vh]">
+    const handleLaunch = () => {
+        if (app.iframeUrl) {
+            window.open(app.iframeUrl, '_blank', 'noopener,noreferrer');
+        } else {
+            console.log(`Launch ${app.componentType}`);
+        }
+    };
 
-            {/* Left Side: Visual Card (3D Card Mode) */}
-            <div className="w-[280px] lg:w-[360px] shrink-0 aspect-[3/4] relative z-20">
+    return (
+        <div className="w-full h-full flex flex-row items-stretch gap-6 lg:gap-10 xl:gap-14">
+            {/* Left Side: Visual Card (3D Card Mode) — shrinks aggressively on narrow viewports */}
+            <div className="shrink w-[200px] lg:w-[260px] xl:w-[320px] min-w-[160px] aspect-[3/4] relative z-20 self-center">
                 <HoloFeatureCard
                     title={""}
                     icon={app.image}
@@ -22,33 +29,32 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
                 />
             </div>
 
-            {/* Right Side: Information Panel */}
-            <div className="flex-1 w-full md:max-w-xl flex flex-col justify-start relative min-w-[300px]">
+            {/* Right Side: Information Panel — takes priority for content readability */}
+            <div className="flex-1 min-w-[280px] flex flex-col justify-center relative py-2 overflow-hidden">
+                <div className="flex flex-col gap-3 lg:gap-4">
+                    {/* Status Line */}
+                    <span className="text-[10px] md:text-xs font-mono tracking-widest text-text-secondary uppercase">
+                        STATUS: {app.status}
+                    </span>
 
-                <div className="mb-6 pb-2">
-                    <div className="flex flex-col gap-6">
-                        {/* Title Header */}
-                        <div className="flex flex-col gap-2">
-                            <span className="text-[10px] md:text-xs font-mono tracking-widest text-text-secondary uppercase">
-                                STATUS: {app.status}
-                            </span>
-                            <h2 className="text-3xl lg:text-4xl font-display tracking-[0.1em] text-brand-primary uppercase leading-tight font-bold">
-                                {t(app.titleKey)}
-                            </h2>
-                        </div>
+                    {/* Title */}
+                    <h2 className="text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-display tracking-[0.1em] text-brand-primary uppercase leading-tight font-bold">
+                        {t(app.titleKey)}
+                    </h2>
 
-                        {/* Description Text */}
-                        <p className="text-sm lg:text-base font-mono tracking-wider text-status-error leading-relaxed opacity-90 text-left">
-                            {t(app.descKey)}
-                        </p>
-                    </div>
+                    {/* Description */}
+                    <p className="text-xs lg:text-sm font-mono tracking-wider text-status-error leading-relaxed opacity-90 text-left line-clamp-5">
+                        {t(app.descKey)}
+                    </p>
                 </div>
 
-                <div className="mt-2 flex justify-start">
+                {/* Launch Button */}
+                <div className="mt-4 lg:mt-6 flex justify-start">
                     <CyberButton
                         variant="chamfer"
-                        onClick={() => console.log(`Launch ${app.componentType}`)}
-                        className="w-full sm:w-auto min-w-[200px] text-base py-3 border-brand-primary/50 text-brand-primary hover:bg-brand-primary hover:text-black transition-all"
+                        onClick={handleLaunch}
+                        icon={<i className="ri-external-link-line" />}
+                        className="w-full sm:w-auto min-w-[160px] text-sm py-2.5 border-brand-primary/50 text-brand-primary hover:bg-brand-primary hover:text-black transition-all"
                         disabled={app.status !== 'ACTIVE'}
                     >
                         {app.status === 'ACTIVE' ? t('lab.launchApp') : 'SYSTEM OFFLINE'}
@@ -56,7 +62,7 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
                 </div>
 
                 {/* System Specs Footer */}
-                <div className="mt-16 flex flex-col gap-2 opacity-50">
+                <div className="mt-6 lg:mt-10 flex flex-col gap-1 opacity-40">
                     <span className="text-[10px] font-mono tracking-widest text-text-muted uppercase">
                         APP_ID: {app.id.toUpperCase()}
                     </span>
@@ -65,7 +71,6 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
                     </span>
                 </div>
             </div>
-
         </div>
     );
 };

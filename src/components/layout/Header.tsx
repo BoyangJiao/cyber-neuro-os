@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CyberLine } from '../ui/CyberLine';
 import { GhostText } from '../ui/GhostText';
+import { NeuralLogo } from '../ui/NeuralLogo';
 import { useTranslation } from '../../i18n';
 
 const formatTime = (date: Date) => {
@@ -28,12 +29,13 @@ export const Header = () => {
 
     return (
         <header className="relative z-50 flex-none w-full">
-            <div className="flex items-center justify-between px-4 lg:px-6 xl:px-10 2xl:px-12 pt-4 2xl:pt-5 pb-2 2xl:pb-3 w-full">
+            <div className="flex items-center justify-between px-4 lg:px-6 xl:px-8 2xl:px-10 pt-4 2xl:pt-5 pb-2 2xl:pb-3 w-full">
                 {/* Left: Branding - Clickable */}
                 <div
-                    className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-2 2xl:gap-3 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => navigate('/')}
                 >
+                    <NeuralLogo size={28} className="hidden sm:inline-flex 2xl:!w-[34px] 2xl:!h-[34px]" />
                     <h1 className="relative text-[16px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
                         {/* Main Text Layer */}
                         <span className="relative z-10 text-brand-primary">
@@ -70,8 +72,8 @@ export const Header = () => {
                 </div>
             </div>
 
-            {/* Header Decorative Bottom Line - Full Width */}
-            <div className="absolute bottom-0 left-0 right-0 mx-6 2xl:mx-10">
+            {/* Header Decorative Bottom Line - Aligned with padding */}
+            <div className="absolute bottom-0 left-0 right-0 mx-4 lg:mx-6 xl:mx-8 2xl:mx-10">
                 <CyberLine variant="surface" className="w-full" />
             </div>
         </header>

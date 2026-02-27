@@ -1,12 +1,16 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense, memo } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { MotionDiv, MotionH1 } from '../motion/MotionWrappers';
 import { CyberButton } from '../ui/CyberButton';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AnimatePresence } from 'framer-motion';
 import { HelmetReveal } from '../three/HelmetReveal';
+import { DatastreamEdgeLeft } from './DatastreamEdgeLeft';
+import { DatastreamEdgeRight } from './DatastreamEdgeRight';
+import { BadgeProtocol } from './BadgeProtocol';
+import { BinaryGrid } from './BinaryGrid';
 
-// Neural sync status messages
+// ─── Module-level constants (never re-created) ──────────────────────────────
 const BOOT_LOGS = [
     "INITIALIZING NEURO-LINK PROTOCOL...",
     "SCANNING NEURAL PATHWAYS...",
@@ -16,10 +20,82 @@ const BOOT_LOGS = [
     "MAPPING CONSCIOUSNESS GRID...",
     "LOADING HOLOGRAPHIC OVERLAY...",
     "NEURAL SYNC COMPLETE."
+] as const;
+
+const BINARY_CHARS = "1234567890ABCDEF";
+
+type BinaryDataItem = { prefix: string; id: string; val: string; node: string };
+
+const BINARY_INITIAL_DATA: BinaryDataItem[] = [
+    { prefix: "0x", id: "4655.4", val: "0.1458", node: "2" },
+    { prefix: "3x", id: "25604", val: "0.44  ", node: "4" },
+    { prefix: "0x", id: "93743", val: "0.4452", node: "1" }
 ];
+
+// ─── Custom hook: rolling binary/hex data (optimized interval 150ms) ─────────
+const useBinaryDecoding = (progress: number, isReady: boolean) => {
+    const [data, setData] = useState([...BINARY_INITIAL_DATA]);
+    const progressRef = useRef(progress);
+    useEffect(() => { progressRef.current = progress; }, [progress]);
+
+    useEffect(() => {
+        if (isReady) return;
+        const interval = setInterval(() => {
+            setData(prev => prev.map(item => ({
+                ...item,
+                id: Array.from({ length: item.id.length }, () => BINARY_CHARS[Math.floor(Math.random() * BINARY_CHARS.length)]).join(""),
+                val: (Math.random() * (progressRef.current / 100 + 0.1)).toFixed(4),
+                node: Math.floor(Math.random() * 9).toString()
+            })));
+        }, 150); // Reduced from 80ms → 150ms (visual difference negligible, ~40% fewer renders)
+        return () => clearInterval(interval);
+    }, [isReady]);
+
+    return data;
+};
+
+// ─── Memoized corner decoration component ────────────────────────────────────
+const BootCorner = memo(({ isReady, position, ghostOffset = "" }: { isReady: boolean; position: string; ghostOffset?: string }) => {
+    return (
+        <div className={`absolute z-20 w-4 h-4 flex items-center justify-center transition-all duration-700 ${position}`}>
+            <AnimatePresence mode="wait">
+                {!isReady ? (
+                    <MotionDiv
+                        key="dot"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.5 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        className="w-2 h-2 bg-white"
+                    />
+                ) : (
+                    <MotionDiv
+                        key="target"
+                        initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="absolute inset-0 flex items-center justify-center"
+                    >
+                        {/* Main crosshair */}
+                        <div className="absolute z-10 w-4 h-4 flex items-center justify-center">
+                            <div className="absolute w-[1.5px] h-full bg-white/90" />
+                            <div className="absolute h-[1.5px] w-full bg-white/90" />
+                        </div>
+                        {/* Ghost / Afterimage layer - Adjustable via ghostOffset prop */}
+                        <div className={`absolute z-0 w-4 h-4 flex items-center justify-center opacity-40 blur-[1px] pointer-events-none ${ghostOffset}`}>
+                            <div className="absolute w-[1.5px] h-full bg-white" />
+                            <div className="absolute h-[1.5px] w-full bg-white" />
+                        </div>
+                    </MotionDiv>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+});
 
 export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
     const [progress, setProgress] = useState(0);
+    const binaryData = useBinaryDecoding(progress, progress === 100);
     const [logIndex, setLogIndex] = useState(0);
     const [isReady, setIsReady] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
@@ -27,8 +103,18 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
     const { setLanguage } = useLanguage();
     const { setVolume, play, pause } = useMusicStore();
 
+    // Memoize date string — never changes during boot lifecycle
+    const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+    // Pre-compute visible terminal logs to avoid repeated slice calls in JSX
+    const visibleLogs = useMemo(() => {
+        const allVisible = BOOT_LOGS.slice(0, logIndex + 1);
+        return allVisible.slice(-5);
+    }, [logIndex]);
+
+    // Boot progress timer
     useEffect(() => {
-        const totalDuration = 5000; // Longer for dramatic effect
+        const totalDuration = 5000;
         const interval = 50;
         const totalSteps = totalDuration / interval;
         let step = 0;
@@ -54,30 +140,34 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         return () => clearInterval(timer);
     }, []);
 
-    const handleEnter = () => {
+    // Volume fade-in using requestAnimationFrame for smoother, fewer state updates
+    const handleEnter = useCallback(() => {
         if (soundEnabled) {
             setVolume(0);
             play();
             const targetVol = 75;
             const duration = 5000;
-            const steps = 50;
-            const stepTime = duration / steps;
-            const increment = targetVol / steps;
-            let currentVol = 0;
-            const fadeTimer = setInterval(() => {
-                currentVol += increment;
-                if (currentVol >= targetVol) {
-                    currentVol = targetVol;
-                    clearInterval(fadeTimer);
-                }
+            let startTime: number | null = null;
+
+            const fadeStep = (timestamp: number) => {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const currentVol = Math.min((elapsed / duration) * targetVol, targetVol);
                 setVolume(currentVol);
-            }, stepTime);
+                if (elapsed < duration) {
+                    requestAnimationFrame(fadeStep);
+                }
+            };
+            requestAnimationFrame(fadeStep);
         } else {
             setVolume(0);
             pause();
         }
         onComplete();
-    };
+    }, [soundEnabled, setVolume, play, pause, onComplete]);
+
+    // Scanline opacity: fade out near bottom edge to prevent overflow
+    const scanlineOpacity = progress > 0 ? (progress > 95 ? Math.max(0, (100 - progress) / 5) : 1) : 0;
 
     return (
         <MotionDiv
@@ -108,13 +198,15 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                     </Suspense>
                 </div>
 
-                {/* Scan line overlay - sweeps down with progress */}
+                {/* Scan line overlay - sweeps down with progress, fades near bottom */}
                 {progress < 100 && (
                     <div
-                        className="absolute left-0 w-full z-[5] pointer-events-none transition-opacity duration-300"
+                        className="absolute left-[20px] lg:left-[40px] xl:left-[40px] right-[20px] lg:right-[40px] xl:right-[40px] z-[5] pointer-events-none transition-opacity duration-300"
                         style={{
-                            top: `${progress}%`,
-                            opacity: progress > 0 ? 1 : 0,
+                            top: `${Math.min(progress, 98)}%`,
+                            opacity: scanlineOpacity,
+                            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.8) 30%, black 50%, rgba(0,0,0,0.8) 70%, transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.8) 30%, black 50%, rgba(0,0,0,0.8) 70%, transparent 100%)'
                         }}
                     >
                         {/* Main bright line */}
@@ -129,21 +221,56 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                 {/* HUD Overlay - Positioned over 3D scene */}
                 <div className="absolute inset-0 z-10 flex flex-col pointer-events-none">
 
+                    {/* Edge Rulers */}
+                    <div className="absolute left-0 top-0 bottom-0 px-2 py-0 opacity-80 mix-blend-screen pointer-events-none overflow-hidden flex items-center">
+                        <DatastreamEdgeLeft isBooting={!isReady} className="h-[100vh] w-auto pointer-events-none object-left object-contain" />
+                    </div>
+                    <div className="absolute right-0 top-0 bottom-0 px-2 py-0 opacity-80 mix-blend-screen pointer-events-none overflow-hidden flex items-center">
+                        <DatastreamEdgeRight isBooting={!isReady} className="h-[100vh] w-auto pointer-events-none object-right object-contain" />
+                    </div>
+
                     {/* Top HUD Bar */}
-                    <div className="flex justify-between items-start p-8 pointer-events-auto">
-                        {/* Left: Title */}
-                        <div>
-                            <MotionH1
-                                className="text-3xl lg:text-5xl font-display font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-brand-primary via-white to-brand-primary drop-shadow-[0_0_30px_var(--color-brand-glow)]"
-                                initial={{ opacity: 0, x: -30 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.8 }}
+                    <div className="absolute top-0 left-0 w-full flex justify-between items-start pt-8 px-10 lg:px-14 xl:px-16 pointer-events-auto">
+                        {/* Left: Title & Badge */}
+                        <div className="flex flex-col">
+                            <div>
+                                <MotionH1
+                                    className="text-2xl lg:text-4xl font-display font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-brand-primary via-white to-brand-primary drop-shadow-[0_0_30px_var(--color-brand-glow)]"
+                                    initial={{ opacity: 0, x: -30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.8 }}
+                                >
+                                    NEURO.OS
+                                </MotionH1>
+                                <p className="text-xs text-brand-secondary tracking-[0.5em] mt-2 opacity-60">
+                                    BOYANG JIAO v1.0.0 // NEURAL TERMINAL
+                                </p>
+                            </div>
+
+                            {/* Protocol Badge */}
+                            <MotionDiv
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.8 }}
+                                className="flex items-start gap-[12px] mt-10 opacity-90"
                             >
-                                NEURO.OS
-                            </MotionH1>
-                            <p className="text-xs text-brand-secondary tracking-[0.5em] mt-2 opacity-60">
-                                BOYANG JIAO v1.0.0 // NEURAL INTERFACE
-                            </p>
+                                {/* Left Column: Badge Graphic + Protocol ID */}
+                                <div className="flex flex-col items-start">
+                                    <BadgeProtocol className="h-[24px] w-auto mb-[6px]" />
+                                    <div className="flex flex-col text-[10px] font-mono font-bold leading-[1.2] tracking-tighter text-brand-primary">
+                                        <span>PROTOCOL</span>
+                                        <span>1013-AD93</span>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Authorization Text */}
+                                <div className="flex flex-col text-[10px] font-mono leading-[1.2] tracking-[0.15em] text-brand-primary opacity-60 uppercase">
+                                    <p>ONLY IXD CERTIFIED AND BIO-</p>
+                                    <p>METRIC AUTHORIZED AGENTS</p>
+                                    <p>ARE ALLOWED TO ACCESS OR</p>
+                                    <p>ENGAGE THIS SYSTEM</p>
+                                </div>
+                            </MotionDiv>
                         </div>
 
                         {/* Right: Status Indicator */}
@@ -162,43 +289,88 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                                 )}
                             </div>
                             <p className="text-[10px] text-brand-primary/40 mt-1 tracking-widest">
-                                {new Date().toISOString().split('T')[0]}
+                                {today}
                             </p>
                         </div>
                     </div>
 
-                    {/* Left Center: Status Message - positioned at vertical center */}
-                    <div className="absolute left-8 top-1/2 -translate-y-1/2">
-                        <MotionDiv
-                            className="text-left max-w-[200px]"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                        >
-                            <p className="text-sm lg:text-base text-brand-primary tracking-[0.15em] font-light leading-relaxed">
-                                {BOOT_LOGS[logIndex]}
-                            </p>
-                        </MotionDiv>
+                    {/* Right Center: Terminal Boot Logs (pre-computed visibleLogs) */}
+                    <div className="absolute right-10 lg:right-14 xl:right-16 top-[40%] translate-y-[-50%] w-[240px] pointer-events-none">
+                        <div className="flex flex-col items-end gap-1 font-mono text-[9px] uppercase tracking-wider text-right">
+                            <AnimatePresence mode="popLayout">
+                                {visibleLogs.map((log, i) => {
+                                    const isLatest = i === visibleLogs.length - 1;
+                                    return (
+                                        <MotionDiv
+                                            key={`${log}-${logIndex - (visibleLogs.length - 1 - i)}`}
+                                            initial={{ opacity: 0, x: 10 }}
+                                            animate={{ opacity: isLatest ? 1 : 0.6, x: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            transition={{ duration: 0.3 }}
+                                            className={`flex items-center gap-2 ${isLatest ? 'text-brand-primary font-bold' : 'text-brand-primary/60'}`}
+                                        >
+                                            <span>{log}</span>
+                                            <span className="opacity-50">[OK]</span>
+                                        </MotionDiv>
+                                    );
+                                })}
+                            </AnimatePresence>
+                            {!isReady && (
+                                <MotionDiv
+                                    animate={{ opacity: [1, 0, 1] }}
+                                    transition={{ repeat: Infinity, duration: 0.8 }}
+                                    className="w-1.5 h-3 bg-brand-primary mt-1"
+                                />
+                            )}
+                        </div>
+                    </div>
+                    {/* Bottom Left: Binary Decode - Separated into individual rows for manual adjustment */}
+                    <div className="absolute bottom-10 left-10 lg:left-14 xl:left-16 flex items-end gap-5 opacity-90 pointer-events-none">
+                        <BinaryGrid className="w-16 lg:w-20 h-auto mix-blend-screen text-brand-primary" />
+
+                        <div className="flex flex-col text-[8px] lg:text-[9px] font-mono leading-tight tracking-[0.3em] mb-0.5 pointer-events-auto">
+                            {/* Row 1: Adjustment point */}
+                            <div className="flex justify-between w-32 lg:w-40 transition-all duration-300">
+                                <span className="text-brand-primary font-bold">{binaryData[0].prefix}{binaryData[0].id}</span>
+                                <span className="text-brand-primary/60">{binaryData[0].val}</span>
+                                <span className="text-brand-primary/40">{binaryData[0].node}</span>
+                            </div>
+
+                            {/* Row 2: Adjustment point */}
+                            <div className="flex justify-between w-32 lg:w-40 transition-all duration-300 ml-[16px]">
+                                <span className="text-brand-primary font-bold">{binaryData[1].prefix}{binaryData[1].id}</span>
+                                <span className="text-brand-primary/60">{binaryData[1].val}</span>
+                                <span className="text-brand-primary/40">{binaryData[1].node}</span>
+                            </div>
+
+                            {/* Row 3: Adjustment point */}
+                            <div className="flex justify-between w-32 lg:w-40 transition-all duration-300">
+                                <span className="text-brand-primary font-bold">{binaryData[2].prefix}{binaryData[2].id}</span>
+                                <span className="text-brand-primary/60">{binaryData[2].val}</span>
+                                <span className="text-brand-primary/40">{binaryData[2].node}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Bottom Right: Progress Panel - Larger size, from shoulder to edge */}
-                    <div className="absolute bottom-8 right-8 pointer-events-auto" style={{ width: 'calc(35% - 32px)' }}>
+                    {/* Bottom Right: Progress Panel */}
+                    <div className="absolute bottom-10 right-10 lg:right-14 xl:right-16 pointer-events-auto w-1/4 max-w-[500px]">
                         {/* Neural Sync Label */}
-                        <div className="flex justify-between text-[10px] text-brand-primary/50 mb-2 tracking-widest">
+                        <div className="flex justify-between text-[12px] text-brand-primary/50 mb-2 tracking-widest">
                             <span>NEURAL.SYNC</span>
                             <span className="text-brand-primary font-bold text-sm">{Math.floor(progress)}%</span>
                         </div>
 
-                        {/* Progress Bar Container */}
-                        <div className="relative h-2 bg-black/80 border border-brand-primary/40 overflow-hidden backdrop-blur-sm">
-                            {/* Corner Accents */}
-                            <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-brand-primary" />
-                            <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-brand-primary" />
-                            <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-brand-primary" />
-                            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-brand-primary" />
+                        {/* Progress Bar Container - Matches StatCard Style */}
+                        <div className="w-full h-1.5 bg-brand-primary/10 relative overflow-hidden rounded-full">
+                            {/* Background grid pattern inside bar - Angled 45 deg */}
+                            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
+                                backgroundImage: 'linear-gradient(45deg, var(--color-brand-primary) 25%, transparent 25%, transparent 50%, var(--color-brand-primary) 50%, var(--color-brand-primary) 75%, transparent 75%, transparent)',
+                                backgroundSize: '6px 6px'
+                            }} />
 
-                            {/* Progress Fill */}
+                            {/* Animated Fill Bar - Original Colors */}
                             <MotionDiv
-                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-brand-primary to-cyan-300 shadow-[0_0_15px_var(--color-brand-glow)]"
+                                className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-brand-primary to-cyan-300 shadow-[0_0_15px_var(--color-brand-glow)]"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progress}%` }}
                                 transition={{ duration: 0.1 }}
@@ -281,12 +453,31 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                         </MotionDiv>
                     )}
                 </AnimatePresence>
-
-                {/* Corner HUD Decorations */}
-                <div className="absolute top-4 left-4 w-2 h-2 bg-white z-20" />
-                <div className="absolute top-4 right-4 w-2 h-2 bg-white z-20" />
-                <div className="absolute bottom-4 left-4 w-2 h-2 bg-white z-20" />
-                <div className="absolute bottom-4 right-4 w-2 h-2 bg-white z-20" />
+                {/* Corner HUD Decorations - Framing the central model */}
+                {/* 1. 左上角 (Top-Left): 残影向右下偏移 */}
+                <BootCorner
+                    isReady={isReady}
+                    position="top-[15%] lg:top-[20%] left-[20%] lg:left-[25%]"
+                    ghostOffset="-translate-x-[4px] -translate-y-[4px]"
+                />
+                {/* 2. 右上角 (Top-Right): 残影向左下偏移 */}
+                <BootCorner
+                    isReady={isReady}
+                    position="top-[15%] lg:top-[20%] right-[20%] lg:right-[25%]"
+                    ghostOffset="translate-x-[4px] -translate-y-[4px]"
+                />
+                {/* 3. 左下角 (Bottom-Left): 残影向右上偏移 */}
+                <BootCorner
+                    isReady={isReady}
+                    position="bottom-[15%] lg:bottom-[20%] left-[20%] lg:left-[25%]"
+                    ghostOffset="-translate-x-[4px] translate-y-[4px]"
+                />
+                {/* 4. 右下角 (Bottom-Right): 残影向左上偏移 */}
+                <BootCorner
+                    isReady={isReady}
+                    position="bottom-[15%] lg:bottom-[20%] right-[20%] lg:right-[25%]"
+                    ghostOffset="translate-x-[4px] translate-y-[4px]"
+                />
             </div>
         </MotionDiv>
     );

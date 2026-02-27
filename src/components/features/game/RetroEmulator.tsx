@@ -58,10 +58,23 @@ export const RetroEmulator = ({
                     <iframe
                         ref={iframeRef}
                         src={emulatorUrl.toString()}
-                        className="w-full h-full border-none outline-none"
+                        className="w-full h-full border-none outline-none relative z-0"
                         allow="autoplay; gamepad; fullscreen"
                         onLoad={() => setIsLoading(false)}
                     />
+
+                    {/* Operational Overlay / Control Guide */}
+                    {!isLoading && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 text-[10px] md:text-xs text-text-primary px-4 py-2 rounded border border-border-default z-[20] pointer-events-none opacity-50 flex items-center gap-4 md:gap-6 whitespace-nowrap shadow-md">
+                            <span className="text-status-error font-bold tracking-widest flex items-center gap-1 animate-pulse">
+                                <i className="ri-mouse-line"></i> CLICK GAME TO COMMLINK
+                            </span>
+                            <span className="text-text-secondary">|</span>
+                            <span className="tracking-widest"><span className="text-brand-primary">ENTER:</span> START</span>
+                            <span className="tracking-widest"><span className="text-brand-primary">Z/X:</span> B/A</span>
+                            <span className="tracking-widest"><span className="text-brand-primary">ARROWS:</span> D-PAD</span>
+                        </div>
+                    )}
                 </div>
             </ChamferFrame>
         </div>
