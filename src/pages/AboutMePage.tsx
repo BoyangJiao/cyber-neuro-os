@@ -8,6 +8,7 @@ import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { SystemInfoBlockAlpha, SystemInfoBlockBeta } from '../components/ui/decos/SystemInfoBlock';
 
 /**
  * AboutMePage — with purely decoupled WebGL Canvas layout.
@@ -113,7 +114,10 @@ export const AboutMePage = () => {
                         className="absolute inset-x-0 bottom-0 top-[60px] z-[5] pointer-events-none"
                         initial={false}
                         // Move 30% to the right (plus half the 3rem gap) to perfectly center within the right HUD column
-                        animate={{ x: isCharacterStatsOpen ? "0%" : "calc(30% + 1.5rem)" }}
+                        animate={{
+                            x: isCharacterStatsOpen ? "0%" : "calc(30% + 1.5rem)",
+                            y: isCharacterStatsOpen ? -60 : 0
+                        }}
                         transition={springTransition}
                     >
                         <HolographicAvatar className="pointer-events-auto" />
@@ -207,11 +211,10 @@ export const AboutMePage = () => {
                             <AnimatePresence>
                                 {isCharacterStatsOpen && (
                                     <>
-                                        {/* Left stats */}
                                         <motion.div
-                                            className="absolute left-4 top-0 bottom-0 w-[220px] flex flex-col justify-center gap-10 z-[10] pointer-events-none"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.5 } }}
+                                            className="absolute left-4 top-0 bottom-16 2xl:bottom-20 w-[220px] flex flex-col justify-center gap-8 2xl:gap-10 z-[10] pointer-events-none"
+                                            initial={{ opacity: 0, y: -40 }}
+                                            animate={{ opacity: 1, y: -60, transition: { duration: 0.4, delay: 0.5 } }}
                                             exit={{ opacity: 0, transition: { duration: 0.2 } }}
                                         >
                                             {statsData.slice(0, 3).map((stat, i) => (
@@ -228,9 +231,9 @@ export const AboutMePage = () => {
 
                                         {/* Right stats */}
                                         <motion.div
-                                            className="absolute right-4 top-0 bottom-0 w-[220px] flex flex-col justify-center gap-10 z-[10] pointer-events-none"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.5 } }}
+                                            className="absolute right-4 top-0 bottom-16 2xl:bottom-20 w-[220px] flex flex-col justify-center gap-8 2xl:gap-10 z-[10] pointer-events-none"
+                                            initial={{ opacity: 0, y: -40 }}
+                                            animate={{ opacity: 1, y: -60, transition: { duration: 0.4, delay: 0.5 } }}
                                             exit={{ opacity: 0, transition: { duration: 0.2 } }}
                                         >
                                             {statsData.slice(3, 6).map((stat, i) => (
@@ -244,6 +247,12 @@ export const AboutMePage = () => {
                                                 />
                                             ))}
                                         </motion.div>
+
+                                        {/* Bottom System Info deco blocks */}
+                                        <div className="absolute bottom-4 2xl:bottom-6 left-4 right-4 z-10 flex justify-between items-end gap-12">
+                                            <SystemInfoBlockAlpha className="w-[330px] 2xl:w-[400px]" />
+                                            <SystemInfoBlockBeta className="w-[330px] 2xl:w-[400px]" />
+                                        </div>
                                     </>
                                 )}
                             </AnimatePresence>

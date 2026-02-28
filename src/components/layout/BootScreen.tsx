@@ -296,7 +296,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
 
                     {/* Right Center: Terminal Boot Logs (pre-computed visibleLogs) */}
                     <div className="absolute right-10 lg:right-14 xl:right-16 top-[40%] translate-y-[-50%] w-[240px] pointer-events-none">
-                        <div className="flex flex-col items-end gap-1 font-mono text-[9px] uppercase tracking-wider text-right">
+                        <div className="flex flex-col items-end gap-1 font-mono text-[12px] uppercase tracking-wider text-right">
                             <AnimatePresence mode="popLayout">
                                 {visibleLogs.map((log, i) => {
                                     const isLatest = i === visibleLogs.length - 1;

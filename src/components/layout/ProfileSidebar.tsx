@@ -11,7 +11,7 @@ export const ProfileSidebar = () => {
     const [isPressed, setIsPressed] = useState(false);
 
     return (
-        <div className="flex flex-col items-start h-full pl-4 lg:pl-6 xl:pl-8 2xl:pl-10 py-3 lg:py-4">
+        <div className="relative flex flex-col items-start h-full pl-4 lg:pl-6 xl:pl-8 2xl:pl-10 py-3 lg:py-4">
             <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-8 shrink-0 w-[160px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px]">
                 {/* Profile Photo Frame - Clickable to open About Me */}
                 <div id="avatar-frame" className="relative group w-fit">
@@ -134,6 +134,7 @@ export const ProfileSidebar = () => {
                     </div>
                 </div>
             </div>
+
         </div>
     );
 };

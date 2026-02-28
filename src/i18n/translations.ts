@@ -16,6 +16,11 @@ export const translations = {
         footer: {
             neuralUplink: 'NEURAL UPLINK',
             system: 'SYSTEM',
+            legal: {
+                title: 'BO.J DESIGN © 2026 // NEURO TERMINAL',
+                p1: 'All biometric and cognitive data processed through the neuro.OS terminal remains strictly localized.',
+                p2: 'COMPLIANCE RE: Directive M-1022-242. SYNCHRONIZATION LOGS are secured under the 2032 Cybernetic Operations Act and Federal Neural Records protocols.',
+            }
         },
 
         // Feature Panel
@@ -242,6 +247,11 @@ export const translations = {
         footer: {
             neuralUplink: '神经链接',
             system: '系统',
+            legal: {
+                title: 'BO.J DESIGN © 2026 // 神经终端',
+                p1: '通过 neuro.OS 终端处理的所有生物识别和认知数据均保持严格本地化。',
+                p2: '合规参考：指令 M-1022-242。同步日志受 2032 年网络操作法案和联邦神经记录协议保护。',
+            }
         },
 
         // Feature Panel

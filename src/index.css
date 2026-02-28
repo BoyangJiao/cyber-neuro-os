@@ -1132,3 +1132,50 @@ svg.frame-glow {
 .delay-500 {
     animation-delay: 500ms;
 }
+
+/* ============================================================
+   Datastream Edge — Data Wall Flow Animation (Center Outwards)
+   ============================================================ */
+
+/* All bricks default to 30% opacity based on feedback */
+.datastream-edge-svg .datastream-brick {
+    opacity: 0.3;
+    transition: opacity 0.15s ease;
+}
+
+/* During boot and after: apply the pulse animation infinitely */
+.datastream-edge-svg .datastream-brick {
+    /* 7.5s is exactly 20% of the previous 1.5s frequency. */
+    animation: datastream-pulse 7.5s ease-out infinite;
+
+    /* Calculate distance from the vertical center (total bricks ~147, center is ~74) */
+    --dist: max(var(--brick-idx) - 74, 74 - var(--brick-idx));
+
+    /* Delay is proportional to distance from center, so it flows outwards. */
+    animation-delay: calc(var(--dist) * 0.04s);
+}
+
+@keyframes datastream-pulse {
+    0% {
+        opacity: 0.3;
+    }
+
+    2% {
+        /* Peak brightness lowered to 80% */
+        opacity: 0.8;
+    }
+
+    25% {
+        /* Extended the tail of the stream */
+        opacity: 0.5;
+    }
+
+    50% {
+        /* Gradual return down to base 30% */
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0.3;
+    }
+}

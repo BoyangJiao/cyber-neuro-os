@@ -25,6 +25,7 @@ import { MobileGate } from './components/layout/MobileGate'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
 import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
+import { BatchDatabase } from './components/ui/decos/BatchDatabase'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
 import { LanguageProvider } from './i18n'
@@ -113,6 +114,13 @@ function App() {
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
           <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">
+
+            {/* Bottom Deco (Lowest Z-Index Layer) */}
+            {!isFullWidth && (
+              <div className="hidden lg:block absolute bottom-3 lg:bottom-4 left-4 lg:left-6 xl:left-8 2xl:left-10 z-0 pointer-events-none w-max max-w-[500px] lg:max-w-[650px] 2xl:max-w-[800px]">
+                <BatchDatabase />
+              </div>
+            )}
 
             {/* LEFT PROFILE COLUMN (Fixed width, sticky behavior) */}
             {!isFullWidth && (
