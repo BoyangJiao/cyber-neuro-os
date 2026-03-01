@@ -8,6 +8,8 @@ export interface CornerButtonProps extends React.ButtonHTMLAttributes<HTMLButton
     loading?: boolean;
     iconOnly?: boolean;
     size?: 'sm' | 'md' | 'lg';
+    silentClick?: boolean;
+    silentHover?: boolean;
 }
 
 const FrameCorners = ({
@@ -73,6 +75,8 @@ export const CornerButton = ({
     loading,
     disabled,
     iconOnly,
+    silentClick = true, // Default to silent
+    silentHover = false,
     ...props
 }: CornerButtonProps) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -137,9 +141,10 @@ export const CornerButton = ({
         <button
             ref={buttonRef}
             className={mergedClasses}
+            {...props}
             onMouseEnter={(e) => {
                 setIsHovered(true);
-                playHover();
+                if (!silentHover) playHover();
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {
@@ -156,11 +161,10 @@ export const CornerButton = ({
                 props.onMouseUp?.(e);
             }}
             onClick={(e) => {
-                playClick();
+                if (!silentClick) playClick();
                 props.onClick?.(e);
             }}
             disabled={disabled || loading}
-            {...props}
         >
             <FrameCorners isHovered={isHovered} isPressed={isPressed} proximityOpacity={proximityOpacity} mousePos={mousePos} />
 

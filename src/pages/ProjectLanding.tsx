@@ -77,6 +77,7 @@ export const ProjectLanding = () => {
                                 onClick={() => navigate('/')}
                                 className="text-brand-primary hover:text-brand-secondary transition-colors"
                                 iconOnly
+                                silentHover={true}
                             />
                         </div>
                     </div>

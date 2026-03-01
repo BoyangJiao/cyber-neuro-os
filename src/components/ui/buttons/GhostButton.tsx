@@ -8,6 +8,8 @@ export interface GhostButtonProps extends React.ButtonHTMLAttributes<HTMLButtonE
     loading?: boolean;
     iconOnly?: boolean;
     size?: 'sm' | 'md' | 'lg';
+    silentClick?: boolean;
+    silentHover?: boolean;
 }
 
 export const GhostButton = ({
@@ -18,6 +20,8 @@ export const GhostButton = ({
     loading,
     disabled,
     iconOnly,
+    silentClick = true, // Default to silent
+    silentHover = false,
     ...props
 }: GhostButtonProps) => {
     const { playHover, playClick } = useSoundSystem();
@@ -44,8 +48,9 @@ export const GhostButton = ({
     return (
         <button
             className={mergedClasses}
+            {...props}
             onMouseEnter={(e) => {
-                playHover();
+                if (!silentHover) playHover();
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {
@@ -61,11 +66,10 @@ export const GhostButton = ({
                 props.onMouseUp?.(e);
             }}
             onClick={(e) => {
-                playClick();
+                if (!silentClick) playClick();
                 props.onClick?.(e);
             }}
             disabled={disabled || loading}
-            {...props}
         >
             <span className="relative z-10 flex items-center gap-2">
                 {loading ? (

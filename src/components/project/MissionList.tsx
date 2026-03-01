@@ -1,6 +1,5 @@
 import { type Project } from '../../data/projects';
 import { twMerge } from 'tailwind-merge';
-import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { ChamferFrame } from '../ui/frames/ChamferFrame';
 import { useTranslation } from '../../i18n';
 
@@ -23,7 +22,6 @@ export const MissionList = ({
     onSelect,
     className,
 }: MissionListProps) => {
-    const { playHover, playClick } = useSoundSystem();
     const { t } = useTranslation();
 
     // Helper to map projects to specific display modes (Case Study / Snapshot)
@@ -119,10 +117,8 @@ export const MissionList = ({
                             >
                                 <button
                                     onClick={() => {
-                                        playClick();
                                         onSelect(index);
                                     }}
-                                    onMouseEnter={playHover}
                                     className="group/item w-full text-left p-3 flex flex-col"
                                 >
                                     {/* 项目名称 */}

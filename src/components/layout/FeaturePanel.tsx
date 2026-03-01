@@ -8,6 +8,7 @@ import { useTranslation } from '../../i18n';
 import { useAppStore } from '../../store/useAppStore';
 import type { GeometryType } from '../../store/useAppStore';
 import { InterceptModal } from '../ui/modals/InterceptModal';
+import { useSoundSystem } from '../../hooks/useSoundSystem';
 
 interface FeatureItem {
     titleKey: string;
@@ -106,7 +107,10 @@ export const FeaturePanel = () => {
 
     }, { scope: containerRef });
 
+    const { playAlert } = useSoundSystem();
+
     const handleInterceptClick = (moduleName: string) => {
+        playAlert();
         setInterceptedModule(moduleName);
     };
 

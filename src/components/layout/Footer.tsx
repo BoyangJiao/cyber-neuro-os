@@ -21,6 +21,7 @@ export const Footer = () => {
                     showGhost={true}
                     ghostOffset="translate-x-[-4px] translate-y-[2px]"
                     className="min-w-[120px] lg:min-w-[160px] 2xl:min-w-[180px]"
+                    silentClick={false}
                     onClick={togglePanel}
                 >
                     <span className="text-xs lg:text-sm 2xl:text-base">{t('footer.neuralUplink')}</span>
@@ -36,6 +37,7 @@ export const Footer = () => {
                     showGhost={true}
                     ghostOffset="-translate-x-[-4px] -translate-y-[-2px]"
                     className="border-none group px-3 lg:px-4 2xl:px-5"
+                    silentClick={false}
                     onClick={() => setSettingsOpen(true)}
                 >
                     <span className="mr-1 lg:mr-2 text-xs lg:text-sm 2xl:text-base transition-colors">{t('footer.system')}</span>
@@ -51,6 +53,7 @@ export const Footer = () => {
                     showGhost={true}
                     ghostOffset="-translate-x-[-4px] -translate-y-[-2px]"
                     className="flex items-center justify-center min-w-[40px]"
+                    silentClick={false}
                     onClick={togglePlay}
                 >
                     <AudioWaveform isPlaying={isPlaying} className="text-brand-primary" />

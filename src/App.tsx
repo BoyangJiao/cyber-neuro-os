@@ -39,6 +39,7 @@ import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
 import { NeuralUplinkWindow } from './components/agent/NeuralUplinkWindow'
+import { useSoundSystem } from './hooks/useSoundSystem';
 
 import { useQuery } from './sanity/client'
 import { PROJECTS_QUERY } from './sanity/queries'
@@ -47,6 +48,12 @@ import type { SanityProjectRaw } from './sanity/types'
 function App() {
   const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
   const { language, setProjects } = useProjectStore();
+  const { initAudio } = useSoundSystem();
+
+  // Pre-initialize audio as soon as possible
+  useEffect(() => {
+    initAudio();
+  }, [initAudio]);
 
   // Enable live mode for Sanity drafts in Presentation mode
   useLiveMode({

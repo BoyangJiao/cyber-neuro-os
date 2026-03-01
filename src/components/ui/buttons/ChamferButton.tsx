@@ -10,6 +10,8 @@ export interface ChamferButtonProps extends React.ButtonHTMLAttributes<HTMLButto
     iconOnly?: boolean;
     size?: 'sm' | 'md' | 'lg';
     corner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    silentClick?: boolean;
+    silentHover?: boolean;
 }
 
 const paths = {
@@ -90,6 +92,8 @@ export const ChamferButton = ({
     disabled,
     iconOnly,
     corner = 'bottom-right',
+    silentClick = true, // Default to silent
+    silentHover = false,
     ...props
 }: ChamferButtonProps) => {
     const { playHover, playClick } = useSoundSystem();
@@ -115,9 +119,10 @@ export const ChamferButton = ({
         <button
             className={mergedClasses}
             style={{ clipPath }}
+            {...props}
             onMouseEnter={(e) => {
                 setIsHovered(true);
-                playHover();
+                if (!silentHover) playHover();
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {
@@ -134,11 +139,10 @@ export const ChamferButton = ({
                 props.onMouseUp?.(e);
             }}
             onClick={(e) => {
-                playClick();
+                if (!silentClick) playClick();
                 props.onClick?.(e);
             }}
             disabled={disabled || loading}
-            {...props}
         >
             <FrameChamfer isHovered={isHovered} isPressed={isPressed} corner={corner} size={size} />
 

@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { ChamferFrame } from './frames/ChamferFrame';
 import { PixelGridEffect, PCBTraceEffect } from './effects';
 
@@ -31,7 +30,7 @@ export const CyberSlotCard = ({
     glitchType = 'standard',
     bgSize = '70%',
 }: CyberSlotCardProps) => {
-    const { playHover, playClick } = useSoundSystem();
+    // No sound system usage here per user request
     const [scanProgress, setScanProgress] = useState(0);
     const animationRef = useRef<number | null>(null);
 
@@ -57,7 +56,6 @@ export const CyberSlotCard = ({
     }, [scanProgress]);
 
     const handleMouseEnter = () => {
-        playHover();
         startScan();
     };
 
@@ -70,7 +68,6 @@ export const CyberSlotCard = ({
     };
 
     const handleClick = () => {
-        playClick();
         onClick?.();
     };
 

@@ -2,70 +2,133 @@ import * as Tone from 'tone';
 import { useCallback, useRef, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 
+// Singleton state to avoid re-initialization across hook instances
+let globalInitialized = false;
+let globalLoading = false;
+let globalHoverPlayer: Tone.Player | null = null;
+let globalCardHoverPlayer: Tone.Player | null = null;
+let globalClickPlayer: Tone.Player | null = null;
+let globalTransitionPlayer: Tone.Player | null = null;
+let globalAlertPlayer: Tone.Player | null = null;
+
 export const useSoundSystem = () => {
-    // Refs to keep synths persistent across renders
-    const hoverSynth = useRef<Tone.Synth | null>(null);
-    const clickSynth = useRef<Tone.MembraneSynth | null>(null);
+    // Refs for samplers and players
+    const hoverPlayer = useRef<Tone.Player | null>(null);
+    const cardHoverPlayer = useRef<Tone.Player | null>(null);
+    const clickPlayer = useRef<Tone.Player | null>(null);
+    const transitionPlayer = useRef<Tone.Player | null>(null);
+    const alertPlayer = useRef<Tone.Player | null>(null);
     const isInitialized = useRef(false);
+    const isLoading = useRef(false);
 
     const { sfxVolume } = useAppStore();
 
+    // Sync from global singleton
+    const syncWithGlobal = useCallback(() => {
+        hoverPlayer.current = globalHoverPlayer;
+        cardHoverPlayer.current = globalCardHoverPlayer;
+        clickPlayer.current = globalClickPlayer;
+        transitionPlayer.current = globalTransitionPlayer;
+        alertPlayer.current = globalAlertPlayer;
+        isInitialized.current = globalInitialized;
+        isLoading.current = globalLoading;
+    }, []);
+
     const updateVolumes = useCallback(() => {
-        if (!hoverSynth.current || !clickSynth.current) return;
+        if (!hoverPlayer.current || !cardHoverPlayer.current || !clickPlayer.current || !transitionPlayer.current || !alertPlayer.current) return;
 
         // Base volumes at 50% setting
-        const HOVER_BASE_DB = -15;
-        const CLICK_BASE_DB = -10;
+        const HOVER_BASE_DB = -5;
+        const CLICK_BASE_DB = 0;
+        const TRANSITION_BASE_DB = -3;
 
         if (sfxVolume === 0) {
-            hoverSynth.current.volume.value = -Infinity;
-            clickSynth.current.volume.value = -Infinity;
+            const inf = -Infinity;
+            hoverPlayer.current.volume.value = inf;
+            cardHoverPlayer.current.volume.value = inf;
+            clickPlayer.current.volume.value = inf;
+            transitionPlayer.current.volume.value = inf;
+            alertPlayer.current.volume.value = inf;
         } else {
-            // Calculate gain relative to 50% (where 50 = 1x gain)
-            // Using a log-like curve for natural volume feeling
-            // but for simplicity 20*log10(ratio) works well for audio
             const ratio = sfxVolume / 50;
             const dbAdjustment = 20 * Math.log10(ratio);
 
-            hoverSynth.current.volume.value = HOVER_BASE_DB + dbAdjustment;
-            clickSynth.current.volume.value = CLICK_BASE_DB + dbAdjustment;
+            hoverPlayer.current.volume.value = HOVER_BASE_DB + dbAdjustment;
+            cardHoverPlayer.current.volume.value = HOVER_BASE_DB + dbAdjustment;
+            clickPlayer.current.volume.value = CLICK_BASE_DB + dbAdjustment;
+            transitionPlayer.current.volume.value = TRANSITION_BASE_DB + dbAdjustment;
+            alertPlayer.current.volume.value = -2 + dbAdjustment;
         }
     }, [sfxVolume]);
 
     const initAudio = useCallback(async () => {
-        if (isInitialized.current) return;
+        syncWithGlobal();
+        if (isInitialized.current || isLoading.current) return;
 
-        await Tone.start();
+        globalLoading = true;
+        isLoading.current = true;
 
-        // Simple synth for high-pitch hover blips
-        hoverSynth.current = new Tone.Synth({
-            oscillator: { type: 'sine' },
-            volume: -15, // Initial dummy, updated immediately below
-            envelope: {
-                attack: 0.01,
-                decay: 0.1,
-                sustain: 0,
-                release: 0.1,
-            },
-        }).toDestination();
+        try {
+            console.log("[SoundSystem] Optimizing: Loading audio buffers early...");
 
-        // Membrane synth for mechanical clicks
-        clickSynth.current = new Tone.MembraneSynth({
-            pitchDecay: 0.008,
-            octaves: 2,
-            oscillator: { type: 'square' },
-            volume: -10, // Initial dummy
-            envelope: {
-                attack: 0.001,
-                decay: 0.2,
-                sustain: 0,
-                release: 0.1,
-            },
-        }).toDestination();
+            // Define players
+            globalHoverPlayer = new Tone.Player({
+                url: '/sounds/hover/beep.mp3',
+                volume: -5,
+                autostart: false,
+            }).toDestination();
 
-        isInitialized.current = true;
-        updateVolumes();
-    }, [updateVolumes]);
+            globalCardHoverPlayer = new Tone.Player({
+                url: '/sounds/hover/Interface_Neutral_Simple_074.mp3',
+                volume: -5,
+                autostart: false,
+            }).toDestination();
+
+            globalClickPlayer = new Tone.Player({
+                url: '/sounds/click/Interface_Access_Granted_091.mp3',
+                volume: 0,
+                autostart: false,
+            }).toDestination();
+
+            globalTransitionPlayer = new Tone.Player({
+                url: '/sounds/transition/Interface_Glitch_079.mp3',
+                volume: -3,
+                autostart: false,
+            }).toDestination();
+
+            globalAlertPlayer = new Tone.Player({
+                url: '/sounds/access/Interface_Access_Denied_117.mp3',
+                volume: -2,
+                autostart: false,
+            }).toDestination();
+
+            // Perform context start (if interaction happened)
+            if (Tone.context.state !== 'running') {
+                Tone.start().catch(() => {
+                    console.warn("[SoundSystem] Context not started because of user interaction required");
+                });
+            }
+
+            // High priority buffer loading
+            await Tone.loaded();
+
+            globalInitialized = true;
+            globalLoading = false;
+            syncWithGlobal();
+
+            updateVolumes();
+            console.log("[SoundSystem] Fast boot complete. All buffers loaded and ready.");
+        } catch (err) {
+            console.error("[SoundSystem] Pre-init failed:", err);
+            globalLoading = false;
+            isLoading.current = false;
+        }
+    }, [updateVolumes, syncWithGlobal]);
+
+    // Initial sync
+    useEffect(() => {
+        syncWithGlobal();
+    }, [syncWithGlobal]);
 
     // Update volume when store changes
     useEffect(() => {
@@ -74,19 +137,52 @@ export const useSoundSystem = () => {
         }
     }, [sfxVolume, updateVolumes]);
 
-    const playHover = useCallback(() => {
-        if (!isInitialized.current) initAudio();
-        // Ensure volume is correct before playing (in case init was just called)
-        if (hoverSynth.current && hoverSynth.current.volume.value === -Infinity && sfxVolume > 0) {
-            updateVolumes();
+    const playHover = useCallback((variant: 'default' | 'card' = 'default') => {
+        if (!isInitialized.current) {
+            initAudio();
+            return;
         }
-        hoverSynth.current?.triggerAttackRelease("C6", "32n");
-    }, [initAudio, sfxVolume, updateVolumes]);
 
-    const playClick = useCallback(() => {
-        if (!isInitialized.current) initAudio();
-        clickSynth.current?.triggerAttackRelease("C2", "16n");
+        const player = variant === 'card' ? cardHoverPlayer.current : hoverPlayer.current;
+
+        if (player?.loaded) {
+            if (player.state === 'started') player.stop();
+            player.start();
+        }
     }, [initAudio]);
 
-    return { initAudio, playHover, playClick };
+    const playAlert = useCallback(() => {
+        if (!isInitialized.current) {
+            initAudio();
+        }
+
+        if (alertPlayer.current?.loaded) {
+            if (alertPlayer.current.state === 'started') alertPlayer.current.stop();
+            alertPlayer.current.start();
+        }
+    }, [initAudio]);
+
+    const playClick = useCallback(() => {
+        if (!isInitialized.current) {
+            initAudio();
+        }
+
+        if (clickPlayer.current?.loaded) {
+            if (clickPlayer.current.state === 'started') clickPlayer.current.stop();
+            clickPlayer.current.start();
+        }
+    }, [initAudio]);
+
+    const playTransition = useCallback(() => {
+        if (!isInitialized.current) {
+            initAudio();
+        }
+
+        if (transitionPlayer.current?.loaded) {
+            if (transitionPlayer.current.state === 'started') transitionPlayer.current.stop();
+            transitionPlayer.current.start();
+        }
+    }, [initAudio]);
+
+    return { initAudio, playHover, playClick, playTransition, playAlert };
 };

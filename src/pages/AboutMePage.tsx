@@ -9,6 +9,7 @@ import { useTranslation } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import { SystemInfoBlockAlpha, SystemInfoBlockBeta } from '../components/ui/decos/SystemInfoBlock';
+import { useSoundSystem } from '../hooks/useSoundSystem';
 
 /**
  * AboutMePage — with purely decoupled WebGL Canvas layout.
@@ -22,6 +23,7 @@ import { SystemInfoBlockAlpha, SystemInfoBlockBeta } from '../components/ui/deco
  */
 export const AboutMePage = () => {
     const { setAboutMeOpen, isCharacterStatsOpen, setCharacterStatsOpen } = useAppStore();
+    const { playTransition } = useSoundSystem();
     const { t } = useTranslation();
 
     // ESC to close stats
@@ -195,7 +197,12 @@ export const AboutMePage = () => {
                             {/* Base Interaction Surface & CornerFrame */}
                             <div
                                 className={`absolute inset-0 ${!isCharacterStatsOpen ? 'pointer-events-auto cursor-pointer group' : 'pointer-events-none'}`}
-                                onClick={() => !isCharacterStatsOpen && setCharacterStatsOpen(true)}
+                                onClick={() => {
+                                    if (!isCharacterStatsOpen) {
+                                        playTransition();
+                                        setCharacterStatsOpen(true);
+                                    }
+                                }}
                             >
                                 <div className={`absolute inset-0 z-0 transition-opacity duration-500 pointer-events-none ${isCharacterStatsOpen ? 'opacity-0' : 'opacity-100'}`}>
                                     <CornerFrame

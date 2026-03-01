@@ -93,6 +93,6 @@ export const useAppStore = create<AppState>((set) => ({
     setDebugGeometryType: (type) => set({ debugGeometryType: type }),
 
     // Audio Settings
-    sfxVolume: 50,
+    sfxVolume: 20,
     setSfxVolume: (vol) => set({ sfxVolume: Math.max(0, Math.min(100, vol)) }),
 }));

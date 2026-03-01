@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ChamferFrame } from '../ui/frames/ChamferFrame';
 import { CyberButton } from '../ui/CyberButton';
 import { twMerge } from 'tailwind-merge';
-import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { useRef, useLayoutEffect, useEffect, useState } from 'react';
 import { ScanlineEffect, PixelGridEffect } from '../ui/effects';
 import { ShimmerLoader } from '../ui/loading/ShimmerLoader';
@@ -37,7 +36,6 @@ export const MissionBriefing = ({
     className,
 }: MissionBriefingProps) => {
     const navigate = useNavigate();
-    const { playClick, playHover } = useSoundSystem();
     const [isImageHovered, setIsImageHovered] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -172,7 +170,6 @@ export const MissionBriefing = ({
     };
 
     const handleViewDetails = () => {
-        playClick();
         navigate(`/projects/${project.id}`);
     };
 
@@ -233,7 +230,6 @@ export const MissionBriefing = ({
                             className="relative w-full h-full overflow-hidden"
                             onClick={handleViewDetails}
                             onMouseEnter={() => {
-                                playHover();
                                 setIsImageHovered(true);
                             }}
                             onMouseLeave={() => setIsImageHovered(false)}
@@ -335,6 +331,7 @@ export const MissionBriefing = ({
                             variant="chamfer"
                             onClick={handleDeploy}
                             className="w-full"
+                            silentHover={true}
                         >
                             <i className="ri-external-link-line mr-2" />
                             {t('projectLanding.deploy')}

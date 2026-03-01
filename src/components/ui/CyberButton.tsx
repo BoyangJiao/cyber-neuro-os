@@ -14,6 +14,8 @@ export interface CyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonE
     iconOnly?: boolean;
     showGhost?: boolean;
     ghostOffset?: string;
+    silentClick?: boolean;
+    silentHover?: boolean;
 }
 
 /**
@@ -25,20 +27,50 @@ export const CyberButton = ({
     chamferCorner,
     showGhost,
     ghostOffset,
+    silentClick = true, // Default to silent
+    silentHover = false,
     ...props
 }: CyberButtonProps) => {
+    // Explicitly pass props to avoid any unexpected overrides from destructuring defaults
     switch (variant) {
         case 'dot': // Neuro
-            return <NeuroButton showGhost={showGhost} ghostOffset={ghostOffset} {...props} />;
+            return (
+                <NeuroButton
+                    showGhost={showGhost}
+                    ghostOffset={ghostOffset}
+                    silentClick={silentClick}
+                    silentHover={silentHover}
+                    {...props}
+                />
+            );
 
         case 'chamfer': // Cyber
-            return <ChamferButton corner={chamferCorner} {...props} />;
+            return (
+                <ChamferButton
+                    corner={chamferCorner}
+                    silentClick={silentClick}
+                    silentHover={silentHover}
+                    {...props}
+                />
+            );
 
         case 'ghost': // Ghost
-            return <GhostButton {...props} />;
+            return (
+                <GhostButton
+                    silentClick={silentClick}
+                    silentHover={silentHover}
+                    {...props}
+                />
+            );
 
         case 'corner': // Corner (Proximity)
         default:
-            return <CornerButton {...props} />;
+            return (
+                <CornerButton
+                    silentClick={silentClick}
+                    silentHover={silentHover}
+                    {...props}
+                />
+            );
     }
 };

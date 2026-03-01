@@ -1,5 +1,4 @@
 import { useState, useRef, type ReactNode, type MouseEvent } from 'react';
-import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { PixelGridEffect, ScanlineEffect } from './effects';
@@ -34,7 +33,6 @@ export const HoloTiltCard = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const tiltRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
-    const { playHover, playClick } = useSoundSystem();
 
     // GSAP Context automatically cleans up animations
     const { contextSafe } = useGSAP({ scope: containerRef });
@@ -111,7 +109,6 @@ export const HoloTiltCard = ({
     const handleMouseEnter = contextSafe(() => {
         setIsHovered(true);
         if (onHoverChange) onHoverChange(true);
-        playHover();
 
         // Initial Pop Animation
         if (tiltRef.current) {
@@ -130,7 +127,6 @@ export const HoloTiltCard = ({
             ref={containerRef}
             className={`relative w-full h-full flex justify-center items-end perspective-[2500px] group cursor-pointer ${className}`}
             onClick={() => {
-                playClick();
                 onClick?.();
             }}
             onMouseEnter={handleMouseEnter}

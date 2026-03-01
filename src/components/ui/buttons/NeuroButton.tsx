@@ -10,6 +10,8 @@ export interface NeuroButtonProps extends React.ButtonHTMLAttributes<HTMLButtonE
     size?: 'sm' | 'md' | 'lg';
     showGhost?: boolean;
     ghostOffset?: string;
+    silentClick?: boolean;
+    silentHover?: boolean;
 }
 
 const FrameDot = ({
@@ -73,6 +75,8 @@ export const NeuroButton = ({
     iconOnly,
     showGhost = false,
     ghostOffset,
+    silentClick = true, // Default to silent
+    silentHover = false,
     ...props
 }: NeuroButtonProps) => {
     const { playHover, playClick } = useSoundSystem();
@@ -103,9 +107,14 @@ export const NeuroButton = ({
     return (
         <button
             className={mergedClasses}
+            {...props}
+            onClick={(e) => {
+                if (!silentClick) playClick();
+                props.onClick?.(e);
+            }}
             onMouseEnter={(e) => {
                 setIsHovered(true);
-                playHover();
+                if (!silentHover) playHover();
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {
@@ -121,12 +130,7 @@ export const NeuroButton = ({
                 setIsPressed(false);
                 props.onMouseUp?.(e);
             }}
-            onClick={(e) => {
-                playClick();
-                props.onClick?.(e);
-            }}
             disabled={disabled || loading}
-            {...props}
         >
             {showGhost && <FrameDot isHovered={isHovered} isPressed={isPressed} isGhost={true} ghostOffset={ghostOffset} />}
             <FrameDot isHovered={isHovered} isPressed={isPressed} />

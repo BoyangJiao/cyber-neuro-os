@@ -9,6 +9,7 @@ import { DatastreamEdgeLeft } from './DatastreamEdgeLeft';
 import { DatastreamEdgeRight } from './DatastreamEdgeRight';
 import { BadgeProtocol } from './BadgeProtocol';
 import { BinaryGrid } from './BinaryGrid';
+import { useSoundSystem } from '../../hooks/useSoundSystem';
 
 // ─── Module-level constants (never re-created) ──────────────────────────────
 const BOOT_LOGS = [
@@ -140,8 +141,13 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         return () => clearInterval(timer);
     }, []);
 
+    const { initAudio, playClick } = useSoundSystem();
+
     // Volume fade-in using requestAnimationFrame for smoother, fewer state updates
     const handleEnter = useCallback(() => {
+        // Trigger click sound to ensure audio context starts
+        playClick();
+
         if (soundEnabled) {
             setVolume(0);
             play();
@@ -422,6 +428,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                                         variant="corner"
                                         color="cyan"
                                         size="lg"
+                                        silentClick={false}
                                         onClick={() => {
                                             setLanguage('en');
                                             handleEnter();
@@ -435,6 +442,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                                         variant="corner"
                                         color="cyan"
                                         size="lg"
+                                        silentClick={false}
                                         onClick={() => {
                                             setLanguage('zh');
                                             handleEnter();
