@@ -327,8 +327,7 @@ export const AmbientBackground = memo(() => {
                 />
             </div>
 
-            {/* Layer 4: Data Rain + Particles (Canvas) */}
-            <DataRainCanvas />
+            {/* Layer 4: Data Rain + Particles (Canvas) Removed as requested */}
         </>
     );
 });
