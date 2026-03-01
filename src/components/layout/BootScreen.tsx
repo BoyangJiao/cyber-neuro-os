@@ -102,7 +102,6 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
     const [soundEnabled, setSoundEnabled] = useState(true);
 
     const { setLanguage } = useLanguage();
-    const { setVolume, play, pause } = useMusicStore();
 
     // Memoize date string — never changes during boot lifecycle
     const today = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -141,9 +140,11 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         return () => clearInterval(timer);
     }, []);
 
-    const { initAudio, playClick } = useSoundSystem();
+    const { playClick } = useSoundSystem();
 
     // Volume fade-in using requestAnimationFrame for smoother, fewer state updates
+    const { setVolume, play, pause } = useMusicStore();
+
     const handleEnter = useCallback(() => {
         // Trigger click sound to ensure audio context starts
         playClick();
@@ -151,8 +152,8 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         if (soundEnabled) {
             setVolume(0);
             play();
-            const targetVol = 75;
-            const duration = 5000;
+            const targetVol = 60; // Slightly lower for background ambiance
+            const duration = 6000; // Slightly longer fade for smoother entry
             let startTime: number | null = null;
 
             const fadeStep = (timestamp: number) => {
@@ -170,7 +171,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
             pause();
         }
         onComplete();
-    }, [soundEnabled, setVolume, play, pause, onComplete]);
+    }, [soundEnabled, setVolume, play, pause, onComplete, playClick]);
 
     // Scanline opacity: fade out near bottom edge to prevent overflow
     const scanlineOpacity = progress > 0 ? (progress > 95 ? Math.max(0, (100 - progress) / 5) : 1) : 0;

@@ -1,6 +1,19 @@
 import { create } from 'zustand';
 import { type Track, mockTracks } from '../data/mockMusicData';
 
+export const ambientTrack: Track = {
+    id: 'ambient_bg',
+    title: 'NEURAL AMBIENCE',
+    artist: 'SYSTEM PROTOCOL',
+    album: 'BACKGROUND',
+    coverUrl: '/images/music/sh_02.png', // Fallback cover, user won't normally see this
+    duration: 439,
+    genre: 'Ambient',
+    bpm: 0,
+    youtubeUrl: '',
+    audioUrl: '/music/ambient_dream.m4a'
+};
+
 interface MusicState {
     currentTrack: Track | null;
     isPlaying: boolean;
@@ -22,12 +35,12 @@ interface MusicState {
 }
 
 export const useMusicStore = create<MusicState>((set, get) => ({
-    currentTrack: mockTracks[0], // Default load first track but don't play
+    currentTrack: ambientTrack, // Initially play ambient background track
     isPlaying: false,
     volume: 75,
     playlist: mockTracks,
     currentTime: 0,
-    duration: mockTracks[0].duration || 0,
+    duration: ambientTrack.duration,
 
     play: (track) => {
         if (track) {
@@ -44,7 +57,8 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     nextTrack: () => {
         const { playlist, currentTrack } = get();
         if (!currentTrack) return;
-        const currentIndex = playlist.findIndex((t) => t.id === currentTrack.id);
+        let currentIndex = playlist.findIndex((t) => t.id === currentTrack.id);
+        if (currentIndex === -1) currentIndex = -1; // If current is ambient, it starts at first track in playlist
         const nextIndex = (currentIndex + 1) % playlist.length;
         set({ currentTrack: playlist[nextIndex], isPlaying: true, currentTime: 0 });
     },
@@ -53,7 +67,9 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         const { playlist, currentTrack } = get();
         if (!currentTrack) return;
         const currentIndex = playlist.findIndex((t) => t.id === currentTrack.id);
-        const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+        const prevIndex = currentIndex === -1
+            ? playlist.length - 1
+            : (currentIndex - 1 + playlist.length) % playlist.length;
         set({ currentTrack: playlist[prevIndex], isPlaying: true, currentTime: 0 });
     },
 
