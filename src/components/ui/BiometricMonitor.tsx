@@ -31,67 +31,18 @@ const useDriftValue = (min: number, max: number, speed: number = 1) => {
     return value;
 };
 
-// ============================================================
-// 1. TELEMETRY: UPLINK LATENCY
-// ============================================================
-
-const TelemetryTracker = () => {
-    const { t } = useTranslation();
-    const [latency, setLatency] = useState(12);
-    const lastMousePos = useRef({ x: 0, y: 0, time: Date.now() });
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            const now = Date.now();
-            const dt = now - lastMousePos.current.time;
-            if (dt > 50) {
-                const dx = e.clientX - lastMousePos.current.x;
-                const dy = e.clientY - lastMousePos.current.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const velocity = Math.min(distance / dt, 10); // cap velocity
-
-                // Jitter baseline 12ms up to 45ms based on mouse velocity
-                const targetLatency = 12 + Math.random() * (velocity * 3);
-
-                setLatency(prev => {
-                    // Smooth lerp
-                    const next = prev + (targetLatency - prev) * 0.8;
-                    return Math.max(8, Math.min(99, next));
-                });
-
-                lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
-            }
-        };
-
-        // Decay back to baseline when idle
-        const decayInterval = setInterval(() => {
-            setLatency(prev => {
-                if (prev > 14) return prev - (prev - 12) * 0.2;
-                return 12 + Math.random() * 2; // Ambient tick
-            });
-            // Update time to prevent huge dt on next move
-            lastMousePos.current.time = Date.now();
-        }, 300);
-
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            clearInterval(decayInterval);
-        };
-    }, []);
-
-    return (
-        <div className="flex items-center gap-2 mb-1 w-full mt-1">
-            <div className="w-1.5 h-1.5 rounded-sm bg-brand-primary animate-pulse" />
-            <span className="text-[10px] font-mono text-text-muted tracking-wider">
-                {t('biometric.sysMon')} : <span className="text-brand-primary">{t('biometric.active')}</span>
-            </span>
-            <span className="text-[10px] font-mono text-brand-secondary ml-auto tabular-nums">
-                {t('biometric.uplink')}: {Math.round(latency)}ms
-            </span>
-        </div>
-    );
-};
+const SectionDivider = () => (
+    // The background grid is 40px by 40px with dots placed at (19, 19).
+    // To perfectly intersect with these dots, the divider ends need to be exactly 2px by 2px,
+    // and the total width between the start of the first dot and the start of the last dot must be a multiple of 40px.
+    // The sidebar container is usually 160-280px. We use 100% width, but we force the inner line
+    // to strictly align to a grid step.
+    <div className="flex items-center w-full my-0.5 opacity-80">
+        <div className="w-[2px] h-[2px] bg-brand-primary flex-shrink-0" />
+        <div className="flex-1 h-[0.5px] bg-brand-secondary/60" style={{ height: '0.5px' }} />
+        <div className="w-[2px] h-[2px] bg-brand-primary flex-shrink-0" />
+    </div>
+);
 
 // ============================================================
 // 2. CORTEX_LOAD: 6 Vertical Independent Bars
@@ -296,7 +247,7 @@ const SyncSineWave = ({ glitchRate }: { glitchRate: boolean }) => {
             ctx.clearRect(0, 0, width, height);
 
             // Time variables
-            phase += glitchRate ? 0.2 : 0.05;
+            phase += glitchRate ? 0.1 : 0.025;
 
             ctx.beginPath();
             ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
@@ -413,97 +364,7 @@ const SyncRatio = () => {
     );
 };
 
-// ============================================================
-// 4. COGNITIVE_LOAD: Hexagon Dual Row Grid (Static indicator)
-// ============================================================
-
-const Hexagon = ({ state }: { state: 'active' | 'filled' | 'empty' }) => {
-    const isAct = state === 'active';
-    const isFil = state === 'filled';
-
-    const outerClass = isAct
-        ? 'stroke-white'
-        : isFil
-            ? 'stroke-white/80'
-            : 'stroke-white/30';
-
-    const innerClass = isAct
-        ? 'fill-white'
-        : isFil
-            ? 'fill-white/40'
-            : 'fill-white/10';
-
-    return (
-        <svg width="36" height="12" viewBox="0 0 36 12" className="inline-block flex-shrink-0">
-            {/* Outer Ring */}
-            <polygon
-                points="1,6 8,1 28,1 35,6 28,11 8,11"
-                className={`fill-transparent ${outerClass} stroke-[1.5px] transition-colors duration-1000`}
-                strokeLinejoin="round"
-            />
-            {/* Inner Core */}
-            <polygon
-                points="5,6 10,3 26,3 31,6 26,9 10,9"
-                className={`${innerClass} transition-colors duration-1000`}
-            />
-        </svg>
-    );
-};
-
-const CognitiveLoad = () => {
-    const { t } = useTranslation();
-    const totalHexes = 16;
-    const filledHexes = 10;
-
-    // Define the stagger pattern based on reference (wide 3 rows)
-    const rows = [
-        { count: 5, dots: true },
-        { count: 6, dots: false },
-        { count: 5, dots: true },
-    ];
-
-    let currentIdx = 0;
-
-    return (
-        <div className="flex flex-col gap-1.5 w-full">
-            <div className="flex justify-between items-baseline mb-1">
-                <span className="text-[10px] font-mono text-brand-secondary tracking-wider">{t('biometric.cogLoad')}</span>
-                <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-mono text-text-muted">{t('biometric.archiveCap')}</span>
-                    <span className="text-[10px] font-mono text-brand-primary/70">
-                        {filledHexes}/{totalHexes}
-                    </span>
-                </div>
-            </div>
-
-            {/* Hexagon Grid Container */}
-            <div className="relative w-full py-1 flex items-center justify-center scale-95 origin-center -ml-2">
-                <div className="flex flex-col gap-[1px]">
-                    {rows.map((r, rowIdx) => {
-                        const cols = [];
-                        for (let i = 0; i < r.count; i++) {
-                            const idx = currentIdx++;
-                            const isFilled = idx < filledHexes;
-                            // Match a few active/white states from the design
-                            const isActive = idx === 4 || idx === 8 || idx === 11 || idx === 14;
-
-                            cols.push(
-                                <Hexagon key={idx} state={isActive ? 'active' : isFilled ? 'filled' : 'empty'} />
-                            );
-                        }
-                        return (
-                            <div key={rowIdx} className="flex items-center justify-center gap-[4px] w-full">
-                                {r.dots && <div className="w-[3px] h-[3px] bg-white/60 rotate-45 mr-1" />}
-                                {cols}
-                                {r.dots && <div className="w-[3px] h-[3px] bg-white/60 rotate-45 ml-1" />}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
-    );
-};
+// 4. Removed CognitiveLoad per user request to reduce clutter.
 
 
 // ============================================================
@@ -537,7 +398,7 @@ const VitalsAreaChart = ({ stressLevel }: { stressLevel: number }) => {
         const animate = () => {
             tick++;
             // Push new data point every few frames to simulate chart moving left
-            if (tick % 5 === 0) {
+            if (tick % 10 === 0) {
                 // Generate next point based on stress level
                 // 0 is bottom, 1 is peak
                 let nextVal = 0;
@@ -742,27 +603,24 @@ const VitalsTempMonitor = () => {
 export const BiometricMonitor = () => {
     return (
         <div className="flex flex-col h-full w-full relative overflow-hidden px-4">
+            <div className="flex flex-col gap-8 flex-1 relative z-10 w-full pt-4">
+                {/* 1. Cortex Load */}
+                <div className="flex flex-col gap-2">
+                    <SectionDivider />
+                    <CortexBarChart />
+                </div>
 
-            {/* Header Line - Keeps structure tight */}
-            <div className="w-full h-[1px] bg-gradient-to-r from-brand-primary/40 to-transparent mt-1 mb-3" />
+                {/* 2. Sync Ratio */}
+                <div className="flex flex-col gap-2">
+                    <SectionDivider />
+                    <SyncRatio />
+                </div>
 
-            <div className="flex flex-col gap-6 lg:gap-8 flex-1 relative z-10 w-full">
-
-                {/* 1. Global / Telemetry */}
-                <TelemetryTracker />
-
-                {/* 2. Cortex Load (CPU / Scroll mapping) */}
-                <CortexBarChart />
-
-                {/* 3. Sync Ratio (Network / Smooth wave) */}
-                <SyncRatio />
-
-                {/* 4. Cognitive Load (Memory / Hexagon Grid) */}
-                <CognitiveLoad />
-
-                {/* 5. Vitals & Temp (Area chart / Hover spiking) */}
-                <VitalsTempMonitor />
-
+                {/* 3. Vitals & Temp */}
+                <div className="flex flex-col gap-2">
+                    <SectionDivider />
+                    <VitalsTempMonitor />
+                </div>
             </div>
         </div>
     );

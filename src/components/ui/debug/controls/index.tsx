@@ -29,14 +29,23 @@ interface CyberSliderProps {
 export const CyberSlider = ({ value, onChange, min = 0, max = 1, step = 0.01, disabled }: CyberSliderProps) => {
     const percent = ((value - min) / (max - min)) * 100;
     return (
-        <div className={`relative h-5 group ${disabled ? 'opacity-40' : ''}`}>
-            <div className="absolute top-1/2 -translate-y-1/2 w-full h-1 bg-cyan-950 border border-cyan-800/50">
-                <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-600 to-cyan-400" style={{ width: `${percent}%` }} />
-            </div>
+        <div className={`relative h-6 group flex items-center ${disabled ? 'opacity-40' : ''}`}>
+            {/* 1px Track Line */}
+            <div className="absolute left-0 right-0 h-[1px] bg-brand-primary/20 group-hover:bg-brand-primary/40 transition-colors" />
+
+            {/* 2px Endpoints */}
+            <div className="absolute left-0 w-[2px] h-[2px] bg-brand-primary" />
+            <div className="absolute right-0 w-[2px] h-[2px] bg-brand-primary" />
+
+            {/* Chamfered Square Thumb */}
             <div
-                className="absolute top-1/2 -translate-y-1/2 w-2 h-4 bg-cyan-400 border border-cyan-300 shadow-[0_0_6px_rgba(0,240,255,0.5)] transition-transform group-hover:scale-110"
-                style={{ left: `calc(${percent}% - 4px)` }}
+                className="absolute w-3.5 h-3.5 bg-brand-secondary shadow-[0_0_10px_var(--color-brand-secondary)] transition-all duration-200 cursor-pointer z-10"
+                style={{
+                    left: `calc(${percent}% - 7px)`,
+                    clipPath: "polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%)"
+                }}
             />
+
             <input
                 type="range"
                 min={min}
@@ -45,7 +54,7 @@ export const CyberSlider = ({ value, onChange, min = 0, max = 1, step = 0.01, di
                 value={value}
                 onChange={(e) => !disabled && onChange(parseFloat(e.target.value))}
                 disabled={disabled}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-20"
             />
         </div>
     );

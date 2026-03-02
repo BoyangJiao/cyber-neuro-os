@@ -330,7 +330,7 @@ export const SettingsModal = () => {
                                             max="100"
                                             value={volume}
                                             onChange={(e) => setVolume(Number(e.target.value))}
-                                            className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none slider-thumb-cyber"
+                                            className="w-full h-4 appearance-none cursor-pointer outline-none bg-transparent slider-thumb-cyber"
                                         />
                                     </div>
 
@@ -346,7 +346,7 @@ export const SettingsModal = () => {
                                             max="100"
                                             value={sfxVolume}
                                             onChange={(e) => setSfxVolume(Number(e.target.value))}
-                                            className="w-full h-1 bg-[var(--color-text-subtle)]/20 rounded-none appearance-none cursor-pointer outline-none slider-thumb-cyber"
+                                            className="w-full h-4 appearance-none cursor-pointer outline-none bg-transparent slider-thumb-cyber"
                                         />
                                     </div>
                                 </div>

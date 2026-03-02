@@ -1130,3 +1130,88 @@ svg.frame-glow {
         opacity: 0.3;
     }
 }
+
+/* ============================================================
+   Cyber Slider Styling (Minimalist Anchor Version)
+   ============================================================ */
+input[type="range"].slider-thumb-cyber {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 24px;
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+}
+
+input[type="range"].slider-thumb-cyber::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 2px;
+    background-color: transparent;
+    /* 1px Center Line + 2px End Anchors */
+    background-image:
+        linear-gradient(var(--color-brand-primary), var(--color-brand-primary)),
+        linear-gradient(var(--color-brand-primary), var(--color-brand-primary)),
+        linear-gradient(rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.2));
+    background-size: 2px 2px, 2px 2px, calc(100% - 4px) 1px;
+    background-position: left center, right center, center center;
+    background-repeat: no-repeat;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+input[type="range"].slider-thumb-cyber:hover::-webkit-slider-runnable-track {
+    background-image:
+        linear-gradient(var(--color-brand-secondary), var(--color-brand-secondary)),
+        linear-gradient(var(--color-brand-secondary), var(--color-brand-secondary)),
+        linear-gradient(rgba(0, 240, 255, 0.4), rgba(0, 240, 255, 0.4));
+}
+
+input[type="range"].slider-thumb-cyber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--color-brand-secondary);
+    margin-top: -6px;
+    /* Center 14px thumb on 2px container */
+    box-shadow: 0 0 10px var(--color-brand-secondary);
+
+    /* Square with bottom-right chamfer */
+    clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%);
+
+    border-radius: 0 !important;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+input[type="range"].slider-thumb-cyber:hover::-webkit-slider-thumb {
+    background: #fff;
+    transform: scale(1.1);
+}
+
+input[type="range"].slider-thumb-cyber:active::-webkit-slider-thumb {
+    transform: scale(0.9);
+    background: var(--color-brand-primary);
+}
+
+/* Firefox */
+input[type="range"].slider-thumb-cyber::-moz-range-track {
+    width: 100%;
+    height: 2px;
+    background-image:
+        linear-gradient(var(--color-brand-primary), var(--color-brand-primary)),
+        linear-gradient(var(--color-brand-primary), var(--color-brand-primary)),
+        linear-gradient(rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.2));
+    background-size: 2px 2px, 2px 2px, calc(100% - 4px) 1px;
+    background-position: left center, right center, center center;
+    background-repeat: no-repeat;
+}
+
+input[type="range"].slider-thumb-cyber::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--color-brand-secondary);
+    border: none;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%);
+    box-shadow: 0 0 10px var(--color-brand-secondary);
+}

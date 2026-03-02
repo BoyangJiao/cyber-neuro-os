@@ -120,7 +120,7 @@ export const MusicPlayer = () => {
                             max="100"
                             value={volume}
                             onChange={(e) => setVolume(Number(e.target.value))}
-                            className="flex-1 h-0.5 bg-brand-primary/20 rounded-lg appearance-none cursor-pointer hover:bg-brand-primary/40 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-brand-primary [&::-webkit-slider-thumb]:rounded-full shadow-sm"
+                            className="flex-1 h-4 appearance-none cursor-pointer outline-none bg-transparent slider-thumb-cyber"
                         />
                         <span className="text-[10px] font-mono text-brand-secondary/60 w-8 text-right font-bold tabular-nums">{volume}%</span>
                     </div>

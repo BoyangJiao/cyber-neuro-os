@@ -201,16 +201,12 @@ export const translations = {
         // Synthesis Landing (Soundboard)
         synthesis: {
             title: 'SOUNDBOARD',
-            sidebar: 'AN INTERACTIVE INDEX OF SYSTEM AUDITORY FEEDBACK AND SYNTHESIZED SOUNDSCAPES USED WITHIN THE NEURAL OS ENVIRONMENT.',
             sounds: {
-                sysBoot: 'SYS BOOT UP',
                 accessGranted: 'ACCESS GRTD',
                 accessDenied: 'ACCESS DNYD',
-                dataTransfer: 'DATA FLOW',
-                glitchHeavy: 'FATAL GLITCH',
-                scanComplete: 'SCAN DONE',
-                notification: 'NEW MESSAGE',
-                warningAlarm: 'CORE ALARM'
+                systemGlitch: 'SYS GLITCH',
+                uiHover: 'SYS BEEP',
+                ambientDream: 'AMBIENT DRM'
             }
         },
 
@@ -232,6 +228,13 @@ export const translations = {
                     desc: 'A terminal interface dedicated entirely to bidirectional Base64 encoding and decoding. Provides a raw text output stream suitable for embedding binary data into text files seamlessly.'
                 }
             }
+        },
+
+        // Intercept Modal
+        intercept: {
+            warning: 'WARNING',
+            message: 'Insufficient biological clearance. Access to {{moduleName}} neural zone denied.',
+            exit: 'EXIT',
         },
     },
 
@@ -432,16 +435,12 @@ export const translations = {
         // Synthesis Landing (Soundboard)
         synthesis: {
             title: '效果声库',
-            sidebar: '赛博原生操作系统环境内部使用的所有系统级听觉反馈、通知音效和合成声音文件的交互式可视化索引板。',
             sounds: {
-                sysBoot: '系统启动音',
                 accessGranted: '授权通过',
                 accessDenied: '授权拒绝',
-                dataTransfer: '数据流传输',
-                glitchHeavy: '严重故障音',
-                scanComplete: '扫描完成',
-                notification: '收到新消息',
-                warningAlarm: '核心警报音'
+                systemGlitch: '系统故障',
+                uiHover: '系统交互',
+                ambientDream: '神经氛围音'
             }
         },
 
@@ -463,6 +462,13 @@ export const translations = {
                     desc: '一个完全专用于双向 Base64 编码和解码的终端接口。提供适合将二进制数据无缝嵌入文本文件的原始文本输出流。'
                 }
             }
+        },
+
+        // Intercept Modal
+        intercept: {
+            warning: 'WARNING',
+            message: '当前生物权限不足，无法访问 {{moduleName}} 神经元区域',
+            exit: '退出',
         },
     },
 } as const;

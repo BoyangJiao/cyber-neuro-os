@@ -256,7 +256,7 @@ export const AboutMePage = () => {
                                         </motion.div>
 
                                         {/* Bottom System Info deco blocks */}
-                                        <div className="absolute bottom-4 2xl:bottom-6 left-4 right-4 z-10 flex justify-between items-end gap-12">
+                                        <div className="absolute bottom-4 2xl:bottom-6 left-4 right-4 z-10 flex justify-between items-start gap-12">
                                             <SystemInfoBlockAlpha className="w-[330px] 2xl:w-[400px]" />
                                             <SystemInfoBlockBeta className="w-[330px] 2xl:w-[400px]" />
                                         </div>

@@ -3,55 +3,36 @@ export interface Sound {
     titleKey: string;
     icon: string;
     durationEstimateSec: number;
+    audioSrc: string;
 }
 
 export const sounds: Sound[] = [
     {
-        id: 'sys-boot',
-        titleKey: 'synthesis.sounds.sysBoot',
-        icon: '⚡️',
-        durationEstimateSec: 3.5
-    },
-    {
         id: 'access-granted',
         titleKey: 'synthesis.sounds.accessGranted',
         icon: '✅',
-        durationEstimateSec: 1.2
+        durationEstimateSec: 1.2,
+        audioSrc: '/sounds/click/Interface_Access_Granted_091.mp3'
     },
     {
         id: 'access-denied',
         titleKey: 'synthesis.sounds.accessDenied',
         icon: '🚫',
-        durationEstimateSec: 1.8
+        durationEstimateSec: 1.8,
+        audioSrc: '/sounds/access/Interface_Access_Denied_117.mp3'
     },
     {
-        id: 'data-transfer',
-        titleKey: 'synthesis.sounds.dataTransfer',
-        icon: '📡',
-        durationEstimateSec: 5.0
-    },
-    {
-        id: 'glitch-heavy',
-        titleKey: 'synthesis.sounds.glitchHeavy',
+        id: 'system-glitch',
+        titleKey: 'synthesis.sounds.systemGlitch',
         icon: '💥',
-        durationEstimateSec: 2.1
+        durationEstimateSec: 2.1,
+        audioSrc: '/sounds/transition/Interface_Glitch_079.mp3'
     },
     {
-        id: 'scan-complete',
-        titleKey: 'synthesis.sounds.scanComplete',
-        icon: '👁️',
-        durationEstimateSec: 1.5
-    },
-    {
-        id: 'notification',
-        titleKey: 'synthesis.sounds.notification',
+        id: 'ui-hover',
+        titleKey: 'synthesis.sounds.uiHover',
         icon: '💬',
-        durationEstimateSec: 0.8
-    },
-    {
-        id: 'warning-alarm',
-        titleKey: 'synthesis.sounds.warningAlarm',
-        icon: '⚠️',
-        durationEstimateSec: 4.0
+        durationEstimateSec: 0.8,
+        audioSrc: '/sounds/hover/beep.mp3'
     }
 ];
