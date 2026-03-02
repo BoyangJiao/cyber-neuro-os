@@ -39,21 +39,23 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    className="flex flex-wrap gap-4 mb-10 2xl:mb-14"
+                    className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap lg:gap-x-16 xl:gap-x-24 gap-y-8 mb-10 2xl:mb-14"
                 >
                     {(detail.coreMetrics || []).map((metric: any, index: number) => (
-                        <div key={index} className="flex flex-col">
-                            <div className="flex items-baseline gap-1">
+                        <div key={index} className="flex flex-col lg:min-w-[160px] max-w-[240px]">
+                            <div className="flex items-baseline gap-1.5">
                                 <span
                                     className="text-3xl md:text-4xl 2xl:text-5xl font-display font-bold text-brand-primary drop-shadow-glow"
                                 >
                                     {metric.value}
                                 </span>
                                 {metric.unit && (
-                                    <span className="text-lg 2xl:text-xl text-brand-primary">{metric.unit}</span>
+                                    <span className="text-lg md:text-xl 2xl:text-2xl text-brand-primary/80 font-display font-medium tracking-wide">
+                                        {metric.unit}
+                                    </span>
                                 )}
                             </div>
-                            <span className="text-[12px] 2xl:text-[14px] font-mono text-text-secondary uppercase tracking-wider mt-1">
+                            <span className="text-[11px] md:text-xs 2xl:text-[14px] font-mono text-text-secondary uppercase tracking-widest mt-2 2xl:mt-3 leading-snug opacity-80">
                                 {metric.label}
                             </span>
                         </div>

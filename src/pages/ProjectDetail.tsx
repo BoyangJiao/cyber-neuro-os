@@ -94,7 +94,9 @@ export const ProjectDetail = () => {
         navigate('/projects');
     }, [navigate]);
 
-
+    const handleSectionVisible = useCallback((id: string) => {
+        setActiveSection(id);
+    }, []);
 
     // Render Logic
     if (isLoading) {
@@ -206,7 +208,7 @@ export const ProjectDetail = () => {
                                         <SectionRenderer
                                             key={module._key}
                                             module={module}
-                                            onVisible={() => setActiveSection(module.anchorId || module._key)}
+                                            onVisible={handleSectionVisible}
                                         />
                                     ))}
                                 </div>

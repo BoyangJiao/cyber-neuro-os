@@ -4,6 +4,7 @@
  * 布局模块分发器 - 根据 _type 渲染不同的布局
  * Layout module dispatcher - renders different layouts based on _type
  */
+import { memo } from 'react';
 import { LayoutFullWidthRenderer } from './renderers/LayoutFullWidthRenderer';
 import { LayoutSplitRenderer } from './renderers/LayoutSplitRenderer';
 import { LayoutGridRenderer } from './renderers/LayoutGridRenderer';
@@ -14,7 +15,7 @@ interface SectionRendererProps {
     onVisible?: (id: string) => void;
 }
 
-export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => {
+export const SectionRenderer = memo(({ module, onVisible }: SectionRendererProps) => {
     // Generate section ID from anchorId or fallback to _key
     const sectionId = module.anchorId || module._key;
 
@@ -53,5 +54,5 @@ export const SectionRenderer = ({ module, onVisible }: SectionRendererProps) => 
             console.warn('Unknown layout module type:', (module as any)?._type);
             return null;
     }
-};
+});
 

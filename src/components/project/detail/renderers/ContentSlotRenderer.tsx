@@ -46,6 +46,25 @@ const RichTextRenderer = ({ block }: { block: RichTextBlock }) => {
                 </ul>
             ),
         },
+        marks: {
+            link: ({ children, value }: any) => {
+                const href = value?.href || '';
+                const isExternal = href.startsWith('http');
+                const target = isExternal ? '_blank' : undefined;
+                const rel = isExternal ? 'noreferrer noopener' : undefined;
+
+                return (
+                    <a
+                        href={href}
+                        target={target}
+                        rel={rel}
+                        className="text-brand-primary border-b border-brand-primary/40 hover:border-brand-primary transition-colors duration-200"
+                    >
+                        {children}
+                    </a>
+                );
+            }
+        }
     };
 
     return (

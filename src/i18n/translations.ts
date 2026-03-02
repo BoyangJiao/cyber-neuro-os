@@ -166,7 +166,7 @@ export const translations = {
             caseStudy: 'Case Study',
             snapshot: 'Snapshot',
             noMission: '[ NO MISSION SELECTED ]',
-            deploy: 'DEPLOY',
+            deploy: 'LAUNCH',
             loadingFeed: 'LOADING FEED...',
         },
 
@@ -400,7 +400,7 @@ export const translations = {
             caseStudy: '案例分析',
             snapshot: '项目快照',
             noMission: '[ 未选择任何任务 ]',
-            deploy: '部署并启动',
+            deploy: '启动',
             loadingFeed: '获取画面流...',
         },
 
