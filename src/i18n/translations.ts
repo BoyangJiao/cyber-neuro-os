@@ -149,6 +149,7 @@ export const translations = {
             returnToDir: 'Return to Directory',
             endOfCase: 'End of Case Study',
             backToDir: 'Back to Directory',
+            dragToCompare: 'Drag to compare',
             sidebar: {
                 myRole: 'My Role',
                 team: 'Team',
@@ -383,6 +384,7 @@ export const translations = {
             returnToDir: '返回项目目录',
             endOfCase: '案例分析结束',
             backToDir: '返回目录',
+            dragToCompare: '左右滑动查看差异',
             sidebar: {
                 myRole: '我的角色',
                 team: '团队',

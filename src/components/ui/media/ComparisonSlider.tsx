@@ -9,7 +9,8 @@
  * - 向左拖动：展示更多 After，播放 After 视频
  */
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '../../../i18n';
 
 interface ComparisonSliderProps {
     beforeSrc: string;
@@ -36,6 +37,7 @@ export const ComparisonSlider = ({
     const [sliderPos, setSliderPos] = useState(50); // percentage 0-100
     const [isDragging, setIsDragging] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
+    const { t } = useTranslation();
 
     // Control video playback based on slider position
     // Videos are PAUSED at 50% default. Only play when their visible area > 50%.
@@ -144,6 +146,13 @@ export const ComparisonSlider = ({
         );
     };
 
+    // Calculate dynamic opacities based on slider position
+    // Default 50%: both labels are equally bright (opacity 1)
+    // If before area is larger (sliderPos > 50), before label is 1, after label scales down to 0.4
+    // If after area is larger (sliderPos < 50), after label is 1, before label scales down to 0.4
+    const beforeOpacity = sliderPos >= 50 ? 1 : Math.max(0.4, sliderPos / 50);
+    const afterOpacity = sliderPos <= 50 ? 1 : Math.max(0.4, (100 - sliderPos) / 50);
+
     return (
         <div
             ref={containerRef}
@@ -192,19 +201,36 @@ export const ComparisonSlider = ({
                         <path d="M14 10L17 13M17 13L14 16M17 13H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </motion.div>
+                {/* Hover instruction tooltip */}
+                <AnimatePresence>
+                    {(isHovering || isDragging) && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute mt-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md rounded-sm border border-[var(--color-brand-primary)]/30 font-mono text-[10px] sm:text-xs tracking-widest text-white uppercase shadow-lg pointer-events-none flex items-center justify-center gap-2"
+                        >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand-primary)] animate-pulse" />
+                            {t('projectDetail.dragToCompare')}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Labels */}
             <motion.div
                 className="absolute top-4 left-4 px-3 py-1.5 rounded-sm bg-black/70 backdrop-blur-md border border-[var(--color-brand-primary)]/30 font-mono text-xs tracking-[0.15em] uppercase text-white shadow-lg flex items-center gap-2"
-                animate={{ opacity: isHovering || isDragging ? 1 : 0.8 }}
+                animate={{ opacity: isHovering || isDragging ? beforeOpacity : 0.8 * beforeOpacity }}
+                transition={{ duration: 0.2 }}
             >
                 <i className="ri-history-line text-[var(--color-brand-primary)]"></i>
                 {beforeLabel}
             </motion.div>
             <motion.div
                 className="absolute top-4 right-4 px-3 py-1.5 rounded-sm bg-black/70 backdrop-blur-md border border-[var(--color-brand-primary)]/30 font-mono text-xs tracking-[0.15em] uppercase text-white shadow-lg flex items-center gap-2"
-                animate={{ opacity: isHovering || isDragging ? 1 : 0.8 }}
+                animate={{ opacity: isHovering || isDragging ? afterOpacity : 0.8 * afterOpacity }}
+                transition={{ duration: 0.2 }}
             >
                 <i className="ri-magic-line text-[var(--color-brand-primary)]"></i>
                 {afterLabel}
