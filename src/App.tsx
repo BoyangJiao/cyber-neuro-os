@@ -20,7 +20,7 @@ const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module
 const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').then(module => ({ default: module.SynthesisLandingPage })));
 const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
-import { AmbientBackground } from './components/ui/effects/AmbientBackground'
+import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
 import { MobileGate } from './components/layout/MobileGate'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
@@ -116,8 +116,8 @@ function App() {
       </AnimatePresence>
 
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
-        {/* Layer 3+4: Ambient atmospheric effects */}
-        {!isBootSequenceActive && <AmbientBackground />}
+        {/* Layer 0: Full-screen WebGL particle field */}
+        {!isBootSequenceActive && <NeuralParticleField />}
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
           <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">

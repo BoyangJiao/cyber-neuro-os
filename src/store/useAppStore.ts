@@ -50,6 +50,10 @@ interface AppState {
     debugGeometryType: GeometryType;
     setDebugGeometryType: (type: GeometryType) => void;
 
+    // Particle Field — Nav ↔ Particle communication
+    activeNodeId: string | null;
+    setActiveNodeId: (id: string | null) => void;
+
     // Audio Settings
     sfxVolume: number;
     setSfxVolume: (volume: number) => void;
@@ -91,6 +95,10 @@ export const useAppStore = create<AppState>((set) => ({
     set3DMode: (mode) => set({ is3DMode: mode }),
     debugGeometryType: 'project',
     setDebugGeometryType: (type) => set({ debugGeometryType: type }),
+
+    // Particle Field
+    activeNodeId: null,
+    setActiveNodeId: (id) => set({ activeNodeId: id }),
 
     // Audio Settings
     sfxVolume: 20,
