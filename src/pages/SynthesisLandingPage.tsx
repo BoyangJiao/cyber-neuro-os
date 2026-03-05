@@ -37,7 +37,7 @@ export const SynthesisLandingPage = () => {
                         <div className="w-16 2xl:w-20" />
 
                         <div className="flex flex-col items-center">
-                            <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
+                            <h1 className="text-sm 2xl:text-lg font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
                                 {t('synthesis.title')}
                             </h1>
                         </div>

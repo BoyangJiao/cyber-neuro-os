@@ -178,7 +178,7 @@ export const HoloTiltCard = ({
 
             {/* 3. 2D Content (Icon) - Fades OUT */}
             <div
-                className={`absolute inset-0 flex items-center justify-center transition-all duration-300 delay-200 pointer-events-none z-10 ${isHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`}
+                className={`absolute inset-0 flex items-center justify-center transition-all duration-150 pointer-events-none z-10 ${isHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`}
             >
                 {icon?.includes('/') || icon?.includes('data:') ? (
                     <img
@@ -195,7 +195,7 @@ export const HoloTiltCard = ({
             {/* Expanded container to prevent clipping of rotation rings */}
             <div
                 ref={contentRef}
-                className={`absolute w-[140%] h-[140%] -left-[20%] -top-[20%] z-50 transition-opacity duration-500 ease-out pointer-events-none delay-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute w-[140%] h-[140%] -left-[20%] -top-[20%] z-50 transition-opacity duration-500 ease-out pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-0'}`}
                 style={{
                     // Initial transform handled by GSAP or static
                     transform: isHovered ? 'translate3d(0%, -5%, 150px)' : 'translate3d(0%, 20%, -50px)'

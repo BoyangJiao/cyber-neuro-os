@@ -4,6 +4,7 @@ export interface LabApp {
     descKey: string;
     image: string;
     componentType: string; // Identifier for when real components are loaded
+    geometryType?: any;
     status: 'ACTIVE' | 'ARCHIVED' | 'DEVELOPMENT';
     iframeUrl?: string; // Optional URL for embedding the app via iframe
 }
@@ -13,25 +14,29 @@ export const labApps: LabApp[] = [
         id: 'avatar-generator',
         titleKey: 'lab.apps.avatarGenerator.title',
         descKey: 'lab.apps.avatarGenerator.desc',
-        image: '/images/features/Lab_active.png',
+        image: '/reference/camera.svg',
         componentType: 'AvatarGenerator',
+        geometryType: 'camera',
         status: 'ACTIVE',
         iframeUrl: 'https://avatar-generator-ruby.vercel.app/'
     },
     {
-        id: 'hash-generator',
-        titleKey: 'lab.apps.hashGen.title',
-        descKey: 'lab.apps.hashGen.desc',
-        image: '/images/features/game_active.png',
-        componentType: 'HashGenerator',
-        status: 'DEVELOPMENT'
+        id: 'ai-ready-guide',
+        titleKey: 'lab.apps.aiReadyGuide.title',
+        descKey: 'lab.apps.aiReadyGuide.desc',
+        image: '/reference/book.svg',
+        componentType: 'AIReadyGuide',
+        geometryType: 'book',
+        status: 'ACTIVE',
+        iframeUrl: 'https://ai-ready-design-system-guide-cq7m.vercel.app/'
     },
     {
-        id: 'base64-terminal',
-        titleKey: 'lab.apps.base64Term.title',
-        descKey: 'lab.apps.base64Term.desc',
-        image: '/images/features/SFX_active.png',
-        componentType: 'Base64Terminal',
-        status: 'ARCHIVED'
+        id: 'coming-soon',
+        titleKey: 'lab.apps.comingSoon.title',
+        descKey: 'lab.apps.comingSoon.desc',
+        image: 'ri-lock-2-line',
+        componentType: 'ClassifiedProject',
+        geometryType: 'lab',
+        status: 'DEVELOPMENT'
     }
 ];

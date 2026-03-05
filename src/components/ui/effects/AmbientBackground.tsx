@@ -196,7 +196,7 @@ const DataRainCanvas = memo(() => {
                     }
                 }
 
-                ctx.font = `${col.fontSize}px "Share Tech Mono", monospace`;
+                ctx.font = `${col.fontSize}px "JetBrains Mono", monospace`;
                 ctx.textAlign = 'center';
 
                 for (let i = 0; i < col.trailLength; i++) {

@@ -40,7 +40,7 @@ export const MusicPlayer = () => {
         <div className="flex flex-col h-full w-full relative">
             {/* Track Header - Integrated state identifier */}
             <div className="flex items-center mb-4 border-b border-brand-primary/30 pb-2">
-                <span className="text-[10px] font-sans font-medium text-brand-primary/80 tracking-widest uppercase">
+                <span className="text-[10px] font-mono font-medium text-brand-primary/80 tracking-widest uppercase">
                     {t('music.nowPlaying')}
                 </span>
             </div>

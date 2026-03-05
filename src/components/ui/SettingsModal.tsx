@@ -35,7 +35,7 @@ const themes: ThemeOption[] = [
 
 export const SettingsModal = () => {
     const [activeTab, setActiveTab] = useState<'about' | 'appearance' | 'audio'>('about');
-    const { setSettingsOpen, debugMode, setDebugMode, is3DMode, set3DMode, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
+    const { setSettingsOpen, debugMode, setDebugMode, isDeepDiveMode, setDeepDiveMode, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
     const { volume, setVolume } = useMusicStore();
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
@@ -107,7 +107,7 @@ export const SettingsModal = () => {
 
                         {/* About Content */}
                         {activeTab === 'about' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
                                 {/* ── Overview ── */}
                                 <div className="flex flex-col items-center text-center gap-3">
@@ -116,60 +116,69 @@ export const SettingsModal = () => {
 
                                     {/* System Name + Version */}
                                     <div>
-                                        <p className="text-sm font-display font-bold tracking-[0.25em] text-[var(--color-brand-primary)] uppercase">
+                                        <p className="text-base font-display font-bold tracking-[0.25em] text-[var(--color-brand-primary)] uppercase">
                                             BOYANG NEURO.OS
                                         </p>
-                                        <p className="text-[10px] font-mono text-[var(--color-text-subtle)] tracking-widest mt-1">
-                                            v1.2.0-rc1 · BUILD 2026.02.25
+                                        <p className="text-[11px] font-mono text-[var(--color-text-subtle)] tracking-widest mt-1">
+                                            v1.0.0
                                         </p>
                                     </div>
 
                                     {/* Description */}
-                                    <p className="text-xs font-mono text-[var(--color-text-secondary)] leading-relaxed max-w-[300px] opacity-80">
+                                    <p className="text-sm font-mono text-[var(--color-text-secondary)] leading-relaxed max-w-[320px] opacity-80">
                                         {language === 'zh'
-                                            ? '一个完全模拟 Boyang 大脑内神经系统的数字图形界面。'
-                                            : 'A digital graphical interface that fully simulates the neural system inside Boyang\'s brain.'}
+                                            ? 'Boyang 脑神经系统的全息模拟界面'
+                                            : 'A holographic simulation interface of Boyang\'s neural system'}
                                     </p>
                                 </div>
 
-                                {/* ── Architect ── */}
-                                <div className="border-t border-[var(--color-text-subtle)]/20 pt-4 space-y-3">
-                                    {/* Core */}
-                                    <p className="text-[10px] font-mono text-[var(--color-text-secondary)] leading-relaxed tracking-wider">
-                                        <span className="text-[var(--color-brand-primary)] font-semibold">CORE</span>
-                                        <span className="mx-2 text-[var(--color-text-subtle)]">//</span>
-                                        {language === 'zh'
-                                            ? '本系统核心代码库由人类架构师与 AI 逻辑引擎共同编译构建。'
-                                            : 'The core codebase is co-compiled by a human architect and an AI logic engine.'}
+                                {/* ── Architecture ── */}
+                                <div className="border-t border-[var(--color-text-subtle)]/20 pt-4 space-y-2">
+                                    <p className="text-[11px] font-mono text-[var(--color-brand-primary)] font-semibold tracking-wider uppercase">
+                                        ARCHITECTURE <span className="text-[var(--color-text-subtle)]">//</span>
                                     </p>
+                                    <p className="text-xs font-mono text-[var(--color-text-secondary)] leading-relaxed tracking-wider">
+                                        {language === 'zh'
+                                            ? '本项目视觉与世界观深受《赛博朋克 2077》《光环》《死亡搁浅》及《攻壳机动队》等作品启发。本项目旨在通过界面设计，探索并表达在高速发展的科技夹缝中，人类自我认知的怀疑、冲突与重构。'
+                                            : 'Visually and narratively inspired by Cyberpunk 2077, Halo, Death Stranding, and Ghost in the Shell. This project explores, through interface design, the doubt, conflict, and reconstruction of human self-perception caught in the cracks of rapidly advancing technology.'}
+                                    </p>
+                                    <p className="text-xs font-mono text-[var(--color-text-secondary)]/70 leading-relaxed tracking-wider">
+                                        {language === 'zh'
+                                            ? '所有视觉设计与交互构思均由 Boyang 独立完成，底层系统代码由 AI 编写构建。'
+                                            : 'All visual design and interaction concepts are independently created by Boyang. The underlying system code is written and built by AI.'}
+                                    </p>
+                                </div>
 
-                                    {/* Visual Assets */}
-                                    <div className="space-y-1.5">
-                                        <p className="text-[10px] font-mono text-[var(--color-brand-primary)] font-semibold tracking-wider">
-                                            VISUAL ASSETS
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                                            {[
-                                                { icon: 'ri-sparkling-2-line', label: 'Generative AI' },
-                                                { icon: 'ri-box-3-line', label: language === 'zh' ? '个人 3D 渲染' : 'Personal 3D Renders' },
-                                                { icon: 'ri-open-source-line', label: language === 'zh' ? '开源 3D 模型' : 'Open-Source 3D Models' },
-                                                { icon: 'ri-shapes-line', label: language === 'zh' ? '自定义 SVG 图形' : 'Custom SVG Graphics' },
-                                            ].map((item) => (
-                                                <div key={item.label} className="flex items-center gap-1.5">
-                                                    <i className={`${item.icon} text-[10px] text-[var(--color-brand-primary)]/50`} />
-                                                    <span className="text-[10px] font-mono text-[var(--color-text-secondary)] tracking-wider">{item.label}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                {/* ── Assets & Licenses ── */}
+                                <div className="border-t border-[var(--color-text-subtle)]/20 pt-4 space-y-2">
+                                    <p className="text-[11px] font-mono text-[var(--color-brand-primary)] font-semibold tracking-wider uppercase">
+                                        ASSETS & LICENSES <span className="text-[var(--color-text-subtle)]">//</span>
+                                    </p>
+                                    <div className="space-y-1">
+                                        {[
+                                            language === 'zh' ? '✦ SVG 图形：个人原创设计' : '✦ SVG Graphics: Original design',
+                                            language === 'zh' ? '✦ 图片素材：Generative AI 辅助生成' : '✦ Images: Generative AI assisted',
+                                            language === 'zh' ? '✦ 音频素材：Generative AI 辅助生成' : '✦ Audio: Generative AI assisted',
+                                            language === 'zh' ? '✦ 3D 模型：部分经由开源协议授权使用、部分由 Generative AI 辅助生成' : '✦ 3D Models: Partially licensed via open-source, partially Generative AI assisted',
+                                        ].map((line, i) => (
+                                            <p key={i} className="text-xs font-mono text-[var(--color-text-secondary)] tracking-wider leading-relaxed">
+                                                {line}
+                                            </p>
+                                        ))}
                                     </div>
+                                    <p className="text-[10px] font-mono text-[var(--color-text-subtle)] italic tracking-wider mt-1">
+                                        {language === 'zh'
+                                            ? '(感谢开源社区为 NEURO.OS 提供的视觉养分)'
+                                            : '(Thanks to the open-source community for the visual nourishment of NEURO.OS)'}
+                                    </p>
                                 </div>
 
                                 {/* ── Legal ── */}
                                 <div className="border-t border-[var(--color-text-subtle)]/20 pt-3 space-y-1 text-center">
-                                    <p className="text-[9px] font-mono text-[var(--color-text-subtle)] tracking-widest uppercase">
+                                    <p className="text-[10px] font-mono text-[var(--color-text-subtle)] tracking-widest uppercase">
                                         © 2026 Boyang Jiao. All Rights Reserved.
                                     </p>
-                                    <p className="text-[9px] font-mono text-[var(--color-text-subtle)]/60 leading-relaxed">
+                                    <p className="text-[10px] font-mono text-[var(--color-text-subtle)]/60 leading-relaxed">
                                         {language === 'zh'
                                             ? '未经授权，禁止将本脑机接口数据用于个人或商业克隆。'
                                             : 'Unauthorized use of this neural interface data for personal or commercial cloning is prohibited.'}
@@ -186,11 +195,11 @@ export const SettingsModal = () => {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                         <i className="ri-global-line text-[var(--color-brand-primary)]/60" />
-                                        <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                        <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
                                             {t('settings.language')}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
+                                    <p className="text-sm text-[var(--color-text-secondary)]/80 mb-3">
                                         {t('settings.languageDesc')}
                                     </p>
 
@@ -214,7 +223,7 @@ export const SettingsModal = () => {
                                                 )}
                                                 <div className="relative z-10 flex flex-col items-center gap-1">
                                                     <span className="text-lg font-bold tracking-wider">{lang.labelNative}</span>
-                                                    <span className="text-[10px] tracking-widest uppercase opacity-70">{lang.label}</span>
+                                                    <span className="text-xs tracking-widest uppercase opacity-70">{lang.label}</span>
                                                 </div>
                                                 {language === lang.code && (
                                                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[var(--color-brand-secondary)] shadow-[0_0_8px_var(--color-brand-primary)]" />
@@ -228,11 +237,11 @@ export const SettingsModal = () => {
                                 <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
                                     <div className="flex items-center gap-2">
                                         <i className="ri-palette-line text-[var(--color-brand-primary)]/60" />
-                                        <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                        <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
                                             {language === 'zh' ? '品牌主题' : 'BRAND THEME'}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-[var(--color-text-secondary)]/80 mb-3">
+                                    <p className="text-sm text-[var(--color-text-secondary)]/80 mb-3">
                                         {language === 'zh' ? '选择你喜欢的赛博主题色' : 'Select your preferred cyber theme color'}
                                     </p>
 
@@ -251,7 +260,7 @@ export const SettingsModal = () => {
                                             >
                                                 <div className="relative z-10 flex flex-col items-center gap-1">
                                                     <div className="w-6 h-6 border border-white/20" style={{ backgroundColor: theme.color, boxShadow: brandTheme === theme.code ? `0 0 12px ${theme.color}` : 'none' }} />
-                                                    <span className="text-[9px] tracking-widest uppercase mt-1" style={{ color: brandTheme === theme.code ? theme.color : '#888' }}>
+                                                    <span className="text-[10px] tracking-widest uppercase mt-1" style={{ color: brandTheme === theme.code ? theme.color : '#888' }}>
                                                         {theme.label}
                                                     </span>
                                                 </div>
@@ -263,30 +272,30 @@ export const SettingsModal = () => {
                                     </div>
                                 </div>
 
-                                {/* 3D Mode & Debug Mode Section */}
+                                {/* DeepDive Mode & Debug Mode Section */}
                                 <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <i className="ri-box-3-line text-[var(--color-brand-primary)]/60" />
-                                            <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                                {t('settings.mode3d')}
+                                            <i className="ri-contrast-2-line text-[var(--color-brand-primary)]/60" />
+                                            <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                                {t('settings.deepDiveMode')}
                                             </span>
                                         </div>
                                         <button
-                                            onClick={() => set3DMode(!is3DMode)}
+                                            onClick={() => setDeepDiveMode(!isDeepDiveMode)}
                                             className={`
                                         w-12 h-6 relative rounded-none border transition-all duration-300
-                                        ${is3DMode ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30' : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'}
+                                        ${isDeepDiveMode ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30' : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'}
                                     `}
                                         >
-                                            <div className={`absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300 ${is3DMode ? 'left-7' : 'left-1'}`} />
+                                            <div className={`absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300 ${isDeepDiveMode ? 'left-7' : 'left-1'}`} />
                                         </button>
                                     </div>
 
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <i className="ri-bug-line text-[var(--color-brand-primary)]/60" />
-                                            <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                            <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
                                                 DEBUG MODE
                                             </span>
                                         </div>
@@ -313,14 +322,14 @@ export const SettingsModal = () => {
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
                                         <i className="ri-volume-up-line text-[var(--color-brand-primary)]/60" />
-                                        <span className="text-xs font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                        <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
                                             OUTPUT CHANNELS
                                         </span>
                                     </div>
 
                                     {/* Music Volume */}
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+                                        <div className="flex justify-between text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">
                                             <span>MUSIC BROADCAST</span>
                                             <span>{Math.round(volume)}%</span>
                                         </div>
@@ -336,7 +345,7 @@ export const SettingsModal = () => {
 
                                     {/* SFX Volume */}
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+                                        <div className="flex justify-between text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">
                                             <span>SYSTEM EFFECTS</span>
                                             <span>{Math.round(sfxVolume)}%</span>
                                         </div>
@@ -354,6 +363,27 @@ export const SettingsModal = () => {
                         )}
 
                     </div>{/* end scrollable content area */}
+
+                    {/* ── Sticky Terminal Status Bar (About tab only) ── */}
+                    {activeTab === 'about' && (
+                        <div className="mt-auto pt-2 border-t border-[var(--color-text-subtle)]/15 overflow-hidden">
+                            <div className="flex items-center gap-1 h-5">
+                                <span className="text-[var(--color-brand-primary)]/60 text-[9px] font-mono shrink-0">▌&gt;</span>
+                                <div className="overflow-hidden flex-1 whitespace-nowrap">
+                                    <span
+                                        className="inline-block text-[9px] font-mono text-[var(--color-text-subtle)] tracking-widest uppercase"
+                                        style={{ animation: 'marquee 18s linear infinite' }}
+                                    >
+                                        SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v1.0.0 · neural_sync OK · memory_pool stable · render_pipeline nominal
+                                    </span>
+                                </div>
+                                <span
+                                    className="text-[var(--color-brand-primary)] text-[9px] font-mono shrink-0"
+                                    style={{ animation: 'blink-cursor 1s steps(1) infinite' }}
+                                >_</span>
+                            </div>
+                        </div>
+                    )}
                 </HoloFrame>
             </MotionDiv>
         </MotionDiv>

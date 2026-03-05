@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { InterceptModal } from '../ui/modals/InterceptModal';
+import { DiamondIcon } from '../ui/DiamondIcon';
 import { useAppStore } from '../../store/useAppStore';
 
 // ─── Node Data ─────────────────────────────────────────────
@@ -27,37 +28,6 @@ const NODES: ConstellationNodeData[] = [
     { id: 'sound', titleKey: 'features.sound', subtitle: 'PATCH_BAY', link: '/synthesis' },
     { id: 'video', titleKey: 'features.video', subtitle: 'OPTIC_FEED' },
 ];
-
-// ─── Diamond Icon Component ────────────────────────────────
-const DiamondIcon = ({ active }: { active: boolean }) => (
-    <div className="relative w-4 h-4 flex items-center justify-center flex-shrink-0">
-        {/* Outer diamond ring */}
-        <div
-            className="absolute w-3.5 h-3.5 transition-all duration-300"
-            style={{
-                transform: 'rotate(45deg)',
-                border: `1px solid var(--color-brand-primary)`,
-                opacity: active ? 0.9 : 0.3,
-                background: active ? 'rgba(0, 255, 255, 0.1)' : 'transparent',
-                boxShadow: active
-                    ? '0 0 8px var(--color-brand-glow), inset 0 0 4px rgba(0, 255, 255, 0.1)'
-                    : 'none',
-            }}
-        />
-        {/* Inner diamond core */}
-        <div
-            className="w-1.5 h-1.5 transition-all duration-300"
-            style={{
-                transform: 'rotate(45deg)',
-                background: 'var(--color-brand-primary)',
-                opacity: active ? 1 : 0.5,
-                boxShadow: active
-                    ? '0 0 6px var(--color-brand-glow)'
-                    : 'none',
-            }}
-        />
-    </div>
-);
 
 // ─── Component ─────────────────────────────────────────────
 export const ConstellationNav = () => {

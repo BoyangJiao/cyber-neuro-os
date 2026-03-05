@@ -25,7 +25,7 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
                 <HoloFeatureCard
                     title={""}
                     icon={app.image}
-                    geometryType="lab"
+                    geometryType={app.geometryType || "lab"}
                 />
             </div>
 

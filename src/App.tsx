@@ -21,6 +21,7 @@ const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').t
 const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
+import { AmbientBackground } from './components/ui/effects/AmbientBackground'
 import { MobileGate } from './components/layout/MobileGate'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
@@ -46,7 +47,7 @@ import { PROJECTS_QUERY } from './sanity/queries'
 import type { SanityProjectRaw } from './sanity/types'
 
 function App() {
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme } = useAppStore();
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode } = useAppStore();
   const { language, setProjects } = useProjectStore();
   const { initAudio } = useSoundSystem();
 
@@ -82,7 +83,9 @@ function App() {
   // Manage body background state to prevent flash during bootscreen
   useEffect(() => {
     document.body.classList.toggle('app-ready', !isBootSequenceActive);
-  }, [isBootSequenceActive]);
+    // Sync deepdive-mode class on mount and when mode changes
+    document.body.classList.toggle('deepdive-mode', isDeepDiveMode);
+  }, [isBootSequenceActive, isDeepDiveMode]);
 
   // Initial fetch as fallback
   useEffect(() => {
@@ -116,8 +119,8 @@ function App() {
       </AnimatePresence>
 
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
-        {/* Layer 0: Full-screen WebGL particle field */}
-        {!isBootSequenceActive && <NeuralParticleField />}
+        {/* Layer 0: Background — conditional on DeepDive mode */}
+        {!isBootSequenceActive && (isDeepDiveMode ? <NeuralParticleField /> : <AmbientBackground />)}
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
           <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">

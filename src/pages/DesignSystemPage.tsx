@@ -45,7 +45,7 @@ export const DesignSystemPage = () => {
 
                         {/* Center Title */}
                         <div className="flex flex-col items-center">
-                            <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
+                            <h1 className="text-sm 2xl:text-lg font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
                                 SYSTEM COMPONENTS
                             </h1>
                         </div>
@@ -82,7 +82,7 @@ export const DesignSystemPage = () => {
                                 <section className="space-y-12">
                                     <div className="flex items-center gap-4 mb-8">
                                         <div className="h-10 w-1 bg-brand-primary shadow-brand-glow" />
-                                        <h2 className="text-xl font-bold tracking-widest text-white">BUTTON COMPONENTS</h2>
+                                        <h2 className="text-xl font-display font-bold tracking-widest text-white">BUTTON COMPONENTS</h2>
                                     </div>
 
                                     {/* 1. NeuroButton (Dot Variant) */}
@@ -193,7 +193,7 @@ export const DesignSystemPage = () => {
                                 <section className="space-y-12">
                                     <div className="flex items-center gap-4 mb-8">
                                         <div className="h-10 w-1 bg-purple-500 shadow-[0_0_10px_purple]" />
-                                        <h2 className="text-xl font-bold tracking-widest text-white">FRAME COMPONENTS</h2>
+                                        <h2 className="text-xl font-display font-bold tracking-widest text-white">FRAME COMPONENTS</h2>
                                     </div>
 
                                     {/* 1. CornerFrame (Avatar/Display) */}
@@ -253,7 +253,7 @@ export const DesignSystemPage = () => {
                                                 <DotsFrame>
                                                     <div className="flex flex-col items-center justify-center h-full text-center p-6 text-brand-primary/20">
                                                         <i className="ri-lock-2-line text-3xl mb-2 text-brand-secondary" />
-                                                        <h4 className="text-xl font-bold mb-1 text-white">SECURE TERMINAL</h4>
+                                                        <h4 className="text-xl font-display font-bold mb-1 text-white">SECURE TERMINAL</h4>
                                                         <p className="text-xs text-brand-secondary/60">Biometric Scan Required</p>
                                                     </div>
                                                 </DotsFrame>

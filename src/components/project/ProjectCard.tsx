@@ -120,7 +120,7 @@ export const ProjectCard = ({
                         {/* Title */}
                         <h3
                             className={twMerge(
-                                "text-2xl font-bold tracking-[2px] m-0 transition-all duration-300",
+                                "text-2xl font-display font-bold tracking-[2px] m-0 transition-all duration-300",
                                 isActive ? "text-[var(--color-text-primary)] glow-text" : "text-[var(--color-text-secondary)]"
                             )}
                         >

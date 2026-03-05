@@ -30,14 +30,14 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
 
             {/* My Role */}
             <SidebarSection label={t('projectDetail.sidebar.myRole')}>
-                <span className="text-sm 2xl:text-base text-brand-primary font-semibold">
+                <span className="text-sm 2xl:text-base text-brand-primary font-mono font-semibold">
                     {sidebar.role}
                 </span>
             </SidebarSection>
 
             {/* Team */}
             <SidebarSection label={t('projectDetail.sidebar.team')}>
-                <span className="text-sm 2xl:text-base text-text-primary">
+                <span className="text-sm 2xl:text-base text-text-primary font-mono">
                     {sidebar.team}
                 </span>
             </SidebarSection>
@@ -45,12 +45,12 @@ export const HUDSidebar = ({ detail }: HUDSidebarProps) => {
             {/* Timeline & Status */}
             <SidebarSection label={t('projectDetail.sidebar.timelineStatus')}>
                 <div className="flex items-center gap-2">
-                    <span className="text-sm 2xl:text-base text-text-primary">
+                    <span className="text-sm 2xl:text-base text-text-primary font-mono">
                         {sidebar.timeline}
                     </span>
                     <span className="text-border-default">•</span>
                     <span
-                        className="text-sm 2xl:text-base font-medium"
+                        className="text-sm 2xl:text-base font-mono font-medium"
                         style={{
                             color: sidebar.status === 'Live' ? 'var(--color-status-success)' :
                                 sidebar.status === 'In Development' ? 'var(--color-status-warning)' : 'var(--color-text-secondary)',

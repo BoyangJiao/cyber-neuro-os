@@ -8,6 +8,7 @@ export type GeometryType = 'project' | 'video' | 'game' | 'sound' | 'music' | 'l
 export type BrandTheme = 'cyan' | 'green' | 'red';
 
 const THEME_SETTINGS_KEY = 'cyber-brand-theme';
+const DEEPDIVE_SETTINGS_KEY = 'cyber-deepdive-mode';
 
 const loadSavedTheme = (): BrandTheme => {
     try {
@@ -43,9 +44,9 @@ interface AppState {
     // Debug Mode
     debugMode: boolean;
     setDebugMode: (mode: boolean) => void;
-    // 3D Mode
-    is3DMode: boolean;
-    set3DMode: (mode: boolean) => void;
+    // DeepDive Mode (particle space)
+    isDeepDiveMode: boolean;
+    setDeepDiveMode: (mode: boolean) => void;
 
     debugGeometryType: GeometryType;
     setDebugGeometryType: (type: GeometryType) => void;
@@ -53,6 +54,10 @@ interface AppState {
     // Particle Field — Nav ↔ Particle communication
     activeNodeId: string | null;
     setActiveNodeId: (id: string | null) => void;
+
+    // Feature Panel navigation
+    featureActiveIndex: number;
+    setFeatureActiveIndex: (index: number) => void;
 
     // Audio Settings
     sfxVolume: number;
@@ -90,15 +95,23 @@ export const useAppStore = create<AppState>((set) => ({
     // Debug Mode
     debugMode: false,
     setDebugMode: (mode) => set({ debugMode: mode }),
-    // 3D Mode
-    is3DMode: false,
-    set3DMode: (mode) => set({ is3DMode: mode }),
+    // DeepDive Mode — persisted
+    isDeepDiveMode: (() => { try { return localStorage.getItem(DEEPDIVE_SETTINGS_KEY) === 'true'; } catch { return false; } })(),
+    setDeepDiveMode: (mode) => {
+        set({ isDeepDiveMode: mode });
+        try { localStorage.setItem(DEEPDIVE_SETTINGS_KEY, String(mode)); } catch { }
+        document.body.classList.toggle('deepdive-mode', mode);
+    },
     debugGeometryType: 'project',
     setDebugGeometryType: (type) => set({ debugGeometryType: type }),
 
     // Particle Field
     activeNodeId: null,
     setActiveNodeId: (id) => set({ activeNodeId: id }),
+
+    // Feature Panel navigation
+    featureActiveIndex: 0,
+    setFeatureActiveIndex: (index) => set({ featureActiveIndex: index }),
 
     // Audio Settings
     sfxVolume: 20,

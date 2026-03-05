@@ -83,7 +83,7 @@ export const NeuroButton = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isPressed, setIsPressed] = useState(false);
 
-    const baseStyles = "relative inline-flex items-center justify-center font-sans font-bold uppercase tracking-widest transition-all duration-300 group outline-none select-none z-0 tracking-[0.2em]";
+    const baseStyles = "relative inline-flex items-center justify-center font-display font-bold uppercase tracking-widest transition-all duration-300 group outline-none select-none z-0 tracking-[0.2em]";
 
     // 1. Hover Text Inversion: White Hover (Signal) on System BG
     const textColorClass = isHovered

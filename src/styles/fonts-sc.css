@@ -1,0 +1,33 @@
+/* Custom local import for Glow Sans (未来荧黑) */
+
+@font-face {
+    font-family: 'Glow Sans SC';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('@fontpkg/glow-sans/GlowSansSC-Normal-Book.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'Glow Sans SC';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('@fontpkg/glow-sans/GlowSansSC-Normal-Regular.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'Glow Sans SC';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('@fontpkg/glow-sans/GlowSansSC-Normal-Medium.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'Glow Sans SC';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('@fontpkg/glow-sans/GlowSansSC-Normal-Bold.otf') format('opentype');
+}

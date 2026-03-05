@@ -65,6 +65,7 @@ export const Header = () => {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
     const setActiveNodeId = useAppStore((s) => s.setActiveNodeId);
+    const isDeepDiveMode = useAppStore((s) => s.isDeepDiveMode);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -107,62 +108,64 @@ export const Header = () => {
                         </h1>
                     </div>
 
-                    {/* Center: Navigation Dock */}
-                    <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 2xl:gap-2">
-                        {NAV_NODES.map((node) => {
-                            const isHovered = hoveredId === node.id;
-                            const isDimmed = hoveredId !== null && !isHovered;
+                    {/* Center: Navigation Dock (DeepDive only) */}
+                    {isDeepDiveMode && (
+                        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 2xl:gap-2">
+                            {NAV_NODES.map((node) => {
+                                const isHovered = hoveredId === node.id;
+                                const isDimmed = hoveredId !== null && !isHovered;
 
-                            const buttonContent = (
-                                <div
-                                    className="flex items-center gap-1.5 px-2 xl:px-2.5 2xl:px-3 py-1 cursor-pointer relative"
-                                    onMouseEnter={() => handleNodeHover(node.id)}
-                                    onMouseLeave={handleNodeLeave}
-                                    style={{
-                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                                        opacity: isDimmed ? 0.2 : 1,
-                                        borderBottom: isHovered
-                                            ? '1px solid var(--color-brand-primary)'
-                                            : '1px solid transparent',
-                                    }}
-                                >
-                                    <DiamondIcon active={isHovered} />
-                                    <span
-                                        className="font-display text-[9px] xl:text-[10px] 2xl:text-xs font-semibold tracking-[0.15em] uppercase whitespace-nowrap"
+                                const buttonContent = (
+                                    <div
+                                        className="flex items-center gap-1.5 px-2 xl:px-2.5 2xl:px-3 py-1 cursor-pointer relative"
+                                        onMouseEnter={() => handleNodeHover(node.id)}
+                                        onMouseLeave={handleNodeLeave}
                                         style={{
-                                            color: isHovered ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
-                                            textShadow: isHovered ? '0 0 6px var(--color-brand-glow)' : 'none',
-                                            transition: 'color 0.3s, text-shadow 0.3s',
+                                            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                            opacity: isDimmed ? 0.2 : 1,
+                                            borderBottom: isHovered
+                                                ? '1px solid var(--color-brand-primary)'
+                                                : '1px solid transparent',
                                         }}
                                     >
-                                        {t(node.titleKey)}
-                                    </span>
-                                </div>
-                            );
+                                        <DiamondIcon active={isHovered} />
+                                        <span
+                                            className="font-display text-[9px] xl:text-[10px] 2xl:text-xs font-semibold tracking-[0.15em] uppercase whitespace-nowrap"
+                                            style={{
+                                                color: isHovered ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
+                                                textShadow: isHovered ? '0 0 6px var(--color-brand-glow)' : 'none',
+                                                transition: 'color 0.3s, text-shadow 0.3s',
+                                            }}
+                                        >
+                                            {t(node.titleKey)}
+                                        </span>
+                                    </div>
+                                );
 
-                            return node.link ? (
-                                <Link key={node.id} to={node.link} className="block">
-                                    {buttonContent}
-                                </Link>
-                            ) : (
-                                <div key={node.id} onClick={() => handleInterceptClick(t(node.titleKey))}>
-                                    {buttonContent}
-                                </div>
-                            );
-                        })}
-                    </nav>
+                                return node.link ? (
+                                    <Link key={node.id} to={node.link} className="block">
+                                        {buttonContent}
+                                    </Link>
+                                ) : (
+                                    <div key={node.id} onClick={() => handleInterceptClick(t(node.titleKey))}>
+                                        {buttonContent}
+                                    </div>
+                                );
+                            })}
+                        </nav>
+                    )}
 
                     {/* Right: Status Info */}
                     <div className="hidden lg:flex items-center justify-end gap-4 2xl:gap-6 font-display tracking-widest flex-shrink-0">
                         <GhostText
-                            className="text-status-success font-bold text-sm 2xl:text-base"
+                            className="text-status-success font-bold text-sm 2xl:text-base font-display"
                             ghostOpacity={0.5}
                             ghostOffset="bottom-[3px] left-[4px]"
                         >
                             {t('header.online')}
                         </GhostText>
                         <GhostText
-                            className="text-text-primary font-bold text-sm 2xl:text-base font-sans"
+                            className="text-text-primary font-bold text-sm 2xl:text-base font-display"
                             ghostOpacity={0.4}
                             ghostOffset="bottom-[3px] left-[4px]"
                         >

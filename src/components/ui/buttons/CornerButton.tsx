@@ -122,7 +122,7 @@ export const CornerButton = ({
         return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
     }, [disabled, loading]);
 
-    const baseStyles = "relative inline-flex items-center justify-center font-sans font-bold uppercase tracking-widest overflow-hidden transition-all duration-300 group outline-none select-none z-0 text-[var(--color-text-brand)] hover:text-[var(--color-text-accent)]";
+    const baseStyles = "relative inline-flex items-center justify-center font-display font-bold uppercase tracking-widest overflow-hidden transition-all duration-300 group outline-none select-none z-0 text-[var(--color-text-brand)] hover:text-[var(--color-text-accent)]";
 
     const sizeStyles = {
         sm: iconOnly ? "px-2 h-8 text-xs" : "px-2 h-8 text-xs",

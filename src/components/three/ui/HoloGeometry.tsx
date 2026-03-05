@@ -4,8 +4,10 @@ import { GameGeometry } from './geometries/GameGeometry';
 import { SoundGeometry } from './geometries/SoundGeometry';
 import { MusicGeometry } from './geometries/MusicGeometry';
 import { LabGeometry } from './geometries/LabGeometry';
+import { CameraGeometry } from './geometries/CameraGeometry';
+import { BookGeometry } from './geometries/BookGeometry';
 
-export type GeometryType = 'project' | 'video' | 'game' | 'sound' | 'music' | 'lab';
+export type GeometryType = 'project' | 'video' | 'game' | 'sound' | 'music' | 'lab' | 'camera' | 'book';
 
 interface HoloGeometryProps {
     type: GeometryType;
@@ -30,15 +32,20 @@ export const HoloGeometry = ({ type }: HoloGeometryProps) => {
             return <MusicGeometry />;
         case 'lab':
             return <LabGeometry />;
+        case 'camera':
+            return <CameraGeometry />;
+        case 'book':
+            return <BookGeometry />;
         default:
             return <ProjectGeometry />;
     }
 };
 
-// 重新导出所有几何体以便单独使用
 export { ProjectGeometry } from './geometries/ProjectGeometry';
 export { VideoGeometry } from './geometries/VideoGeometry';
 export { GameGeometry } from './geometries/GameGeometry';
 export { SoundGeometry } from './geometries/SoundGeometry';
 export { MusicGeometry } from './geometries/MusicGeometry';
 export { LabGeometry } from './geometries/LabGeometry';
+export { CameraGeometry } from './geometries/CameraGeometry';
+export { BookGeometry } from './geometries/BookGeometry';

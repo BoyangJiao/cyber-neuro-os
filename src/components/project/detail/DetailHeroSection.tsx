@@ -45,12 +45,12 @@ export const DetailHeroSection = ({ project, detail }: DetailHeroSectionProps) =
                         <div key={index} className="flex flex-col lg:min-w-[160px] max-w-[240px]">
                             <div className="flex items-baseline gap-1.5">
                                 <span
-                                    className="text-3xl md:text-4xl 2xl:text-5xl font-display font-bold text-brand-primary drop-shadow-glow"
+                                    className="text-3xl md:text-4xl 2xl:text-5xl font-mono font-bold text-brand-primary drop-shadow-glow"
                                 >
                                     {metric.value}
                                 </span>
                                 {metric.unit && (
-                                    <span className="text-lg md:text-xl 2xl:text-2xl text-brand-primary/80 font-display font-medium tracking-wide">
+                                    <span className="text-lg md:text-xl 2xl:text-2xl text-brand-primary/80 font-mono font-medium tracking-wide">
                                         {metric.unit}
                                     </span>
                                 )}

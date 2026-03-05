@@ -12,7 +12,7 @@ export const ProjectInfo = ({ project }: ProjectInfoProps) => {
     return (
         <div className="w-full max-w-[calc((100%-48px)/12*4)] 2xl:max-w-[calc((100%-60px)/12*4)] flex flex-col items-center justify-start text-center gap-2 2xl:gap-3">
             {/* Project Name */}
-            <h2 className="text-[16px] 2xl:text-[20px] font-bold font-sans text-brand-primary tracking-wider uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.6)] truncate w-full">
+            <h2 className="text-[16px] 2xl:text-[20px] font-bold font-display text-brand-primary tracking-wider uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.6)] truncate w-full">
                 {project.title}
             </h2>
 

@@ -7,7 +7,7 @@
    - Theme Overrides: Brand color switching via data-theme attribute
    ============================================================ */
 
-@theme {
+:root {
     /* ================= PRIMITIVE COLORS ================= */
     /* Base Black & White */
     --color-white: #FFFFFF;
@@ -113,9 +113,9 @@
     /* ================= TYPOGRAPHY ================= */
 
     /* Font Families */
-    --font-display: "Orbitron", "Noto Sans SC", sans-serif;
-    --font-sans: "Bai Jamjuree", "Noto Sans SC", sans-serif;
-    --font-mono: "Share Tech Mono", "Noto Sans SC", monospace;
+    --font-display: "Orbitron Variable", "Orbitron", sans-serif;
+    --font-sans: "Rajdhani", sans-serif;
+    --font-mono: "JetBrains Mono Variable", monospace;
 
     /* Font Sizes */
     --font-size-xs: 10px;

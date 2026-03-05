@@ -31,7 +31,7 @@ const RichTextRenderer = ({ block }: { block: RichTextBlock }) => {
                 <h3 className="text-2xl 2xl:text-3xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h3>
             ),
             h4: ({ children }: any) => (
-                <h4 className="text-xl 2xl:text-2xl font-sans text-text-accent mb-4 2xl:mb-5">{children}</h4>
+                <h4 className="text-xl 2xl:text-2xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h4>
             ),
             blockquote: ({ children }: any) => (
                 <blockquote className="border-l-4 border-brand-primary pl-4 italic text-text-secondary">
@@ -172,7 +172,7 @@ const StatsRenderer = ({ block }: { block: StatsBlock }) => (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
         {block.items?.map((item, index) => (
             <div key={index} className="border border-brand-primary/30 rounded-lg p-4 bg-black/30 backdrop-blur-sm">
-                <div className="text-3xl 2xl:text-4xl font-display text-brand-primary mb-1">
+                <div className="text-3xl 2xl:text-4xl font-mono font-bold text-brand-primary mb-1">
                     {item.value}
                 </div>
                 <div className="text-sm text-text-secondary uppercase tracking-wider">

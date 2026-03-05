@@ -448,7 +448,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                                             setLanguage('zh');
                                             handleEnter();
                                         }}
-                                        className="tracking-[0.3em] font-bold text-sm px-8 font-sans"
+                                        className="tracking-[0.3em] font-bold text-sm px-8 font-display"
                                     >
                                         接入
                                     </CyberButton>

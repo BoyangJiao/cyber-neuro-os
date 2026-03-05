@@ -68,7 +68,7 @@ export const ProfileSidebar = () => {
                 <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-7">
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
                         <GhostText
-                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-display text-text-secondary tracking-widest uppercase"
                             ghostOpacity={0.3}
                         >
                             {t('profile.name')}
@@ -82,7 +82,7 @@ export const ProfileSidebar = () => {
                     </div>
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
                         <GhostText
-                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-display text-text-secondary tracking-widest uppercase"
                             ghostOpacity={0.3}
                         >
                             {t('profile.occupation')}
@@ -96,7 +96,7 @@ export const ProfileSidebar = () => {
                     </div>
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
                         <GhostText
-                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-display text-text-secondary tracking-widest uppercase"
                             ghostOpacity={0.3}
                         >
                             {t('profile.corporation')}
@@ -110,7 +110,7 @@ export const ProfileSidebar = () => {
                     </div>
                     <div className="flex flex-col gap-1 2xl:gap-1.5">
                         <GhostText
-                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-sans text-text-secondary tracking-widest uppercase"
+                            className="text-xs lg:text-sm 2xl:text-base font-semibold font-display text-text-secondary tracking-widest uppercase"
                             ghostOpacity={0.3}
                         >
                             {t('profile.activeQuest')}

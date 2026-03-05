@@ -45,7 +45,7 @@ export const StatCard = ({ title, desc, value, delay = 0, aligned = 'left' }: St
         >
             {/* Title & Value */}
             <div className={`flex w-full items-end justify-between ${aligned === 'right' ? 'flex-row-reverse' : ''}`}>
-                <h3 className="text-brand-primary font-bold text-sm tracking-[0.2em] uppercase">
+                <h3 className="text-brand-primary font-display font-bold text-sm tracking-[0.2em] uppercase">
                     {title}
                 </h3>
                 <span className="text-brand-secondary font-mono text-xl font-bold">
@@ -54,7 +54,7 @@ export const StatCard = ({ title, desc, value, delay = 0, aligned = 'left' }: St
             </div>
 
             {/* Description */}
-            <p className="text-brand-primary/60 text-[10px] uppercase tracking-wider h-8">
+            <p className="text-brand-primary/60 font-mono text-[9px] uppercase tracking-wider h-8">
                 {desc}
             </p>
 

@@ -25,7 +25,7 @@ export const translations = {
 
         // Feature Panel
         features: {
-            project: 'WORK',
+            project: 'CORE',
             video: 'VISION',
             game: 'SIMULATION',
             sound: 'SYNTHESIS',
@@ -93,7 +93,7 @@ export const translations = {
             },
             language: 'LANGUAGE',
             languageDesc: 'Select display language',
-            mode3d: '3D MODE',
+            deepDiveMode: 'DEEPDIVE MODE',
             close: 'CLOSE',
         },
 
@@ -224,9 +224,13 @@ export const translations = {
                     title: 'HASH GENERATOR',
                     desc: 'Cryptographic hashing tool utilizing MD5, SHA-1, and SHA-256 algorithms. Essential for verifying data integrity and encrypting sensitive user payloads prior to cortex transmission.'
                 },
-                base64Term: {
-                    title: 'BASE64 TERMINAL',
-                    desc: 'A terminal interface dedicated entirely to bidirectional Base64 encoding and decoding. Provides a raw text output stream suitable for embedding binary data into text files seamlessly.'
+                aiReadyGuide: {
+                    title: 'AI READY DESIGN SYSTEM',
+                    desc: 'A comprehensive guide and protocol for constructing scalable, AI-compatible design frameworks. Ensures seamless integration between cognitive AI agents and human-centric interfaces.'
+                },
+                comingSoon: {
+                    title: 'PROJECT CLASSIFIED',
+                    desc: '/// UPLINK SEVERED /// Further experimental modules are currently under construction. Please await further system clearance.'
                 }
             }
         },
@@ -260,12 +264,12 @@ export const translations = {
 
         // Feature Panel
         features: {
-            project: '作品',
-            video: '视频',
-            game: '游戏',
-            sound: '声音',
-            music: '音乐',
-            lab: '实验室',
+            project: '核心',
+            video: '幻想',
+            game: '模拟',
+            sound: '合成器',
+            music: '电台',
+            lab: '实验仓',
         },
 
         // Music Page
@@ -328,7 +332,7 @@ export const translations = {
             },
             language: '语言',
             languageDesc: '选择显示语言',
-            mode3d: '3D 模式',
+            deepDiveMode: '深潜模式',
             close: '关闭',
         },
 
@@ -459,9 +463,13 @@ export const translations = {
                     title: '哈希生成器',
                     desc: '利用 MD5、SHA-1 和 SHA-256 算法的加密哈希工具。对于在皮层传输之前验证数据完整性和加密敏感用户有效负载至关重要。'
                 },
-                base64Term: {
-                    title: 'BASE64 终端',
-                    desc: '一个完全专用于双向 Base64 编码和解码的终端接口。提供适合将二进制数据无缝嵌入文本文件的原始文本输出流。'
+                aiReadyGuide: {
+                    title: 'AI 友好设计系统指南',
+                    desc: '构建可扩展、人工智能兼容设计框架的综合指南和协议。确保认知型 AI 代理与以人为本的界面之间实现无缝集成。'
+                },
+                comingSoon: {
+                    title: '机密项目研制中',
+                    desc: '/// 遥测链路已断开 /// 更多实验性神经模块正在构建中，请等待进一步的系统授权权限。敬请期待。'
                 }
             }
         },

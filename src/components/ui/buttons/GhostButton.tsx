@@ -27,7 +27,7 @@ export const GhostButton = ({
     const { playHover, playClick } = useSoundSystem();
     const [isPressed, setIsPressed] = useState(false);
 
-    const baseStyles = "relative inline-flex items-center justify-center font-sans font-bold uppercase tracking-widest overflow-hidden transition-all duration-300 group outline-none select-none z-0";
+    const baseStyles = "relative inline-flex items-center justify-center font-display font-bold uppercase tracking-widest overflow-hidden transition-all duration-300 group outline-none select-none z-0";
     const variantStyles = "text-brand-primary hover:text-brand-secondary active:text-brand-secondary bg-transparent hover:scale-[1.15] active:scale-100 transition-all duration-200 hover:animate-[glitchGhost_0.3s_ease-in-out]";
 
     const sizeStyles = {
