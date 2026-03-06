@@ -50,7 +50,7 @@ export const GameLandingPage = () => {
                         {/* 中央标题 */}
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-bold text-status-error tracking-[0.3em] uppercase">
-                                {t('simulation.title')}
+                                {t('features.game')}
                             </h1>
                         </div>
 

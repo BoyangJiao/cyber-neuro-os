@@ -1,12 +1,14 @@
 
 import { motion } from 'framer-motion';
 import { useMusicStore } from '../../../store/useMusicStore';
+import { useLanguage } from '../../../i18n';
 import { type Track } from '../../../data/mockMusicData';
 import { AudioWaveform } from '../../ui/AudioWaveform';
 import clsx from 'clsx';
 
 export const StationList = () => {
     const { playlist, currentTrack, play, isPlaying } = useMusicStore();
+    const { language } = useLanguage();
 
     return (
         <div className="flex flex-col h-full w-full relative">
@@ -14,7 +16,7 @@ export const StationList = () => {
             <div className="flex items-center justify-between mb-4 border-b border-brand-primary/30 pb-2">
                 <h3 className="text-xs font-display font-bold text-brand-primary tracking-wider uppercase">
                     <i className="ri-radio-2-line mr-2"></i>
-                    Signal Source
+                    {language === 'zh' ? '信号源' : 'Signal Source'}
                 </h3>
             </div>
 

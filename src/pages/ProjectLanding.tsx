@@ -65,7 +65,7 @@ export const ProjectLanding = () => {
                         {/* 中央标题 */}
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                {t('projectLanding.title')}
+                                {t('features.project')}
                             </h1>
                         </div>
 

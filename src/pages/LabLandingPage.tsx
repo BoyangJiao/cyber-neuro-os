@@ -82,7 +82,7 @@ export const LabLandingPage = () => {
 
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                {t('lab.title')}
+                                {t('features.lab')}
                             </h1>
                         </div>
 

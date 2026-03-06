@@ -22,7 +22,7 @@ export const mockTracks: Track[] = [
         genre: 'Synthwave',
         bpm: 120,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-1.mp3'
     },
     {
         id: 'sh_02',
@@ -34,7 +34,7 @@ export const mockTracks: Track[] = [
         genre: 'Ambient',
         bpm: 90,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-2.mp3'
     },
     {
         id: 'sh_03',
@@ -46,7 +46,7 @@ export const mockTracks: Track[] = [
         genre: 'Pop',
         bpm: 128,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-3.mp3'
     },
     {
         id: 'sh_04',
@@ -58,7 +58,7 @@ export const mockTracks: Track[] = [
         genre: 'Industrial',
         bpm: 140,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-4.mp3'
     },
     {
         id: 'sh_05',
@@ -70,7 +70,7 @@ export const mockTracks: Track[] = [
         genre: 'Darkstep',
         bpm: 110,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-5.mp3'
     },
     {
         id: 'sh_06',
@@ -82,7 +82,7 @@ export const mockTracks: Track[] = [
         genre: 'Rock',
         bpm: 135,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-6.mp3'
     },
     {
         id: 'sh_07',
@@ -94,7 +94,7 @@ export const mockTracks: Track[] = [
         genre: 'Synthwave',
         bpm: 100,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-7.mp3'
     },
     {
         id: 'sh_08',
@@ -106,7 +106,7 @@ export const mockTracks: Track[] = [
         genre: 'Industrial',
         bpm: 125,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-8.mp3'
     },
     {
         id: 'sh_09',
@@ -118,7 +118,7 @@ export const mockTracks: Track[] = [
         genre: 'Darkstep',
         bpm: 130,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-9.mp3'
     },
     {
         id: 'sh_10',
@@ -130,6 +130,6 @@ export const mockTracks: Track[] = [
         genre: 'Ambient',
         bpm: 85,
         youtubeUrl: '',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+        audioUrl: '/api/music/examples/mp3/SoundHelix-Song-10.mp3'
     }
 ];

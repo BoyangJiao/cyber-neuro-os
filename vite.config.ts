@@ -122,6 +122,13 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: true,
+      proxy: {
+        '/api/music': {
+          target: 'https://www.soundhelix.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/music/, ''),
+        }
+      }
     }
   }
 })

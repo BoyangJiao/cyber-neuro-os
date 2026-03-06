@@ -21,6 +21,7 @@ interface MusicState {
     playlist: Track[];
     currentTime: number;
     duration: number;
+    analyser: AnalyserNode | null;
     // Actions
     play: (track?: Track) => void;
     pause: () => void;
@@ -31,6 +32,7 @@ interface MusicState {
     setPlaylist: (tracks: Track[]) => void;
     setCurrentTime: (time: number) => void;
     setDuration: (duration: number) => void;
+    setAnalyser: (analyser: AnalyserNode | null) => void;
     seek: (time: number) => void;
 }
 
@@ -41,6 +43,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     playlist: mockTracks,
     currentTime: 0,
     duration: ambientTrack.duration,
+    analyser: null,
 
     play: (track) => {
         if (track) {
@@ -80,6 +83,8 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     setCurrentTime: (time) => set({ currentTime: time }),
 
     setDuration: (duration) => set({ duration: duration }),
+
+    setAnalyser: (analyser) => set({ analyser }),
 
     // Initial dummy seek, will be overwritten by GlobalAudioPlayer
     seek: () => { },

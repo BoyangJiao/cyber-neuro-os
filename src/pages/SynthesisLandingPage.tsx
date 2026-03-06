@@ -38,7 +38,7 @@ export const SynthesisLandingPage = () => {
 
                         <div className="flex flex-col items-center">
                             <h1 className="text-sm 2xl:text-lg font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                                {t('synthesis.title')}
+                                {t('features.sound')}
                             </h1>
                         </div>
 

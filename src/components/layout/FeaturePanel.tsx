@@ -3,13 +3,14 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { CyberSlotCard } from '../ui/CyberSlotCard';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from '../../i18n';
+import { useTranslation, useLanguage } from '../../i18n';
 import { useAppStore } from '../../store/useAppStore';
 import type { GeometryType } from '../../store/useAppStore';
 import { InterceptModal } from '../ui/modals/InterceptModal';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { motion } from 'framer-motion';
 import { DiamondIcon } from '../ui/DiamondIcon';
+import { MouseIcon } from '../ui/MouseIcon';
 
 interface FeatureItem {
     titleKey: string;
@@ -101,6 +102,7 @@ let hasPlayedFeatureIntro = false;
 export const FeaturePanel = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
+    const { language } = useLanguage();
     const navigate = useNavigate();
     const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex, isBootSequenceActive } = useAppStore();
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
@@ -365,27 +367,39 @@ export const FeaturePanel = () => {
                             </motion.div>
                         );
                     })}
+                </div>
+            </div>
 
-                    {/* Focus Indicator: Diamond icons matching DeepDive nav */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-                        {features.map((_, i) => (
-                            <button
-                                key={`diamond-${i}`}
-                                onClick={() => {
-                                    if (!isIntroPlaying) {
-                                        setFeatureActiveIndex(i);
-                                        setIsRevealHover(false);
-                                    }
-                                }}
-                                className="p-1 transition-transform hover:scale-110 active:scale-95"
-                            >
-                                <DiamondIcon
-                                    size="sm"
-                                    active={i === featureActiveIndex}
-                                    className="transition-all duration-300"
-                                />
-                            </button>
-                        ))}
+            {/* Desktop Overlays: Indicators and Instructions (Outside of 3D Perspective) */}
+            <div className="hidden lg:block absolute inset-0 pointer-events-none z-10">
+                {/* Top Focus Indicator: Diamond icons matching DeepDive nav */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 flex gap-3 pointer-events-auto">
+                    {features.map((_, i) => (
+                        <button
+                            key={`diamond-${i}`}
+                            onClick={() => {
+                                if (!isIntroPlaying) {
+                                    setFeatureActiveIndex(i);
+                                    setIsRevealHover(false);
+                                }
+                            }}
+                            className="p-1 transition-transform hover:scale-110 active:scale-95"
+                        >
+                            <DiamondIcon
+                                size="sm"
+                                active={i === featureActiveIndex}
+                                className="transition-all duration-300"
+                            />
+                        </button>
+                    ))}
+                </div>
+
+                {/* Bottom Scroll Instruction: Mouse Icon + Text + Arrow */}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 select-none">
+                    <MouseIcon size={24} />
+                    <div className="flex items-center gap-3 font-mono text-[10px] tracking-[0.2em] uppercase text-white/50">
+                        <span>{language === 'zh' ? '滚动鼠标切换插槽' : 'Scroll to switch slot'}</span>
+                        <span className="text-brand-secondary font-bold text-base translate-y-[1px]">←</span>
                     </div>
                 </div>
             </div>

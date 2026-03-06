@@ -257,7 +257,7 @@ export const CyberSlotCard = ({
                         WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)'
                     }}
                 >
-                    <PixelGridEffect active={isActivated} className="opacity-40 mix-blend-screen" />
+                    <PixelGridEffect active={isActivated} color={highlightColor} className="opacity-15 mix-blend-screen" />
                 </div>
                 {/* Inactive Background — brightness responds to focus tier */}
                 <div
@@ -302,7 +302,7 @@ export const CyberSlotCard = ({
             <div className="absolute bottom-[20px] left-[10px] z-20 pointer-events-none">
                 <div className={twMerge(
                     "[writing-mode:vertical-rl] rotate-180 text-[10px] font-mono tracking-widest transition-colors duration-300 whitespace-nowrap",
-                    isActivated ? (isErrorState ? "text-status-danger" : "text-white") : "text-white/40"
+                    isActivated ? (isErrorState ? "text-status-danger" : "text-[var(--color-brand-primary)]") : "text-white/40"
                 )}>
                     [ {isActivated ? (isErrorState ? "Access Denied" : "Access Granted") : "Access Waiting"} ]
                 </div>
@@ -312,7 +312,7 @@ export const CyberSlotCard = ({
             {subtitle && (
                 <div className={twMerge(
                     "absolute bottom-[10px] right-3 z-20 pointer-events-none transition-colors duration-300",
-                    isActivated ? (isErrorState ? "text-status-danger" : "text-white") : isFocused ? "text-white/60" : "text-white/30"
+                    isActivated ? (isErrorState ? "text-status-danger" : "text-[var(--color-brand-primary)]") : isFocused ? "text-white/60" : "text-white/30"
                 )}>
                     <span className="text-[9px] font-mono tracking-wider">
                         {subtitle}

@@ -35,10 +35,25 @@ const themes: ThemeOption[] = [
 
 export const SettingsModal = () => {
     const [activeTab, setActiveTab] = useState<'about' | 'appearance' | 'audio'>('about');
-    const { setSettingsOpen, debugMode, setDebugMode, isDeepDiveMode, setDeepDiveMode, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
+    const { setSettingsOpen, debugMode, setDebugMode, isDeepDiveMode, setDeepDiveMode, isDeepDiveTransitioning, setDeepDiveTransitioning, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
     const { volume, setVolume } = useMusicStore();
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
+
+    const handleDeepDiveToggle = () => {
+        if (!isDeepDiveMode) {
+            // Activating: Close settings, start transition, then actually enable Deep Dive after a delay
+            setSettingsOpen(false);
+            setDeepDiveTransitioning(true);
+            setTimeout(() => {
+                setDeepDiveMode(true);
+                setTimeout(() => setDeepDiveTransitioning(false), 800); // 800ms for outro fade
+            }, 1800); // Wait 1.8s for the tunnel zoom effect
+        } else {
+            // Deactivating: just turn off
+            setDeepDiveMode(false);
+        }
+    };
 
     return (
         <MotionDiv
@@ -272,27 +287,35 @@ export const SettingsModal = () => {
                                     </div>
                                 </div>
 
-                                {/* DeepDive Mode & Debug Mode Section */}
+                                {/* DeepDive Mode Section */}
                                 <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <i className="ri-contrast-2-line text-[var(--color-brand-primary)]/60" />
-                                            <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                                {t('settings.deepDiveMode')}
-                                            </span>
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-2">
+                                                <i className="ri-contrast-2-line text-[var(--color-brand-primary)]/60" />
+                                                <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
+                                                    {t('settings.deepDiveMode')}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-[var(--color-brand-secondary)]/80 max-w-[200px] leading-tight">
+                                                {language === 'zh'
+                                                    ? '该模式未开发完整，当前处于 Alpha 阶段，请谨慎开启。'
+                                                    : 'This mode is incomplete (Alpha phase). Enable with caution.'}
+                                            </p>
                                         </div>
                                         <button
-                                            onClick={() => setDeepDiveMode(!isDeepDiveMode)}
+                                            onClick={handleDeepDiveToggle}
+                                            disabled={isDeepDiveTransitioning}
                                             className={`
-                                        w-12 h-6 relative rounded-none border transition-all duration-300
-                                        ${isDeepDiveMode ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30' : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'}
+                                        w-12 h-6 mt-1 relative rounded-none border transition-all duration-300
+                                        ${isDeepDiveMode || isDeepDiveTransitioning ? 'border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/30' : 'border-[var(--color-text-subtle)]/50 bg-[var(--color-text-subtle)]/10'}
                                     `}
                                         >
                                             <div className={`absolute top-1 w-4 h-4 bg-[var(--color-brand-secondary)] transition-all duration-300 ${isDeepDiveMode ? 'left-7' : 'left-1'}`} />
                                         </button>
                                     </div>
 
-                                    <div className="flex items-center justify-between">
+                                    <div className="hidden items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <i className="ri-bug-line text-[var(--color-brand-primary)]/60" />
                                             <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">

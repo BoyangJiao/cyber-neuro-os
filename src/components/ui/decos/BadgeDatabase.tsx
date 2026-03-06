@@ -1,7 +1,7 @@
 import { Barcode } from './Barcode';
 import { useTranslation } from '../../../i18n';
 
-export const BatchDatabase = () => {
+export const BadgeDatabase = () => {
     const { t } = useTranslation();
 
     return (

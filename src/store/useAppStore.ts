@@ -47,6 +47,8 @@ interface AppState {
     // DeepDive Mode (particle space)
     isDeepDiveMode: boolean;
     setDeepDiveMode: (mode: boolean) => void;
+    isDeepDiveTransitioning: boolean;
+    setDeepDiveTransitioning: (isTransitioning: boolean) => void;
 
     debugGeometryType: GeometryType;
     setDebugGeometryType: (type: GeometryType) => void;
@@ -95,13 +97,14 @@ export const useAppStore = create<AppState>((set) => ({
     // Debug Mode
     debugMode: false,
     setDebugMode: (mode) => set({ debugMode: mode }),
-    // DeepDive Mode — persisted
     isDeepDiveMode: (() => { try { return localStorage.getItem(DEEPDIVE_SETTINGS_KEY) === 'true'; } catch { return false; } })(),
     setDeepDiveMode: (mode) => {
         set({ isDeepDiveMode: mode });
         try { localStorage.setItem(DEEPDIVE_SETTINGS_KEY, String(mode)); } catch { }
         document.body.classList.toggle('deepdive-mode', mode);
     },
+    isDeepDiveTransitioning: false,
+    setDeepDiveTransitioning: (mode) => set({ isDeepDiveTransitioning: mode }),
     debugGeometryType: 'project',
     setDebugGeometryType: (type) => set({ debugGeometryType: type }),
 

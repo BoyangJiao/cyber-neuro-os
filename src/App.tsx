@@ -26,7 +26,7 @@ import { MobileGate } from './components/layout/MobileGate'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
 import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
-import { BatchDatabase } from './components/ui/decos/BatchDatabase'
+import { BadgeDatabase } from './components/ui/decos/BadgeDatabase'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
 import { LanguageProvider } from './i18n'
@@ -40,6 +40,7 @@ import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
 import { NeuralUplinkWindow } from './components/agent/NeuralUplinkWindow'
+import { TimeTunnelTransition } from './components/effects/TimeTunnelTransition'
 import { useSoundSystem } from './hooks/useSoundSystem';
 
 import { useQuery } from './sanity/client'
@@ -47,7 +48,7 @@ import { PROJECTS_QUERY } from './sanity/queries'
 import type { SanityProjectRaw } from './sanity/types'
 
 function App() {
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode } = useAppStore();
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode, isDeepDiveTransitioning } = useAppStore();
   const { language, setProjects } = useProjectStore();
   const { initAudio } = useSoundSystem();
 
@@ -127,8 +128,19 @@ function App() {
 
             {/* Bottom Deco (Lowest Z-Index Layer) */}
             {!isFullWidth && (
-              <div className="hidden lg:block absolute bottom-3 lg:bottom-4 left-4 lg:left-6 xl:left-8 2xl:left-10 z-0 pointer-events-none w-max max-w-[500px] lg:max-w-[650px] 2xl:max-w-[800px]">
-                <BatchDatabase />
+              <div
+                className="hidden lg:block absolute bottom-4 lg:bottom-6 left-4 lg:left-6 xl:left-8 2xl:left-10 z-0 pointer-events-none"
+                style={{ perspective: '1200px' }}
+              >
+                <div
+                  className="w-max max-w-[500px] lg:max-w-[650px] 2xl:max-w-[800px] origin-left"
+                  style={{
+                    transform: 'rotateY(8deg) translateZ(0)',
+                    transformStyle: 'preserve-3d'
+                  }}
+                >
+                  <BadgeDatabase />
+                </div>
               </div>
             )}
 
@@ -210,6 +222,10 @@ function App() {
 
         <AnimatePresence>
           {isSettingsOpen && <SettingsModal />}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isDeepDiveTransitioning && <TimeTunnelTransition />}
         </AnimatePresence>
 
         {/* Debug Panel - Only visible in debug mode */}

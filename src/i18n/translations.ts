@@ -268,7 +268,7 @@ export const translations = {
         // Feature Panel
         features: {
             project: '核心',
-            video: '幻想',
+            video: '幻象',
             game: '模拟',
             sound: '合成器',
             music: '电台',
@@ -482,7 +482,7 @@ export const translations = {
 
         // Intercept Modal
         intercept: {
-            warning: 'WARNING',
+            warning: '警告',
             message: '当前生物权限不足，无法访问 {{moduleName}} 神经元区域',
             exit: '退出',
         },
