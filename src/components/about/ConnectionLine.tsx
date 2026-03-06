@@ -20,7 +20,7 @@ export const ConnectionLine = () => {
     // 计算路径坐标
     const calculatePath = useCallback(() => {
         const avatarEl = document.getElementById('avatar-frame');
-        const dotEl = document.getElementById('about-title-dot');
+        const dotEl = document.getElementById('about-title-text');
 
         if (!avatarEl || !dotEl) return { path: '', start: { x: 0, y: 0 }, end: { x: 0, y: 0 } };
 
@@ -31,8 +31,8 @@ export const ConnectionLine = () => {
         const startX = avatarRect.right;
         const startY = avatarRect.top + avatarRect.height / 2;
 
-        // 终点: 闪光点中心
-        const endX = dotRect.left + dotRect.width / 2;
+        // 终点: 标题文本区域左侧 24px (或更少的间距，避免超出边界)
+        const endX = dotRect.left - 24;
         const endY = dotRect.top + dotRect.height / 2;
 
         // 中间转折点 - 先水平延伸一段，再垂直，最后水平到终点
@@ -83,7 +83,7 @@ export const ConnectionLine = () => {
         };
     }, [isAboutMeOpen, calculatePath]);
 
-    // 监听窗口大小变化
+    // 监听窗口大小及元素尺寸变化
     useEffect(() => {
         if (!isAboutMeOpen) return;
 
@@ -95,7 +95,22 @@ export const ConnectionLine = () => {
         };
 
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+
+        // 使用 ResizeObserver 监听标题元素变化 (如字体加载、语言切换导致的大小变化)，确保连接线永远连上
+        const dotEl = document.getElementById('about-title-text');
+        let resizeObserver: ResizeObserver | null = null;
+
+        if (dotEl && dotEl.parentElement) {
+            resizeObserver = new ResizeObserver(() => {
+                handleResize();
+            });
+            resizeObserver.observe(dotEl.parentElement);
+        }
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            if (resizeObserver) resizeObserver.disconnect();
+        };
     }, [isAboutMeOpen, calculatePath]);
 
     // GSAP 画线动画

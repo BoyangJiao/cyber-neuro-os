@@ -56,16 +56,19 @@ export const translations = {
         about: {
             title: 'WHO IS BOYANG JIAO',
             workExperience: {
-                label: 'THE SHORT INTRODUCTION OF JOURNEY IN ANT GROUP',
-                content: 'I have tackled challenges for both consumer products Alipay+ Digital Wallet and Alipay+ Rewards, which provide accessible, customizable, and sustainable inclusive finance solutions in APAC and African markets.',
+                label: '// DESIGN PHILOSOPHY',
+                subtitle: 'System Thinker at Core',
+                content: 'Dedicated to finding the optimal solution at the intersection of complex business needs, cutting-edge technology, and human behavior. While meticulously crafting every "Aha moment," I maintain a sharp sensitivity to the overarching business context and underlying logic. I excel at weaving scattered touchpoints into highly structured and intuitive digital products. Currently, I am deeply exploring Design as code, the evolution of AI Agentic Design Ops, and crafting ultimate experiences across multi-platform ecosystems.',
             },
             careerAndDesign: {
-                label: 'CAREER AND DESIGN',
-                content: 'I have experience across a large spectrum of projects ranging from mobile apps, websites, and new retail services for consumers, SMEs, corporations, and nonprofits. Areas include Fintech, social media, gaming, e-commerce, education, and automobile.',
+                label: '// CAREER EXPERIENCE',
+                subtitle: 'Designing Across Boundaries',
+                content: 'Spearheaded the product and system design for consumer-facing digital wallets and B2B cross-border payment platforms at Ant Group. Prior to this, my design practice spanned mobile apps, web platforms, offline services, and voice user interfaces (VUI). Across industries ranging from new retail and social media to education, gaming, and automotive, this cross-disciplinary journey has honed my ability to identify experiential commonalities across diverse business models and apply a holistic perspective to solve complex pain points.',
             },
             educationAndPassions: {
-                label: 'EDUCATION & PASSIONS',
-                content: 'I hold a Master\'s degree in Human-Computer Interaction from California College of the Arts (CCA) and a Bachelor\'s degree in Psychology from the University of Missouri (Mizzou). I\'m passionate about the intersection of design, technology, and human behavior. Whether it\'s exploring new tools, developing design systems, or understanding user complexities, I am constantly learning and adapting in this ever-evolving digital landscape.'
+                label: '// FOUNDATION',
+                subtitle: 'Where Psychology Meets HCI',
+                content: 'Holding an MDes in Interaction Design from California College of the Arts (CCA) and a BA in Cognitive Psychology from the University of Missouri (Mizzou), my thinking is firmly rooted in human cognition and behavioral science. In the ever-changing tide of technology, I maintain an intense curiosity and hands-on capability for cutting-edge technologies and tools. Regardless of how mediums evolve—from solving present problems to creating future possibilities—I remain committed to using deep user empathy to guide technology, building trust and synergy between humans and machines.'
             },
             stats: {
                 productDesign: { name: 'PRODUCT DESIGN', desc: 'End-to-end design strategy & execution' },
@@ -295,16 +298,19 @@ export const translations = {
         about: {
             title: '焦柏炀是谁',
             workExperience: {
-                label: '蚂蚁集团工作经历简介',
-                content: '我负责过 Alipay+ Digital Wallet 和 Alipay+ Rewards 两款消费者产品的设计挑战，为亚太和非洲市场提供易用、可定制且可持续的普惠金融解决方案。',
+                label: '// 设计哲学',
+                subtitle: '以系统思考为内核',
+                content: '致力于在复杂的商业诉求、前沿技术与人类行为之间寻找最优解。在精心打磨每一个 Aha moment 的同时，我始终对全局的业务脉络与底层逻辑保持敏锐，将散落的触点编织成极具秩序感与直觉性的数字产品。目前，我正深度探索 Design as code、AI Agentic Design Ops 演进，以及多端场景下的极致体验。',
             },
             careerAndDesign: {
-                label: '职业与设计',
-                content: '我拥有广泛的项目经验，涵盖移动应用、网站和新零售服务，服务对象包括消费者、中小企业、大型企业和非营利组织。涉及领域包括金融科技、社交媒体、游戏、电商、教育和汽车。',
+                label: '// 经验坐标',
+                subtitle: '跨越边界的体验构建',
+                content: '曾在蚂蚁集团主导 C 端数字钱包与 B 端跨境收付款平台的产品与系统设计。在此之前，我的设计实践广泛触达移动应用、Web 端、线下服务及语音交互（VUI）。从新零售、社交媒体，到教育、游戏与汽车行业，跨领域的历练让我能更敏锐地捕捉不同商业形态下的体验共性，并用跨界视角解决复杂痛点。',
             },
             educationAndPassions: {
-                label: '教育背景与热情',
-                content: '我拥有加州艺术学院 (CCA) 的人机交互硕士学位，以及密苏里大学 (Mizzou) 的心理学学士学位。我热衷于探索设计、技术和人类行为的交汇点。无论是尝试新工具、开发设计系统，还是深入理解用户复杂性，我都在这个不断演变的数字时代中持续学习和适应。'
+                label: '// 底层驱动',
+                subtitle: '当心理学遇上人机交互',
+                content: '加州艺术学院 (CCA) 人机交互硕士，密苏里大学 (Mizzou) 认知心理学学士，以人类认知与行为学为思考基石。在日新月异的技术浪潮中，我始终保持对前沿技术与工具的强烈好奇与实践力。无论媒介如何演进——从解决当下的问题，到创造未来的可能——我都坚持以深刻的用户同理心去牵引技术，构建人机之间的信任与默契。'
             },
             stats: {
                 productDesign: { name: '产品设计', desc: '端到端的产品体验与设计架构' },

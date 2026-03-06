@@ -90,9 +90,8 @@ export const AboutMePage = () => {
                             </AnimatePresence>
                         </div>
 
-                        <div className="flex items-center gap-3 justify-center">
-                            <div id="about-title-dot" className="w-1.5 h-1.5 bg-brand-secondary/50 rounded-full" />
-                            <h1 className="text-sm 2xl:text-lg font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
+                        <div className="flex items-center justify-center relative justify-self-center">
+                            <h1 id="about-title-text" className="text-sm 2xl:text-lg font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
                                 {t('about.title')}
                             </h1>
                         </div>
@@ -115,9 +114,9 @@ export const AboutMePage = () => {
                     <motion.div
                         className="absolute inset-x-0 bottom-0 top-[60px] z-[5] pointer-events-none"
                         initial={false}
-                        // Move 30% to the right (plus half the 3rem gap) to perfectly center within the right HUD column
+                        // Shift character to the right panel center based on 60% left panel (40% remaining space -> +30% from center)
                         animate={{
-                            x: isCharacterStatsOpen ? "0%" : "calc(30% + 1.5rem)",
+                            x: isCharacterStatsOpen ? "0%" : "30%",
                             y: isCharacterStatsOpen ? -60 : 0
                         }}
                         transition={springTransition}
@@ -143,45 +142,62 @@ export const AboutMePage = () => {
                             }}
                         >
                             {/* Inner wrapper prevents text reflow constraint bugs during shrink */}
-                            <div className="min-w-[500px] w-full pr-4 2xl:pr-6 flex flex-col gap-8 2xl:gap-12 pb-10">
-                                {/* 工作经历 */}
-                                <div className="flex gap-6 2xl:gap-10">
-                                    <div className="w-48 2xl:w-64 shrink-0">
-                                        <span className="text-sm 2xl:text-base font-display font-semibold text-brand-secondary tracking-widest uppercase leading-relaxed">
+                            <div className="w-full pr-4 2xl:pr-6 flex flex-col gap-8 2xl:gap-12 pb-10">
+                                {/* DESIGN PHILOSOPHY */}
+                                <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
+                                    <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
+                                        <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
                                             {t('about.workExperience.label')}
+                                        </span>
+                                        <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
+                                            {t('about.workExperience.subtitle')}
                                         </span>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose">
+                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
                                             {t('about.workExperience.content')}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* 职业与设计 */}
-                                <div className="flex gap-6 2xl:gap-10">
-                                    <div className="w-48 2xl:w-64 shrink-0">
-                                        <span className="text-sm 2xl:text-base font-display font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
+                                {/* CAREER EXPERIENCE */}
+                                <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
+                                    <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
+                                        <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
                                             {t('about.careerAndDesign.label')}
+                                        </span>
+                                        <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
+                                            {t('about.careerAndDesign.subtitle')}
                                         </span>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-base 2xl:text-lg text-cyan-50 leading-relaxed 2xl:leading-loose">
+                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
                                             {t('about.careerAndDesign.content')}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* 教育背景与热情 */}
-                                <div className="flex gap-6 2xl:gap-10">
-                                    <div className="w-48 2xl:w-64 shrink-0">
-                                        <span className="text-sm 2xl:text-base font-display font-semibold text-cyan-700 tracking-widest uppercase leading-relaxed">
+                                {/* FOUNDATION */}
+                                <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
+                                    <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
+                                        <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
                                             {t('about.educationAndPassions.label')}
+                                        </span>
+                                        <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
+                                            {t('about.educationAndPassions.subtitle')}
                                         </span>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-base 2xl:text-lg text-cyan-50 leading-relaxed 2xl:leading-loose">
-                                            {t('about.educationAndPassions.content')}
+                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
+                                            {t('about.educationAndPassions.content').split(/(CCA|Mizzou)/g).map((part, i) => {
+                                                if (part === 'CCA') return (
+                                                    <a key={i} href="https://www.cca.edu/" target="_blank" rel="noopener noreferrer" className="underline decoration-brand-secondary/40 hover:text-brand-secondary transition-colors">CCA</a>
+                                                );
+                                                if (part === 'Mizzou') return (
+                                                    <a key={i} href="https://missouri.edu" target="_blank" rel="noopener noreferrer" className="underline decoration-brand-secondary/40 hover:text-brand-secondary transition-colors">Mizzou</a>
+                                                );
+                                                return part;
+                                            })}
                                         </p>
                                     </div>
                                 </div>
