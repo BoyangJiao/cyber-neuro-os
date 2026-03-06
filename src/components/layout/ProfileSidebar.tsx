@@ -11,8 +11,18 @@ export const ProfileSidebar = () => {
     const [isPressed, setIsPressed] = useState(false);
 
     return (
-        <div className="relative flex flex-col items-start h-full pl-4 lg:pl-6 xl:pl-8 2xl:pl-10 py-3 lg:py-4">
-            <div className="flex flex-col gap-4 lg:gap-6 2xl:gap-8 shrink-0 w-[160px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px]">
+        <div
+            className="relative flex flex-col items-start h-full pl-4 lg:pl-6 xl:pl-8 2xl:pl-10 py-3 lg:py-4"
+            style={{ perspective: '1200px' }}
+        >
+            <div
+                className="flex flex-col gap-4 lg:gap-6 2xl:gap-8 shrink-0 w-[160px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px] transition-transform duration-500 ease-out"
+                style={{
+                    transform: 'rotateY(8deg) translateZ(0)',
+                    transformOrigin: 'left center',
+                    transformStyle: 'preserve-3d'
+                }}
+            >
                 {/* Profile Photo Frame - Clickable to open About Me */}
                 <div id="avatar-frame" className="relative group w-fit">
                     <HoloFrame

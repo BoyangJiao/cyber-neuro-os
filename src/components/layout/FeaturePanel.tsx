@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { CyberSlotCard } from '../ui/CyberSlotCard';
@@ -94,16 +94,71 @@ const HYDRAULIC_SPRING = {
     mass: 0.6,
 };
 
+// Global flag to ensure the entry animation only runs ONCE per application lifecycle 
+// (e.g., only when transitioning from Boot Screen to System for the first time).
+let hasPlayedFeatureIntro = false;
+
 export const FeaturePanel = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex } = useAppStore();
+    const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex, isBootSequenceActive } = useAppStore();
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
+
+    // ─── Intro Animation Orchestration ───
+    const [isIntroPlaying, setIsIntroPlaying] = useState(!hasPlayedFeatureIntro);
+    const [isDeckMerged, setIsDeckMerged] = useState(!hasPlayedFeatureIntro);
 
     // ─── Focus State Machine ───
     const [isRevealHover, setIsRevealHover] = useState(false);   // Is user hovering the focused card? (face-on)
     const wheelCooldown = useRef(false);                         // Throttle wheel events
+
+    useEffect(() => {
+        // Wait until boot sequence is fully finished before deploying cards
+        if (isDeepDiveMode || isBootSequenceActive) return;
+
+        if (hasPlayedFeatureIntro) {
+            setIsIntroPlaying(false);
+            setIsDeckMerged(false);
+            return;
+        }
+
+        hasPlayedFeatureIntro = true;
+        setIsIntroPlaying(true);
+        setIsDeckMerged(true);
+
+        let phaseBTimer: ReturnType<typeof setTimeout>;
+        let sweepInterval: ReturnType<typeof setInterval>;
+
+        // Phase A: Merged state for a short entry fly-in (wait 300ms for it to fly in)
+        const phaseATimer = setTimeout(() => {
+            // Phase B: Burst open, focus on the absolute back card
+            setIsDeckMerged(false);
+            setFeatureActiveIndex(features.length - 1);
+
+            // Wait for the expansion to complete structurally before sweeping
+            phaseBTimer = setTimeout(() => {
+                // Phase C: Sequence sweep forward to 0 (slower, methodical pace)
+                let currentIdx = features.length - 1;
+                sweepInterval = setInterval(() => {
+                    currentIdx--;
+                    if (currentIdx >= 0) {
+                        setFeatureActiveIndex(currentIdx);
+                    } else {
+                        clearInterval(sweepInterval);
+                        setIsIntroPlaying(false); // Sequence done, unlock interactions
+                    }
+                }, 200); // Rhythmic 200ms per card
+            }, 500); // 500ms pause to let the user perceive the expanded queue
+
+        }, 300);
+
+        return () => {
+            clearTimeout(phaseATimer);
+            if (phaseBTimer) clearTimeout(phaseBTimer);
+            if (sweepInterval) clearInterval(sweepInterval);
+        };
+    }, [isDeepDiveMode, setFeatureActiveIndex, isBootSequenceActive]);
 
     useGSAP(() => {
         if (isDeepDiveMode) return;
@@ -128,7 +183,7 @@ export const FeaturePanel = () => {
 
     // ─── Wheel Navigation: scroll through focus with hydraulic damping ───
     const handleWheel = useCallback((e: React.WheelEvent) => {
-        if (wheelCooldown.current) return;
+        if (isIntroPlaying || wheelCooldown.current) return;
         const delta = e.deltaY;
         if (Math.abs(delta) < 15) return; // ignore tiny scroll noise
 
@@ -143,10 +198,11 @@ export const FeaturePanel = () => {
             // Scroll up → previous card
             setFeatureActiveIndex(Math.max(featureActiveIndex - 1, 0));
         }
-    }, [featureActiveIndex, setFeatureActiveIndex]);
+    }, [featureActiveIndex, setFeatureActiveIndex, isIntroPlaying]);
 
     // ─── Click to Focus: directly select a background card ───
     const handleCardClick = useCallback((index: number) => {
+        if (isIntroPlaying) return;
         const isRevealed = index === featureActiveIndex && isRevealHover;
         if (isRevealed) {
             // Click on the revealed (face-on) card → Enter action
@@ -161,7 +217,7 @@ export const FeaturePanel = () => {
             setIsRevealHover(false);
             setFeatureActiveIndex(index);
         }
-    }, [featureActiveIndex, isRevealHover, navigate, t, setFeatureActiveIndex]);
+    }, [featureActiveIndex, isRevealHover, navigate, t, setFeatureActiveIndex, isIntroPlaying]);
 
     // ─── DeepDive Mode ───
     if (isDeepDiveMode) {
@@ -221,36 +277,49 @@ export const FeaturePanel = () => {
                         const isRevealed = isFocused && isRevealHover;
 
                         // ─── Three-State Spatial Coordinates ───
-                        // Relative position in the queue (negative = in front of focus, positive = behind)
-                        const queueOffset = index - featureActiveIndex;
+                        let x, y, z, rotateY, scale, opacity, blur;
 
-                        // STATE 1: Queued (default resting position in the array)
-                        let x = queueOffset * 65;
-                        let y = queueOffset * 3;
-                        let z = -(Math.abs(queueOffset) * 80) - (index * 10);
-                        let rotateY = -35;
-                        let scale = 0.92;
-                        let opacity = Math.max(0.3, 1 - Math.abs(queueOffset) * 0.15);
-                        let blur = Math.min(Math.abs(queueOffset) * 1.5, 4);
-
-                        if (isFocused && !isRevealed) {
-                            // STATE 2: Focused — extracted from queue, angled "side view"
-                            x = -60;
+                        if (isDeckMerged) {
+                            // STATE 0: Merged Intro
+                            x = 60 - index * 5;
                             y = 0;
-                            z = 120;
-                            rotateY = -25;
-                            scale = 1.08;
-                            opacity = 1;
-                            blur = 0;
-                        } else if (isRevealed) {
-                            // STATE 3: Revealed — flipped face-on toward user
-                            x = 0;
-                            y = -10;
-                            z = 200;
-                            rotateY = 0;
-                            scale = 1.15;
-                            opacity = 1;
-                            blur = 0;
+                            z = -250 - index * 10;
+                            rotateY = -35;
+                            scale = 0.8;
+                            opacity = 0.5;
+                            blur = 2;
+                        } else {
+                            // Relative position in the queue (negative = in front of focus, positive = behind)
+                            const queueOffset = index - featureActiveIndex;
+
+                            // STATE 1: Queued (default resting position in the array)
+                            x = queueOffset * 65;
+                            y = queueOffset * 3;
+                            z = -(Math.abs(queueOffset) * 80) - (index * 10);
+                            rotateY = -35;
+                            scale = 0.92;
+                            opacity = Math.max(0.3, 1 - Math.abs(queueOffset) * 0.15);
+                            blur = Math.min(Math.abs(queueOffset) * 1.5, 4);
+
+                            if (isFocused && !isRevealed) {
+                                // STATE 2: Focused — extracted from queue, angled "side view"
+                                x = -60;
+                                y = 0;
+                                z = 120;
+                                rotateY = -25;
+                                scale = 1.08;
+                                opacity = 1;
+                                blur = 0;
+                            } else if (isRevealed) {
+                                // STATE 3: Revealed — flipped face-on toward user
+                                x = 0;
+                                y = -10;
+                                z = 200;
+                                rotateY = 0;
+                                scale = 1.15;
+                                opacity = 1;
+                                blur = 0;
+                            }
                         }
 
                         const cardContent = (
@@ -264,6 +333,7 @@ export const FeaturePanel = () => {
                                 isFocused={isFocused}
                                 isRevealed={isRevealed}
                                 isErrorState={item.geometryType === 'video'}
+                                isIntroPlaying={isIntroPlaying}
                             />
                         );
 
@@ -271,7 +341,7 @@ export const FeaturePanel = () => {
                             <motion.div
                                 key={`desktop-${item.titleKey}`}
                                 className="absolute origin-center w-[160px] lg:w-[180px] xl:w-[220px] cursor-pointer will-change-transform"
-                                initial={false}
+                                initial={{ opacity: 0, x: 150, z: -400, rotateY: -40, scale: 0.7 }}
                                 animate={{
                                     opacity,
                                     x,
@@ -301,7 +371,12 @@ export const FeaturePanel = () => {
                         {features.map((_, i) => (
                             <button
                                 key={`diamond-${i}`}
-                                onClick={() => { setFeatureActiveIndex(i); setIsRevealHover(false); }}
+                                onClick={() => {
+                                    if (!isIntroPlaying) {
+                                        setFeatureActiveIndex(i);
+                                        setIsRevealHover(false);
+                                    }
+                                }}
                                 className="p-1 transition-transform hover:scale-110 active:scale-95"
                             >
                                 <DiamondIcon

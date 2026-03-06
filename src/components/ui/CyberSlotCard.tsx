@@ -16,6 +16,7 @@ export interface CyberSlotCardProps {
     isFocused?: boolean;
     isRevealed?: boolean;
     isErrorState?: boolean;
+    isIntroPlaying?: boolean;
 }
 
 // ─── Dynamic Binary Ticker Line ───────────────────────────────────────
@@ -72,6 +73,7 @@ export const CyberSlotCard = ({
     isFocused = false,
     isRevealed = false,
     isErrorState = false,
+    isIntroPlaying = false,
 }: CyberSlotCardProps) => {
     const [scanProgress, setScanProgress] = useState(0);
     const animationRef = useRef<number | null>(null);
@@ -176,9 +178,12 @@ export const CyberSlotCard = ({
                 style={{ transform: "translateZ(0px)" }}
             >
                 <g
-                    className="transition-colors transition-opacity duration-300"
+                    className={twMerge(
+                        "transition-colors transition-opacity",
+                        isIntroPlaying ? "duration-300" : "duration-300"
+                    )}
                     fill={highlightColor}
-                    opacity={isActivated ? 1 : isFocused ? 0.85 : 0.5}
+                    opacity={isActivated ? 1 : isFocused ? 0.9 : 0.4}
                 >
                     <path
                         fillRule="evenodd"
@@ -225,8 +230,10 @@ export const CyberSlotCard = ({
                 }}
             >
                 <h3 className={twMerge(
-                    "font-display text-[clamp(10px,4cqw,14px)] font-bold tracking-[0.2em] uppercase transition-colors duration-300 truncate w-full pl-[5%]",
-                    isActivated ? "opacity-100" : isFocused ? "opacity-100" : "opacity-60"
+                    "font-display text-[clamp(10px,4cqw,14px)] font-bold tracking-[0.2em] uppercase truncate w-full pl-[5%]",
+                    "transition-colors",
+                    isIntroPlaying ? "duration-300" : "duration-300",
+                    isActivated ? "opacity-100" : isFocused ? "opacity-100" : "opacity-50"
                 )} style={{
                     color: isActivated ? (isErrorState ? highlightColor : 'var(--color-text-accent)') : highlightColor,
                     textShadow: isActivated ? `0 0 8px ${glowColor}` : 'none',
