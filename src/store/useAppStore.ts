@@ -64,6 +64,10 @@ interface AppState {
     // Audio Settings
     sfxVolume: number;
     setSfxVolume: (volume: number) => void;
+
+    // Feature Intro Animation Flag
+    hasPlayedFeatureIntro: boolean;
+    setHasPlayedFeatureIntro: (played: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -119,4 +123,8 @@ export const useAppStore = create<AppState>((set) => ({
     // Audio Settings
     sfxVolume: 15,
     setSfxVolume: (vol) => set({ sfxVolume: Math.max(0, Math.min(100, vol)) }),
+
+    // Feature Intro Animation Flag
+    hasPlayedFeatureIntro: false,
+    setHasPlayedFeatureIntro: (played) => set({ hasPlayedFeatureIntro: played }),
 }));

@@ -96,20 +96,18 @@ const HYDRAULIC_SPRING = {
     mass: 0.6,
 };
 
-// Global flag to ensure the entry animation only runs ONCE per application lifecycle 
-// (e.g., only when transitioning from Boot Screen to System for the first time).
-let hasPlayedFeatureIntro = false;
-
 export const FeaturePanel = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
     const { language } = useLanguage();
     const navigate = useNavigate();
-    const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex, isBootSequenceActive } = useAppStore(useShallow(state => ({
+    const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex, isBootSequenceActive, hasPlayedFeatureIntro, setHasPlayedFeatureIntro } = useAppStore(useShallow(state => ({
         isDeepDiveMode: state.isDeepDiveMode,
         featureActiveIndex: state.featureActiveIndex,
         setFeatureActiveIndex: state.setFeatureActiveIndex,
-        isBootSequenceActive: state.isBootSequenceActive
+        isBootSequenceActive: state.isBootSequenceActive,
+        hasPlayedFeatureIntro: state.hasPlayedFeatureIntro,
+        setHasPlayedFeatureIntro: state.setHasPlayedFeatureIntro
     })));
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
 
@@ -131,7 +129,7 @@ export const FeaturePanel = () => {
             return;
         }
 
-        hasPlayedFeatureIntro = true;
+        setHasPlayedFeatureIntro(true);
         setIsIntroPlaying(true);
         setIsDeckMerged(true);
 
@@ -166,10 +164,10 @@ export const FeaturePanel = () => {
             if (phaseBTimer) clearTimeout(phaseBTimer);
             if (sweepInterval) clearInterval(sweepInterval);
         };
-    }, [isDeepDiveMode, setFeatureActiveIndex, isBootSequenceActive]);
+    }, [isDeepDiveMode, setFeatureActiveIndex, isBootSequenceActive, hasPlayedFeatureIntro, setHasPlayedFeatureIntro]);
 
     useGSAP(() => {
-        if (isDeepDiveMode) return;
+        if (isDeepDiveMode || hasPlayedFeatureIntro) return;
         const timeline = gsap.timeline({ defaults: { ease: "power2.out", duration: 0.5 } });
         timeline.fromTo(".feature-card:nth-child(-n+3)",
             { opacity: 0, y: 50 },
@@ -180,7 +178,7 @@ export const FeaturePanel = () => {
             { opacity: 1, y: 0 },
             "-=0.3"
         );
-    }, { scope: containerRef, dependencies: [isDeepDiveMode] });
+    }, { scope: containerRef, dependencies: [isDeepDiveMode, hasPlayedFeatureIntro] });
 
     const { playAlert } = useSoundSystem();
 
