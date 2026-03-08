@@ -77,6 +77,7 @@ export interface TabItem {
 export interface TabBlock {
     _key: string;
     _type: 'tabBlock';
+    title?: string;
     tabs: TabItem[];
 }
 

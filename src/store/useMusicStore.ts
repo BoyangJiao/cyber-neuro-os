@@ -3,15 +3,15 @@ import { type Track, mockTracks } from '../data/mockMusicData';
 
 export const ambientTrack: Track = {
     id: 'ambient_bg',
-    title: 'NEURAL AMBIENCE',
-    artist: 'SYSTEM PROTOCOL',
+    title: 'TRANSCANADA',
+    artist: 'FOG LAKE',
     album: 'BACKGROUND',
     coverUrl: '/images/music/sh_02.png', // Fallback cover, user won't normally see this
-    duration: 439,
+    duration: 280,
     genre: 'Ambient',
     bpm: 0,
     youtubeUrl: '',
-    audioUrl: '/music/ambient_dream.m4a'
+    audioUrl: '/music/fog_lake.m4a'
 };
 
 interface MusicState {
@@ -39,7 +39,7 @@ interface MusicState {
 export const useMusicStore = create<MusicState>((set, get) => ({
     currentTrack: ambientTrack, // Initially play ambient background track
     isPlaying: false,
-    volume: 75,
+    volume: 50,
     playlist: mockTracks,
     currentTime: 0,
     duration: ambientTrack.duration,

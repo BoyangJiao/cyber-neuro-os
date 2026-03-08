@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { PixelGridEffect } from './effects';
 
@@ -62,7 +62,7 @@ const DecodingBinaryStream = ({ active }: { active: boolean }) => {
     );
 };
 
-export const CyberSlotCard = ({
+export const CyberSlotCard = memo(({
     title,
     subtitle = '//Design',
     inactiveImage,
@@ -330,4 +330,4 @@ export const CyberSlotCard = ({
             )}
         </div>
     );
-};
+});

@@ -5,6 +5,7 @@ import { CyberSlotCard } from '../ui/CyberSlotCard';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation, useLanguage } from '../../i18n';
 import { useAppStore } from '../../store/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 import type { GeometryType } from '../../store/useAppStore';
 import { InterceptModal } from '../ui/modals/InterceptModal';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
@@ -104,7 +105,12 @@ export const FeaturePanel = () => {
     const { t } = useTranslation();
     const { language } = useLanguage();
     const navigate = useNavigate();
-    const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex, isBootSequenceActive } = useAppStore();
+    const { isDeepDiveMode, featureActiveIndex, setFeatureActiveIndex, isBootSequenceActive } = useAppStore(useShallow(state => ({
+        isDeepDiveMode: state.isDeepDiveMode,
+        featureActiveIndex: state.featureActiveIndex,
+        setFeatureActiveIndex: state.setFeatureActiveIndex,
+        isBootSequenceActive: state.isBootSequenceActive
+    })));
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
 
     // ─── Intro Animation Orchestration ───

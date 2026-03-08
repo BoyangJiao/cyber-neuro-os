@@ -147,8 +147,8 @@ const MediaRenderer = ({ block }: { block: MediaBlock }) => {
         if (isGif) {
             imageUrl = urlFor(block.image).url();
         } else {
-            // Direct original URL to avoid Sanity compression/resizing
-            imageUrl = urlFor(block.image).url();
+            // Optimize image with explicit bounds to reduce payload
+            imageUrl = urlFor(block.image).auto('format').width(1920).quality(90).url();
         }
 
         return (
@@ -190,13 +190,13 @@ const StatsRenderer = ({ block }: { block: StatsBlock }) => (
 const CompareRenderer = ({ block }: { block: CompareBlock }) => {
     // Resolve before source: videoFile > video URL > image
     const beforeVideoUrl = block.beforeVideoFile?.asset?.url || block.beforeVideo;
-    const beforeImageUrl = block.beforeImage ? urlFor(block.beforeImage).url() : undefined;
+    const beforeImageUrl = block.beforeImage ? urlFor(block.beforeImage).auto('format').width(1920).quality(90).url() : undefined;
     const beforeSrc = beforeVideoUrl || beforeImageUrl;
     const beforeType: 'image' | 'video' = beforeVideoUrl ? 'video' : 'image';
 
     // Resolve after source: videoFile > video URL > image
     const afterVideoUrl = block.afterVideoFile?.asset?.url || block.afterVideo;
-    const afterImageUrl = block.afterImage ? urlFor(block.afterImage).url() : undefined;
+    const afterImageUrl = block.afterImage ? urlFor(block.afterImage).auto('format').width(1920).quality(90).url() : undefined;
     const afterSrc = afterVideoUrl || afterImageUrl;
     const afterType: 'image' | 'video' = afterVideoUrl ? 'video' : 'image';
 
@@ -218,7 +218,7 @@ const CompareRenderer = ({ block }: { block: CompareBlock }) => {
 // Tab Panel Renderer - Cyberpunk Tab/Segment Control
 const TabRenderer = ({ block }: { block: TabBlock }) => {
     if (!block.tabs || block.tabs.length === 0) return null;
-    return <CyberTabPanel tabs={block.tabs} className="w-full" />;
+    return <CyberTabPanel tabs={block.tabs} title={block.title} className="w-full" />;
 };
 
 // Main ContentSlotRenderer - dispatches to appropriate renderer

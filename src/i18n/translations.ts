@@ -97,6 +97,14 @@ export const translations = {
             language: 'LANGUAGE',
             languageDesc: 'Select display language',
             deepDiveMode: 'DEEPDIVE MODE',
+            theme: 'THEME',
+            themeDesc: 'Select your preferred theme color',
+            audio: {
+                title: 'OUTPUT CHANNELS',
+                music: 'MUSIC BROADCAST',
+                sfx: 'SYSTEM EFFECTS'
+            },
+            marquee: 'SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v1.0.0 · neural_sync OK · memory_pool stable · render_pipeline nominal',
             close: 'CLOSE',
         },
 
@@ -339,6 +347,14 @@ export const translations = {
             language: '语言',
             languageDesc: '选择显示语言',
             deepDiveMode: '深潜模式',
+            theme: '主题',
+            themeDesc: '选择你喜欢的主题色',
+            audio: {
+                title: '输出通道',
+                music: '背景音乐',
+                sfx: '系统音效'
+            },
+            marquee: '系统更新进行中：内核循环活跃 · v1.0.0 版本 · 神经同步正常 · 内存池稳定 · 渲染管线标称',
             close: '关闭',
         },
 

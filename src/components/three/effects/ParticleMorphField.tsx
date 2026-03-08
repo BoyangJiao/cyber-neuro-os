@@ -13,6 +13,7 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useThemeColors } from '../../../hooks/useThemeColors';
+import { useEffect } from 'react';
 
 // ─── Config ────────────────────────────────────────────────
 const MORPH_PARTICLE_COUNT = 1200;
@@ -209,6 +210,14 @@ export const ParticleMorphField = ({ morphActive }: ParticleMorphFieldProps) => 
 
         return { geometry: geo, material: mat };
     }, [scene]);
+
+    // Cleanup WebGL resources
+    useEffect(() => {
+        return () => {
+            geometry.dispose();
+            material.dispose();
+        };
+    }, [geometry, material]);
 
     useFrame((_, delta) => {
         if (!pointsRef.current) return;

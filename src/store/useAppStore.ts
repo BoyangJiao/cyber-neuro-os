@@ -117,6 +117,6 @@ export const useAppStore = create<AppState>((set) => ({
     setFeatureActiveIndex: (index) => set({ featureActiveIndex: index }),
 
     // Audio Settings
-    sfxVolume: 20,
+    sfxVolume: 15,
     setSfxVolume: (vol) => set({ sfxVolume: Math.max(0, Math.min(100, vol)) }),
 }));

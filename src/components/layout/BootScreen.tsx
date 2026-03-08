@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { MotionDiv, MotionH1 } from '../motion/MotionWrappers';
 import { CyberButton } from '../ui/CyberButton';
 import { useMusicStore } from '../../store/useMusicStore';
+import { useShallow } from 'zustand/react/shallow';
 import { AnimatePresence } from 'framer-motion';
 import { HelmetReveal } from '../three/HelmetReveal';
 import { DatastreamEdgeLeft } from './DatastreamEdgeLeft';
@@ -143,7 +144,11 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
     const { playClick } = useSoundSystem();
 
     // Volume fade-in using requestAnimationFrame for smoother, fewer state updates
-    const { setVolume, play, pause } = useMusicStore();
+    const { setVolume, play, pause } = useMusicStore(useShallow(state => ({
+        setVolume: state.setVolume,
+        play: state.play,
+        pause: state.pause
+    })));
 
     const handleEnter = useCallback(() => {
         // Trigger click sound to ensure audio context starts
@@ -152,7 +157,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         if (soundEnabled) {
             setVolume(0);
             play();
-            const targetVol = 60; // Slightly lower for background ambiance
+            const targetVol = 50; // Set to 50% as requested
             const duration = 6000; // Slightly longer fade for smoother entry
             let startTime: number | null = null;
 

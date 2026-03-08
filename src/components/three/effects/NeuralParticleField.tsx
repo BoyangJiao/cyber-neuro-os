@@ -306,6 +306,14 @@ const ParticleScene = () => {
         });
     }, []);
 
+    // Cleanup WebGL resources
+    useEffect(() => {
+        return () => {
+            geometry.dispose();
+            material.dispose();
+        };
+    }, [geometry, material]);
+
     // Animation loop
     useFrame((_, delta) => {
         if (!pointsRef.current) return;

@@ -52,14 +52,18 @@ export const useThemeColors = (): ThemeColors => {
         // Run immediately (for initial load if already set)
         updateColors();
 
+        let timeoutId: ReturnType<typeof setTimeout>;
         // Run after a tick to allow React layout effects to propagate theme changes
         const timer = requestAnimationFrame(() => {
             updateColors();
             // Double check for slower recalculations
-            setTimeout(updateColors, 50);
+            timeoutId = setTimeout(updateColors, 50);
         });
 
-        return () => cancelAnimationFrame(timer);
+        return () => {
+            cancelAnimationFrame(timer);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, [brandTheme]);
 
     return colors;

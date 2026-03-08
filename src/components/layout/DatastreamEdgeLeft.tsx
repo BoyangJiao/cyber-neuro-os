@@ -1,7 +1,7 @@
 import React from 'react';
 import type { SVGProps } from 'react';
 
-export const DatastreamEdgeLeft: React.FC<SVGProps<SVGSVGElement> & { isBooting?: boolean }> = ({ className = '', style, isBooting = true, ...props }) => {
+export const DatastreamEdgeLeft: React.FC<SVGProps<SVGSVGElement> & { isBooting?: boolean }> = React.memo(({ className = '', style, isBooting = true, ...props }) => {
   return (
     <svg viewBox="0 0 20 748" fill="none" className={`text-brand-primary datastream-edge-svg datastream-edge-left ${isBooting ? 'is-loading' : ''} ${className}`} style={style} {...props}>
 
@@ -629,4 +629,4 @@ export const DatastreamEdgeLeft: React.FC<SVGProps<SVGSVGElement> & { isBooting?
     </svg>
 
   );
-};
+});

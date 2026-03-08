@@ -5,6 +5,7 @@ import { NeuralLogo3D } from './NeuralLogo3D';
 import { MotionDiv } from '../motion/MotionWrappers';
 import { useAppStore } from '../../store/useAppStore';
 import { useMusicStore } from '../../store/useMusicStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useLanguage } from '../../i18n';
 import { useTranslation } from '../../i18n';
 import type { Language } from '../../i18n';
@@ -28,15 +29,30 @@ const languages: LanguageOption[] = [
 ];
 
 const themes: ThemeOption[] = [
-    { code: 'cyan', label: '赛博青', color: '#00F0FF' },
-    { code: 'green', label: '赛博绿', color: '#00ff88' },
-    { code: 'red', label: '赛博红', color: '#FF0055' },
+    { code: 'cyan', label: '青色', color: '#00F0FF' },
+    { code: 'green', label: '绿色', color: '#00ff88' },
+    { code: 'red', label: '红色', color: '#FF0055' },
 ];
 
 export const SettingsModal = () => {
     const [activeTab, setActiveTab] = useState<'about' | 'appearance' | 'audio'>('about');
-    const { setSettingsOpen, debugMode, setDebugMode, isDeepDiveMode, setDeepDiveMode, isDeepDiveTransitioning, setDeepDiveTransitioning, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore();
-    const { volume, setVolume } = useMusicStore();
+    const { setSettingsOpen, debugMode, setDebugMode, isDeepDiveMode, setDeepDiveMode, isDeepDiveTransitioning, setDeepDiveTransitioning, brandTheme, setBrandTheme, sfxVolume, setSfxVolume } = useAppStore(useShallow(state => ({
+        setSettingsOpen: state.setSettingsOpen,
+        debugMode: state.debugMode,
+        setDebugMode: state.setDebugMode,
+        isDeepDiveMode: state.isDeepDiveMode,
+        setDeepDiveMode: state.setDeepDiveMode,
+        isDeepDiveTransitioning: state.isDeepDiveTransitioning,
+        setDeepDiveTransitioning: state.setDeepDiveTransitioning,
+        brandTheme: state.brandTheme,
+        setBrandTheme: state.setBrandTheme,
+        sfxVolume: state.sfxVolume,
+        setSfxVolume: state.setSfxVolume
+    })));
+    const { volume, setVolume } = useMusicStore(useShallow(state => ({
+        volume: state.volume,
+        setVolume: state.setVolume
+    })));
     const { language, setLanguage } = useLanguage();
     const { t } = useTranslation();
 
@@ -102,7 +118,7 @@ export const SettingsModal = () => {
                     </div>
 
                     {/* Tabs Navigation */}
-                    <div className="flex border-b border-[var(--color-border-subtle)]/50 mb-6 overflow-x-auto scrollbar-hide">
+                    <div className="flex border-b border-[var(--color-border-subtle)]/50 overflow-x-auto scrollbar-hide">
                         {(['about', 'appearance', 'audio'] as const).map((tab) => (
                             <button
                                 key={tab}
@@ -122,10 +138,10 @@ export const SettingsModal = () => {
 
                         {/* About Content */}
                         {activeTab === 'about' && (
-                            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="pt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
                                 {/* ── Overview ── */}
-                                <div className="flex flex-col items-center text-center gap-3">
+                                <div className="flex flex-col items-center text-center gap-3 pb-4">
                                     {/* Personal Logo — 3D Neural Core */}
                                     <NeuralLogo3D size={120} className="2xl:!w-[180px] 2xl:!h-[180px]" />
 
@@ -139,7 +155,6 @@ export const SettingsModal = () => {
                                         </p>
                                     </div>
 
-                                    {/* Description */}
                                     <p className="text-sm font-mono text-[var(--color-text-secondary)] leading-relaxed max-w-[320px] opacity-80">
                                         {language === 'zh'
                                             ? 'Boyang 脑神经系统的全息模拟界面'
@@ -148,14 +163,19 @@ export const SettingsModal = () => {
                                 </div>
 
                                 {/* ── Architecture ── */}
-                                <div className="border-t border-[var(--color-text-subtle)]/20 pt-4 space-y-2">
+                                <div className="relative py-4 space-y-2">
+                                    {/* Line with decorative dots */}
+                                    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-[var(--color-brand-secondary)]/30">
+                                        <div className="absolute left-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                        <div className="absolute right-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                    </div>
                                     <p className="text-[11px] font-mono text-[var(--color-brand-primary)] font-semibold tracking-wider uppercase">
                                         ARCHITECTURE <span className="text-[var(--color-text-subtle)]">//</span>
                                     </p>
                                     <p className="text-xs font-mono text-[var(--color-text-secondary)] leading-relaxed tracking-wider">
                                         {language === 'zh'
-                                            ? '本项目视觉与世界观深受《赛博朋克 2077》《光环》《死亡搁浅》及《攻壳机动队》等作品启发。本项目旨在通过界面设计，探索并表达在高速发展的科技夹缝中，人类自我认知的怀疑、冲突与重构。'
-                                            : 'Visually and narratively inspired by Cyberpunk 2077, Halo, Death Stranding, and Ghost in the Shell. This project explores, through interface design, the doubt, conflict, and reconstruction of human self-perception caught in the cracks of rapidly advancing technology.'}
+                                            ? '本项目视觉与世界观深受《赛博朋克2077》，《光环》，《死亡搁浅》及《攻壳机动队》等作品启发。旨在通过界面设计，探索并表达在高速发展的科技夹缝中，人类自我认知的怀疑，冲突与重构。'
+                                            : 'Visually and narratively inspired by Cyberpunk 2077, Halo, Death Stranding, and Ghost in the Shell. The project aims to explore the doubt, conflict, and reconstruction of human self-perception within the cracks of rapidly advancing technology through interface design.'}
                                     </p>
                                     <p className="text-xs font-mono text-[var(--color-text-secondary)]/70 leading-relaxed tracking-wider">
                                         {language === 'zh'
@@ -165,7 +185,12 @@ export const SettingsModal = () => {
                                 </div>
 
                                 {/* ── Assets & Licenses ── */}
-                                <div className="border-t border-[var(--color-text-subtle)]/20 pt-4 space-y-2">
+                                <div className="relative py-4 space-y-2">
+                                    {/* Line with decorative dots */}
+                                    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-[var(--color-brand-secondary)]/30">
+                                        <div className="absolute left-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                        <div className="absolute right-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                    </div>
                                     <p className="text-[11px] font-mono text-[var(--color-brand-primary)] font-semibold tracking-wider uppercase">
                                         ASSETS & LICENSES <span className="text-[var(--color-text-subtle)]">//</span>
                                     </p>
@@ -189,7 +214,12 @@ export const SettingsModal = () => {
                                 </div>
 
                                 {/* ── Legal ── */}
-                                <div className="border-t border-[var(--color-text-subtle)]/20 pt-3 space-y-1 text-center">
+                                <div className="relative pt-4 pb-0 space-y-1 text-center">
+                                    {/* Line with decorative dots */}
+                                    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-[var(--color-brand-secondary)]/30">
+                                        <div className="absolute left-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                        <div className="absolute right-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                    </div>
                                     <p className="text-[10px] font-mono text-[var(--color-text-subtle)] tracking-widest uppercase">
                                         © 2026 Boyang Jiao. All Rights Reserved.
                                     </p>
@@ -205,7 +235,7 @@ export const SettingsModal = () => {
 
                         {/* Appearance Settings Content (Merged System & Visual) */}
                         {activeTab === 'appearance' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="pt-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {/* Language Section */}
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2">
@@ -253,11 +283,11 @@ export const SettingsModal = () => {
                                     <div className="flex items-center gap-2">
                                         <i className="ri-palette-line text-[var(--color-brand-primary)]/60" />
                                         <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                            {language === 'zh' ? '品牌主题' : 'BRAND THEME'}
+                                            {t('settings.theme')}
                                         </span>
                                     </div>
                                     <p className="text-sm text-[var(--color-text-secondary)]/80 mb-3">
-                                        {language === 'zh' ? '选择你喜欢的赛博主题色' : 'Select your preferred cyber theme color'}
+                                        {t('settings.themeDesc')}
                                     </p>
 
                                     <div className="flex gap-2">
@@ -342,18 +372,18 @@ export const SettingsModal = () => {
                         {/* Audio Settings Content */}
                         {activeTab === 'audio' && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <div className="space-y-4">
+                                <div className="pt-6 space-y-4">
                                     <div className="flex items-center gap-2">
                                         <i className="ri-volume-up-line text-[var(--color-brand-primary)]/60" />
                                         <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
-                                            OUTPUT CHANNELS
+                                            {t('settings.audio.title')}
                                         </span>
                                     </div>
 
                                     {/* Music Volume */}
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">
-                                            <span>MUSIC BROADCAST</span>
+                                            <span>{t('settings.audio.music')}</span>
                                             <span>{Math.round(volume)}%</span>
                                         </div>
                                         <input
@@ -369,7 +399,7 @@ export const SettingsModal = () => {
                                     {/* SFX Volume */}
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">
-                                            <span>SYSTEM EFFECTS</span>
+                                            <span>{t('settings.audio.sfx')}</span>
                                             <span>{Math.round(sfxVolume)}%</span>
                                         </div>
                                         <input
@@ -389,7 +419,7 @@ export const SettingsModal = () => {
 
                     {/* ── Sticky Terminal Status Bar (About tab only) ── */}
                     {activeTab === 'about' && (
-                        <div className="mt-auto pt-2 border-t border-[var(--color-text-subtle)]/15 overflow-hidden">
+                        <div className="mt-auto pt-6 overflow-hidden">
                             <div className="flex items-center gap-1 h-5">
                                 <span className="text-[var(--color-brand-primary)]/60 text-[9px] font-mono shrink-0">▌&gt;</span>
                                 <div className="overflow-hidden flex-1 whitespace-nowrap">
@@ -397,7 +427,7 @@ export const SettingsModal = () => {
                                         className="inline-block text-[9px] font-mono text-[var(--color-text-subtle)] tracking-widest uppercase"
                                         style={{ animation: 'marquee 18s linear infinite' }}
                                     >
-                                        SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v1.0.0 · neural_sync OK · memory_pool stable · render_pipeline nominal
+                                        {t('settings.marquee')}
                                     </span>
                                 </div>
                                 <span

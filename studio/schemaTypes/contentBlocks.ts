@@ -269,6 +269,13 @@ export const tabBlock = defineType({
     icon: () => '⊞',
     fields: [
         defineField({
+            name: 'title',
+            title: 'Panel Title / 面板标题',
+            type: 'string',
+            description: 'The title displayed on the left side (e.g., "Interactive Media") / 显示在左侧的标题（如：“交互媒体”）',
+            initialValue: 'Interactive Media',
+        }),
+        defineField({
             name: 'tabs',
             title: 'Tabs / 标签页',
             type: 'array',

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { SVGProps } from 'react';
 
-export const BinaryGrid: React.FC<SVGProps<SVGSVGElement>> = ({ className = '', style, ...props }) => {
+export const BinaryGrid: React.FC<SVGProps<SVGSVGElement>> = React.memo(({ className = '', style, ...props }) => {
   return (
     <svg viewBox="0 0 72 39" fill="none" className={`text-brand-primary ${className}`} style={style} {...props}>
 
@@ -52,4 +52,4 @@ export const BinaryGrid: React.FC<SVGProps<SVGSVGElement>> = ({ className = '', 
 
     </svg>
   );
-};
+});

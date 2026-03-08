@@ -21,7 +21,7 @@ export const useSoundSystem = () => {
     const isInitialized = useRef(false);
     const isLoading = useRef(false);
 
-    const { sfxVolume } = useAppStore();
+    const sfxVolume = useAppStore(state => state.sfxVolume);
 
     // Sync from global singleton
     const syncWithGlobal = useCallback(() => {

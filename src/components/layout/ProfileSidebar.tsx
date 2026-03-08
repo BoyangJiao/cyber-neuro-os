@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { HoloFrame } from '../ui/HoloFrame';
 import { GhostText } from '../ui/GhostText';
 import { useAppStore } from '../../store/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useTranslation } from '../../i18n';
 import { PixelGridEffect, ScanlineEffect } from '../ui/effects';
 
 export const ProfileSidebar = () => {
-    const { startAvatarScan, isAvatarScanning } = useAppStore();
+    const { startAvatarScan, isAvatarScanning } = useAppStore(useShallow(state => ({
+        startAvatarScan: state.startAvatarScan,
+        isAvatarScanning: state.isAvatarScanning
+    })));
     const { t } = useTranslation();
     const [isPressed, setIsPressed] = useState(false);
 
@@ -41,20 +45,24 @@ export const ProfileSidebar = () => {
                         background={
                             <div className="absolute inset-[2px]">
                                 {/* Ghost Image Layer */}
-                                <img
-                                    src="/images/avatars/avatar.gif"
+                                <video
+                                    src="/images/avatars/avatar.mp4"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
                                     className="absolute inset-0 w-full h-full object-cover opacity-50 blur-[2px] select-none pointer-events-none -translate-x-1 -translate-y-1"
                                     aria-hidden="true"
                                 />
 
-                                {/* Avatar Image - Layer 10 */}
-                                <img
-                                    src="/images/avatars/avatar.gif"
-                                    alt="Profile Avatar"
+                                {/* Avatar Video - Layer 10 */}
+                                <video
+                                    src="/images/avatars/avatar.mp4"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
                                     className="relative z-10 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
                                 />
 
                                 {/* Hover Overlay - Matched to inset */}

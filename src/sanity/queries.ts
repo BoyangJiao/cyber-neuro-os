@@ -12,7 +12,7 @@ export const PROJECTS_QUERY = `*[_type == "project" && (language == $language ||
   "projectType": sidebar.projectType,
   "timeline": sidebar.timeline,
   "liveUrl": sidebar.liveUrl,
-  "heroImage": heroImage.asset->url,
+  "heroImage": heroImage.asset->url + "?auto=format&w=1920&q=90",
   "heroVideoFile": heroVideoFile.asset->url,
   "heroVideoUrl": heroVideoUrl
 }`;
@@ -23,7 +23,7 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
   title,
   "slug": slug.current,
   description,
-  heroImage,
+  "heroImage": heroImage.asset->url + "?auto=format&w=1920&q=90",
   "heroVideoFile": heroVideoFile.asset->url,
   heroVideoUrl,
   coreMetrics,
@@ -44,7 +44,7 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
         _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, videoEmbed, caption, alt, layout, loop, useCustomPlayer },
         _type == "statsBlock" => { items },
         _type == "compareBlock" => { beforeImage, "beforeVideoFile": beforeVideoFile{ "asset": asset->{ url } }, beforeVideo, beforeLabel, afterImage, "afterVideoFile": afterVideoFile{ "asset": asset->{ url } }, afterVideo, afterLabel },
-        _type == "tabBlock" => { tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
+        _type == "tabBlock" => { title, tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
       }
     },
     // Split Layout
@@ -60,7 +60,7 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
         _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, videoEmbed, caption, alt, layout, loop, useCustomPlayer },
         _type == "statsBlock" => { items },
         _type == "compareBlock" => { beforeImage, "beforeVideoFile": beforeVideoFile{ "asset": asset->{ url } }, beforeVideo, beforeLabel, afterImage, "afterVideoFile": afterVideoFile{ "asset": asset->{ url } }, afterVideo, afterLabel },
-        _type == "tabBlock" => { tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
+        _type == "tabBlock" => { title, tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
       },
       rightSlot[] {
         _key,
@@ -69,7 +69,7 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
         _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, videoEmbed, caption, alt, layout, loop, useCustomPlayer },
         _type == "statsBlock" => { items },
         _type == "compareBlock" => { beforeImage, "beforeVideoFile": beforeVideoFile{ "asset": asset->{ url } }, beforeVideo, beforeLabel, afterImage, "afterVideoFile": afterVideoFile{ "asset": asset->{ url } }, afterVideo, afterLabel },
-        _type == "tabBlock" => { tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
+        _type == "tabBlock" => { title, tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
       }
     },
     // Grid Layout
@@ -84,7 +84,7 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
         _type == "mediaBlock" => { image, "videoFile": videoFile{ "asset": asset->{ url } }, video, videoEmbed, caption, alt, layout, loop, useCustomPlayer },
         _type == "statsBlock" => { items },
         _type == "compareBlock" => { beforeImage, "beforeVideoFile": beforeVideoFile{ "asset": asset->{ url } }, beforeVideo, beforeLabel, afterImage, "afterVideoFile": afterVideoFile{ "asset": asset->{ url } }, afterVideo, afterLabel },
-        _type == "tabBlock" => { tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
+        _type == "tabBlock" => { title, tabs[]{ _key, label, image, "videoFile": videoFile{ "asset": asset->{ url } }, video } }
       }
     }
   }

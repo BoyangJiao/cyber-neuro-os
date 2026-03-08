@@ -29,6 +29,7 @@ import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
 import { BadgeDatabase } from './components/ui/decos/BadgeDatabase'
 import { useAppStore } from './store/useAppStore'
 import { useProjectStore } from './store/useProjectStore'
+import { useShallow } from 'zustand/react/shallow'
 import { LanguageProvider } from './i18n'
 import { AnimatePresence } from 'framer-motion'
 import { VisualEditing } from '@sanity/visual-editing/react'
@@ -48,8 +49,20 @@ import { PROJECTS_QUERY } from './sanity/queries'
 import type { SanityProjectRaw } from './sanity/types'
 
 function App() {
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode, isDeepDiveTransitioning } = useAppStore();
-  const { language, setProjects } = useProjectStore();
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode, isDeepDiveTransitioning } = useAppStore(useShallow(state => ({
+    isBootSequenceActive: state.isBootSequenceActive,
+    setBootSequence: state.setBootSequence,
+    isAboutMeOpen: state.isAboutMeOpen,
+    isSettingsOpen: state.isSettingsOpen,
+    debugMode: state.debugMode,
+    brandTheme: state.brandTheme,
+    isDeepDiveMode: state.isDeepDiveMode,
+    isDeepDiveTransitioning: state.isDeepDiveTransitioning
+  })));
+  const { language, setProjects } = useProjectStore(useShallow(state => ({
+    language: state.language,
+    setProjects: state.setProjects
+  })));
   const { initAudio } = useSoundSystem();
 
   // Pre-initialize audio as soon as possible

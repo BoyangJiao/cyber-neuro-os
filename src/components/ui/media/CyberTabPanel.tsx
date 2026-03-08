@@ -13,6 +13,7 @@ import type { TabItem } from '../../../data/projectDetails';
 
 interface CyberTabPanelProps {
     tabs: TabItem[];
+    title?: string;
     className?: string;
 }
 
@@ -26,7 +27,7 @@ const getTabIcon = (label: string) => {
     return 'ri-image-2-line';
 };
 
-export const CyberTabPanel = ({ tabs, className = '' }: CyberTabPanelProps) => {
+export const CyberTabPanel = ({ tabs, title, className = '' }: CyberTabPanelProps) => {
     const [activeIndex, setActiveIndex] = useState(0);
 
     if (!tabs || tabs.length === 0) return null;
@@ -48,19 +49,19 @@ export const CyberTabPanel = ({ tabs, className = '' }: CyberTabPanelProps) => {
     return (
         <div className={`w-full flex flex-col gap-3 py-4 ${className}`}>
             {/* Header & Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-4 sm:gap-6">
 
                 {/* Generic Title */}
-                <div className="flex items-center gap-2 px-2">
+                <div className="flex items-center gap-2 px-2 overflow-hidden shrink-0">
                     <i className="ri-folder-video-line text-[var(--color-brand-primary)]"></i>
-                    <span className="font-mono text-xs tracking-widest text-[var(--color-text-secondary)] uppercase">
-                        Interactive Media
+                    <span className="font-mono text-xs tracking-widest text-[var(--color-text-secondary)] uppercase whitespace-nowrap">
+                        {title || 'Interactive Media'}
                     </span>
-                    <div className="h-[1px] w-12 bg-gradient-to-r from-[var(--color-brand-primary)]/50 to-transparent ml-2 hidden sm:block" />
+                    <div className="h-[1px] min-w-8 w-12 bg-gradient-to-r from-[var(--color-brand-primary)]/50 to-transparent ml-2 hidden sm:block" />
                 </div>
 
                 {/* Segmented Tabs */}
-                <div className="relative flex items-stretch bg-black/60 border border-[var(--color-border-subtle)] rounded-md p-1 backdrop-blur-md self-start sm:self-auto">
+                <div className="relative flex items-stretch bg-black/60 border border-[var(--color-border-subtle)] rounded-md p-1 backdrop-blur-md self-start sm:self-auto shrink-0">
                     {tabs.map((tab, index) => {
                         const isActive = activeIndex === index;
                         return (
