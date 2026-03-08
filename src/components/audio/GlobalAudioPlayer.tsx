@@ -121,7 +121,6 @@ export const GlobalAudioPlayer = () => {
             ref={audioRef}
             className="hidden"
             crossOrigin="anonymous"
-            loop={currentTrack?.id === 'ambient_bg'}
             onTimeUpdate={(e) => {
                 setCurrentTime(e.currentTarget.currentTime);
             }}

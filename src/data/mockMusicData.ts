@@ -13,6 +13,18 @@ export interface Track {
 
 export const mockTracks: Track[] = [
     {
+        id: 'spore_titan',
+        title: 'SPORE TITAN',
+        artist: 'SYSTEM PROTOCOL',
+        album: 'NEURAL SIGNAL',
+        coverUrl: '/images/music/sh_01.png',
+        duration: 212,
+        genre: 'Industrial',
+        bpm: 120,
+        youtubeUrl: '',
+        audioUrl: '/music/spore_titan.mp3'
+    },
+    {
         id: 'sh_01',
         title: 'NEURAL HANDSHAKE',
         artist: 'SYSTEM DIAGNOSTIC',
