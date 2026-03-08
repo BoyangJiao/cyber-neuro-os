@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/music/(.*)",
+            "destination": "https://www.soundhelix.com/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
