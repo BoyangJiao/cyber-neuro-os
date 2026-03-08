@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useMusicStore } from '../../store/useMusicStore';
+import { useShallow } from 'zustand/react/shallow';
 
 export const GlobalAudioPlayer = () => {
     const {
@@ -10,7 +11,15 @@ export const GlobalAudioPlayer = () => {
         setCurrentTime,
         setDuration,
         setAnalyser
-    } = useMusicStore();
+    } = useMusicStore(useShallow(state => ({
+        currentTrack: state.currentTrack,
+        isPlaying: state.isPlaying,
+        volume: state.volume,
+        nextTrack: state.nextTrack,
+        setCurrentTime: state.setCurrentTime,
+        setDuration: state.setDuration,
+        setAnalyser: state.setAnalyser
+    })));
 
     const audioRef = useRef<HTMLAudioElement>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -75,10 +84,17 @@ export const GlobalAudioPlayer = () => {
         if (!audioRef.current || !currentTrack) return;
 
         const url = currentTrack.audioUrl || currentTrack.youtubeUrl;
-        if (audioRef.current.src !== url) {
+        if (!url) return;
+
+        // Correct for absolute paths when comparing to audioRef.current.src
+        const currentSrc = audioRef.current.src;
+        const targetUrl = url.startsWith('http') ? url : window.location.origin + (url.startsWith('/') ? '' : '/') + url;
+
+        if (currentSrc !== targetUrl) {
+            console.log(`[GlobalAudioPlayer] Switching source: ${targetUrl}`);
             audioRef.current.src = url;
             if (isPlaying) {
-                audioRef.current.play().catch(e => console.warn("Autoplay blocked or playback error:", e));
+                audioRef.current.play().catch(e => console.error("[GlobalAudioPlayer] Playback error on src change:", e));
             }
         }
     }, [currentTrack, isPlaying]);
@@ -87,7 +103,7 @@ export const GlobalAudioPlayer = () => {
     useEffect(() => {
         if (!audioRef.current) return;
         if (isPlaying) {
-            audioRef.current.play().catch(e => console.warn("Playback error:", e));
+            audioRef.current.play().catch(e => console.warn("[GlobalAudioPlayer] Playback error:", e));
         } else {
             audioRef.current.pause();
         }
@@ -104,6 +120,7 @@ export const GlobalAudioPlayer = () => {
         <audio
             ref={audioRef}
             className="hidden"
+            crossOrigin="anonymous"
             loop={currentTrack?.id === 'ambient_bg'}
             onTimeUpdate={(e) => {
                 setCurrentTime(e.currentTarget.currentTime);
@@ -113,6 +130,10 @@ export const GlobalAudioPlayer = () => {
             }}
             onEnded={() => {
                 nextTrack();
+            }}
+            onError={(e) => {
+                const error = (e.target as HTMLAudioElement).error;
+                console.error("[GlobalAudioPlayer] Audio element error:", error?.message, error?.code);
             }}
         />
     );
