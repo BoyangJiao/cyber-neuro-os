@@ -120,16 +120,19 @@ export const FeaturePanel = () => {
     const wheelCooldown = useRef(false);                         // Throttle wheel events
 
     useEffect(() => {
-        // Wait until boot sequence is fully finished before deploying cards
+        // Condition 1: Don't do anything if we are currently deep diving or STILL on the BootScreen
         if (isDeepDiveMode || isBootSequenceActive) return;
 
+        // Condition 2: If we have already fully played the intro in this session, stay in end-state
         if (hasPlayedFeatureIntro) {
             setIsIntroPlaying(false);
             setIsDeckMerged(false);
             return;
         }
 
-        setHasPlayedFeatureIntro(true);
+        // Condition 3: Boot sequence just finished, we haven't played the intro yet.
+        // Start playing the sequence. We do NOT immediately set `hasPlayedFeatureIntro = true` 
+        // to avoid race conditions with GSAP effects.
         setIsIntroPlaying(true);
         setIsDeckMerged(true);
 
@@ -153,6 +156,7 @@ export const FeaturePanel = () => {
                     } else {
                         clearInterval(sweepInterval);
                         setIsIntroPlaying(false); // Sequence done, unlock interactions
+                        setHasPlayedFeatureIntro(true); // MARK AS PLAYED AT THE **END** OF THE SEQUENCE
                     }
                 }, 200); // Rhythmic 200ms per card
             }, 500); // 500ms pause to let the user perceive the expanded queue
