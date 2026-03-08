@@ -63,7 +63,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
             description: p.description || '',
             techStack: p.techStack || [],
             status: (p.status || 'In Development') as Project['status'],
-            thumbnail: p.heroImage || 'ri-code-s-slash-line',
+            thumbnail: p.heroImage ? `${p.heroImage}?auto=format&w=1920&q=90` : 'ri-code-s-slash-line',
             videoFile: p.heroVideoFile,
             video: p.heroVideoUrl,
             projectType: p.projectType,

@@ -12,7 +12,7 @@ export const PROJECTS_QUERY = `*[_type == "project" && (language == $language ||
   "projectType": sidebar.projectType,
   "timeline": sidebar.timeline,
   "liveUrl": sidebar.liveUrl,
-  "heroImage": heroImage.asset->url + "?auto=format&w=1920&q=90",
+  "heroImage": heroImage.asset->url,
   "heroVideoFile": heroVideoFile.asset->url,
   "heroVideoUrl": heroVideoUrl
 }`;
@@ -23,7 +23,7 @@ export const PROJECT_DETAIL_QUERY = `*[_type == "project" && slug.current == $sl
   title,
   "slug": slug.current,
   description,
-  "heroImage": heroImage.asset->url + "?auto=format&w=1920&q=90",
+  "heroImage": heroImage.asset->url,
   "heroVideoFile": heroVideoFile.asset->url,
   heroVideoUrl,
   coreMetrics,
