@@ -12,12 +12,10 @@ import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
 function apiProxy(env: Record<string, string>): PluginOption {
   const proxyUrl = env.PROXY_URL
   const sanityProjectId = env.VITE_SANITY_PROJECT_ID || 'argneoi8'
-
-  // Create proxy dispatcher if local proxy URL is configured (e.g. Clash)
   const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined
 
   if (dispatcher) {
-    console.log(`[api-proxy] Using HTTP proxy: ${proxyUrl}`)
+    console.log(`[api-proxy] Using HTTP proxy for outbound calls: ${proxyUrl}`)
   }
 
   return {
@@ -30,7 +28,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
           const urlObj = new URL(req.url || '', 'http://localhost')
           const targetUrl = `https://${sanityProjectId}.api.sanity.io${urlObj.pathname.replace('/api/sanity', '')}${urlObj.search}`
 
-          const sanityRes = await undiciFetch(targetUrl, {
+          const sanityRes: any = await undiciFetch(targetUrl, {
             method: req.method,
             headers: Object.fromEntries(
               Object.entries(req.headers).filter(([k, v]) => k !== 'host' && k !== 'origin' && typeof v === 'string')
@@ -47,8 +45,10 @@ function apiProxy(env: Record<string, string>): PluginOption {
           res.end(Buffer.from(body))
         } catch (err) {
           console.error('[sanity-proxy] Error:', err)
-          res.writeHead(500)
-          res.end(JSON.stringify({ error: 'Sanity proxy error' }))
+          if (!res.headersSent) {
+            res.writeHead(500)
+            res.end(JSON.stringify({ error: 'Sanity proxy error' }))
+          }
         }
       })
 
@@ -88,9 +88,10 @@ function apiProxy(env: Record<string, string>): PluginOption {
               })),
             ];
 
+            // DashScope Coding Plan Global Endpoint
             const apiUrl = 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
 
-            const dsRes = await undiciFetch(apiUrl, {
+            const dsRes: any = await undiciFetch(apiUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -101,9 +102,10 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.5,
+                max_tokens: 1536,
                 enable_thinking: false, // SKIP slow reasoning
               }),
-              // REMOVED dispatcher: dashscope is a domestic service, bypassing local proxy for better stability
+              ...(dispatcher ? { dispatcher } : {}),
             })
 
             if (!dsRes.ok) {
@@ -124,14 +126,23 @@ function apiProxy(env: Record<string, string>): PluginOption {
               'Connection': 'keep-alive',
             })
 
-            const reader = dsRes.body?.getReader()
-            if (!reader) { res.end(); return }
+            if (!dsRes.body) { res.end(); return }
 
             const decoder = new TextDecoder()
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) break
-              res.write(decoder.decode(value, { stream: true }))
+            // Robust streaming for different stream types (Web Stream or Node Readable)
+            const streamBody = dsRes.body as any
+            if (typeof streamBody.getReader === 'function') {
+              const reader = streamBody.getReader()
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                res.write(decoder.decode(value, { stream: true }))
+              }
+            } else {
+              // Node.js Readable / undici stream
+              for await (const chunk of streamBody) {
+                res.write(decoder.decode(chunk, { stream: true }))
+              }
             }
             res.end()
           } catch (err) {
@@ -146,7 +157,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }: { mode: string }) => {
   // Load env from .env.local
   const env = loadEnv(mode, process.cwd(), '')
 
@@ -162,10 +173,9 @@ export default defineConfig(({ mode }) => {
         '/api/music': {
           target: 'https://www.soundhelix.com',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/music/, ''),
+          rewrite: (path: string) => path.replace(/^\/api\/music/, ''),
         }
       }
     }
   }
 })
-

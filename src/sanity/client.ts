@@ -6,26 +6,19 @@ export const projectId = import.meta.env.VITE_SANITY_PROJECT_ID || 'argneoi8';
 export const dataset = import.meta.env.VITE_SANITY_DATASET || 'production';
 export const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2024-01-01';
 
-const isDev = import.meta.env.DEV;
-
-// Base configuration
+// Initialize client configuration with defaults
 const clientConfig: any = {
     projectId,
     dataset,
-    apiVersion: '2024-05-01',
-    useCdn: false, // Revert to false (original) to ensure compatibility with react-loader
+    apiVersion,
+    useCdn: false, // Ensure consistency with react-loader
     stega: {
-        enabled: true, // Revert to true (original)
+        enabled: true,
         studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || 'http://localhost:3333',
     },
+    // Use proxy by default to ensure access in restricted regions (like China)
+    apiHost: import.meta.env.VITE_SANITY_API_HOST || '/api/sanity',
 };
-
-// Only inject apiHost if we are in dev or explicitly configured
-if (isDev) {
-    clientConfig.apiHost = import.meta.env.VITE_SANITY_API_HOST || '/api/sanity';
-} else if (import.meta.env.VITE_SANITY_API_HOST) {
-    clientConfig.apiHost = import.meta.env.VITE_SANITY_API_HOST;
-}
 
 export const client = createClient(clientConfig);
 
