@@ -88,7 +88,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
               })),
             ];
 
-            const apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+            const apiUrl = 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
 
             const dsRes = await undiciFetch(apiUrl, {
               method: 'POST',
@@ -97,7 +97,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: 'qwen-plus',
+                model: 'qwen3.5-plus',
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.7,

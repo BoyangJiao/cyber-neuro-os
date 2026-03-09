@@ -57,8 +57,8 @@ export default async function handler(req: Request) {
             })),
         ];
 
-        // DashScope OpenAI Compatible Endpoint
-        const apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+        // DashScope Coding Plan Global Endpoint
+        const apiUrl = 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
 
         const dsResponse = await fetch(apiUrl, {
             method: 'POST',
@@ -67,7 +67,7 @@ export default async function handler(req: Request) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'qwen-plus', // Stable general purpose model
+                model: 'qwen3.5-plus', // Exclusive Coding Plan model
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.7,
