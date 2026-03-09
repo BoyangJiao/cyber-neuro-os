@@ -90,7 +90,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: 'qwen-coder-plus',
+                model: 'qwen-plus',
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.7,

@@ -67,7 +67,7 @@ export default async function handler(req: Request) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'qwen-coder-plus', // High performance coding model
+                model: 'qwen-plus', // Stable general purpose model
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.7,
