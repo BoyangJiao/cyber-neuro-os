@@ -172,7 +172,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
             };
             requestAnimationFrame(fadeStep);
         } else {
-            setVolume(0);
+            setVolume(50);
             pause();
         }
         onComplete();

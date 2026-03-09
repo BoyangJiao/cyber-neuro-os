@@ -25,6 +25,7 @@ export const GlobalAudioPlayer = () => {
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
+    const gainNodeRef = useRef<GainNode | null>(null);
 
     // Register seek function
     useEffect(() => {
@@ -47,16 +48,25 @@ export const GlobalAudioPlayer = () => {
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
                 analyserRef.current = audioContextRef.current.createAnalyser();
+                gainNodeRef.current = audioContextRef.current.createGain();
 
                 // Configure Analyser
                 analyserRef.current.fftSize = 64; // Small size for 6 bars
-                analyserRef.current.smoothingTimeConstant = 0.8; // Smooth the transitions
+                analyserRef.current.smoothingTimeConstant = 0.5; // snappier transitions
 
                 // Prevent duplicate connection if React StrictMode fires twice
                 if (!sourceNodeRef.current && audioRef.current) {
                     sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+
+                    // CONNECT: Source -> Analyser -> Gain -> Destination
+                    // This keeps Analyser independent of Gain (Volume)
                     sourceNodeRef.current.connect(analyserRef.current);
-                    analyserRef.current.connect(audioContextRef.current.destination);
+                    analyserRef.current.connect(gainNodeRef.current);
+                    gainNodeRef.current.connect(audioContextRef.current.destination);
+
+                    // Set initial volume
+                    gainNodeRef.current.gain.value = volume / 100;
+
                     setAnalyser(analyserRef.current);
                 }
             }
@@ -77,7 +87,7 @@ export const GlobalAudioPlayer = () => {
         return () => {
             audioElement.removeEventListener('play', handlePlayAttempt);
         };
-    }, [setAnalyser]);
+    }, [setAnalyser, volume]);
 
     // Track/Url change sync
     useEffect(() => {
@@ -109,9 +119,13 @@ export const GlobalAudioPlayer = () => {
         }
     }, [isPlaying]);
 
-    // Volume sync
+    // Volume sync - uses GainNode if available, else element volume
     useEffect(() => {
-        if (audioRef.current) {
+        if (gainNodeRef.current) {
+            // Apply volume to GainNode instead of audio element
+            gainNodeRef.current.gain.setTargetAtTime(volume / 100, audioContextRef.current?.currentTime || 0, 0.05);
+            if (audioRef.current) audioRef.current.volume = 1.0;
+        } else if (audioRef.current) {
             audioRef.current.volume = volume / 100;
         }
     }, [volume]);

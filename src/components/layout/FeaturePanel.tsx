@@ -197,16 +197,21 @@ export const FeaturePanel = () => {
         const delta = e.deltaY;
         if (Math.abs(delta) < 15) return; // ignore tiny scroll noise
 
+        // ─── Boundary Guard: Don't trigger navigation if already at limit ───
+        // This prevents the 'stuck' state where hover is cleared but index doesn't change
+        if (delta > 0 && featureActiveIndex >= features.length - 1) return;
+        if (delta < 0 && featureActiveIndex <= 0) return;
+
         wheelCooldown.current = true;
         setTimeout(() => { wheelCooldown.current = false; }, 400); // 400ms cooldown = hydraulic feel
 
         setIsRevealHover(false); // cancel any reveal state during navigation
         if (delta > 0) {
             // Scroll down → next card
-            setFeatureActiveIndex(Math.min(featureActiveIndex + 1, features.length - 1));
+            setFeatureActiveIndex(featureActiveIndex + 1);
         } else {
             // Scroll up → previous card
-            setFeatureActiveIndex(Math.max(featureActiveIndex - 1, 0));
+            setFeatureActiveIndex(featureActiveIndex - 1);
         }
     }, [featureActiveIndex, setFeatureActiveIndex, isIntroPlaying]);
 

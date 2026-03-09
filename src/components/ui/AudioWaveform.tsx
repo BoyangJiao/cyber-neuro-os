@@ -47,13 +47,14 @@ export const AudioWaveform = ({ isPlaying, className, barColor = "bg-current" }:
         }
     }, [analyser]);
 
+    // Dynamic peak tracking to ensure bars always "dance" regardless of absolute loudness
+    const peaks = useRef<number[]>(new Array(BARS_COUNT).fill(128));
+
     useAnimationFrame((time) => {
         // If playing and we have the analyzer, read real frequency data
         if (isPlaying && analyser && dataArray.current) {
             analyser.getByteFrequencyData(dataArray.current as any);
 
-            // We divide into 5 distinct frequency bands:
-            // 0: Bass, 1: Low-Mid, 2: Mid, 3: High-Mid, 4: Treble
             const bands = [
                 dataArray.current.subarray(1, 3),   // 0: Bass
                 dataArray.current.subarray(3, 6),   // 1: Low-Mid
@@ -62,25 +63,7 @@ export const AudioWaveform = ({ isPlaying, className, barColor = "bg-current" }:
                 dataArray.current.subarray(19, 31)  // 4: Treble
             ];
 
-            // Re-map the bands to the UI bars to create a "Center = Low, Edges = High" pyramid layout.
-            // Screen mapping (Left to Right):
-            // Bar 0 (Far Left): High-Mid (Band 3)
-            // Bar 1 (Inner Left): Low-Mid (Band 1)
-            // Bar 2 (Center): Bass (Band 0)
-            // Bar 3 (Inner Right): Mid (Band 2)
-            // Bar 4 (Far Right): Treble (Band 4)
-            // This ensures uniqueness per bar while maintaining the frequency-to-center symmetry aesthetics.
             const uiToBandMap = [3, 1, 0, 2, 4];
-
-            // Manual sensitivity weighting to boost the edges (Treble / High-Mid)
-            // Center bass has natural high energy, so weight is 1.0. Edges get a boost so they jump higher.
-            const customWeights = [
-                1.3, // Far Left (High-Mid) - Boosted
-                1.0, // Inner Left (Low-Mid)
-                1.0, // Center (Bass)
-                1.0, // Inner Right (Mid)
-                1.4  // Far Right (Treble) - Highly Boosted for high-hat sensitivity
-            ];
 
             for (let i = 0; i < BARS_COUNT; i++) {
                 const bandIndex = uiToBandMap[i];
@@ -92,18 +75,27 @@ export const AudioWaveform = ({ isPlaying, className, barColor = "bg-current" }:
                 }
                 const average = sum / band.length;
 
-                // Divisors to normalize incoming energy (Bass is naturally loud, treble is quiet)
-                const divisors = [220, 180, 160, 140, 120];
-                const divisor = divisors[bandIndex];
+                // Update Peak Tracker: 
+                // If current energy is higher, jump to it. 
+                // Otherwise, slowly decay the peak so we stay sensitive to changes.
+                if (average > peaks.current[i]) {
+                    peaks.current[i] = average;
+                } else {
+                    peaks.current[i] = Math.max(80, peaks.current[i] * 0.992); // Slow decay
+                }
 
-                // Map to 0.0 - 1.0 (clamped)
-                let normalizedForce = Math.min(1, Math.max(0, average / divisor));
+                // Map to 0.0 - 1.0 based on the dynamic peak
+                // We leave at least 15% headroom above the peak so it rarely hits the ceiling
+                const dynamicDivisor = peaks.current[i] * 1.15;
+                let normalizedForce = Math.min(1, Math.max(0, average / dynamicDivisor));
 
-                // Apply our visual multiplier weights and re-clamp
-                normalizedForce = Math.min(1, normalizedForce * customWeights[i]);
+                // Sensitivity weights: Edges still need a bit of extra pop
+                const weights = [1.1, 0.95, 1.0, 0.95, 1.2];
+                normalizedForce = Math.min(1, normalizedForce * weights[i]);
 
-                // Apply a slight exponential curve for punchiness
-                const punchyForce = Math.pow(normalizedForce, 1.5);
+                // Apply a very punchy exponential curve (x^2.5) 
+                // This keeps the bottom levels quiet and makes peaks feel like "hits"
+                const punchyForce = Math.pow(normalizedForce, 2.5);
 
                 const targetHeight = MIN_HEIGHT + (punchyForce * MAX_ADDITIONAL_HEIGHT);
 
