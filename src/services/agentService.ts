@@ -63,8 +63,8 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
 
                     try {
                         const parsed = JSON.parse(data);
-                        // Extract text from Gemini SSE response
-                        const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        // Extract text from Standard OpenAI/DashScope SSE response
+                        const text = parsed?.choices?.[0]?.delta?.content;
                         if (text) {
                             onToken(text);
                         }

@@ -6,13 +6,16 @@ export const projectId = import.meta.env.VITE_SANITY_PROJECT_ID || 'argneoi8';
 export const dataset = import.meta.env.VITE_SANITY_DATASET || 'production';
 export const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2024-01-01';
 
+const isDev = import.meta.env.DEV;
+
 export const client = createClient({
     projectId,
     dataset,
-    apiVersion: '2024-05-01', // Use a more recent API version for better stega support
-    useCdn: false, // Always disable CDN when working with live queries in dev
+    apiVersion: '2024-05-01',
+    // In dev mode, we default to our local Vite proxy to avoid direct connection issues.
+    apiHost: import.meta.env.VITE_SANITY_API_HOST || (isDev ? '/api/sanity' : undefined),
     stega: {
-        enabled: true, // Always enable stega metadata in dev for Visual Editing
+        enabled: isDev,
         studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || 'http://localhost:3333',
     },
 });

@@ -1,10 +1,8 @@
 /**
- * Vercel Serverless Function — Gemini API Proxy
- *
- * Receives chat messages from the frontend and streams
- * responses from Google Gemini Flash API.
+ * Vercel Serverless Function — Alibaba DashScope API Proxy
  * 
- * Environment variable required: GEMINI_API_KEY
+ * Proxies chat requests to DashScope's OpenAI-compatible endpoint.
+ * Environment variable required: DASHSCOPE_API_KEY
  */
 
 export const config = {
@@ -13,8 +11,10 @@ export const config = {
 
 import { SYSTEM_PROMPT } from '../src/data/agentSystemPrompt';
 
+declare const process: any;
+
 interface ChatMessage {
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'system';
     content: string;
 }
 
@@ -23,7 +23,6 @@ interface RequestBody {
 }
 
 export default async function handler(req: Request) {
-    // Only allow POST
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method not allowed' }), {
             status: 405,
@@ -31,9 +30,9 @@ export default async function handler(req: Request) {
         });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = (process.env as any).DASHSCOPE_API_KEY;
     if (!apiKey) {
-        return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured' }), {
+        return new Response(JSON.stringify({ error: 'DASHSCOPE_API_KEY not configured' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
@@ -42,56 +41,51 @@ export default async function handler(req: Request) {
     try {
         const { messages } = (await req.json()) as RequestBody;
 
-        if (!messages || messages.length === 0) {
+        if (!messages) {
             return new Response(JSON.stringify({ error: 'No messages provided' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
 
-        // Convert chat messages to Gemini format
-        const geminiContents = messages
-            .filter(m => m.role === 'user' || m.role === 'assistant')
-            .map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }],
-            }));
+        // Prep messages for OpenAI-compatible format
+        const formattedMessages = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...messages.map(m => ({
+                role: m.role,
+                content: m.content,
+            })),
+        ];
 
-        // System instruction (kept separate in Gemini API)
-        const systemInstruction = {
-            parts: [{
-                text: SYSTEM_PROMPT
-            }],
-        };
+        // DashScope OpenAI Compatible Endpoint
+        const apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
 
-        // Call Gemini API with streaming
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
-
-        const geminiResponse = await fetch(geminiUrl, {
+        const dsResponse = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
             body: JSON.stringify({
-                contents: geminiContents,
-                systemInstruction,
-                generationConfig: {
-                    maxOutputTokens: 1024,
-                    temperature: 0.7,
-                    topP: 0.9,
-                },
+                model: 'qwen-coder-plus', // High performance coding model
+                messages: formattedMessages,
+                stream: true,
+                temperature: 0.7,
+                max_tokens: 1536,
             }),
         });
 
-        if (!geminiResponse.ok) {
-            const errorText = await geminiResponse.text();
-            console.error('[NEXUS API] Gemini error:', errorText);
+        if (!dsResponse.ok) {
+            const errorText = await dsResponse.text();
+            console.error('[DASHSCOPE API ERROR]', errorText);
             return new Response(JSON.stringify({ error: 'LLM request failed', details: errorText }), {
-                status: geminiResponse.status,
+                status: dsResponse.status,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
 
-        // Stream the SSE response back to the client
-        return new Response(geminiResponse.body, {
+        // Forward the stream
+        return new Response(dsResponse.body, {
             status: 200,
             headers: {
                 'Content-Type': 'text/event-stream',
@@ -100,10 +94,11 @@ export default async function handler(req: Request) {
             },
         });
     } catch (error) {
-        console.error('[NEXUS API] Error:', error);
+        console.error('[DASHSCOPE API PROXY ERROR]', error);
         return new Response(
             JSON.stringify({ error: 'Internal server error' }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }
 }
+

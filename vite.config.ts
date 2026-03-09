@@ -6,24 +6,53 @@ import { fetch as undiciFetch, ProxyAgent } from 'undici'
 import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
 
 /**
- * Local Gemini API proxy plugin
- * Intercepts /api/chat requests during dev and proxies to Gemini Flash.
- * Reads GEMINI_API_KEY from .env.local
- * Uses undici ProxyAgent to route through local HTTP proxy (Clash Verge etc.)
+ * Local API proxy plugin
+ * Intercepts /api/chat and /api/sanity requests during dev.
  */
-function geminiProxy(apiKey: string | undefined, proxyUrl: string | undefined): PluginOption {
-  // Create proxy dispatcher if proxy URL is configured
+function apiProxy(env: Record<string, string>): PluginOption {
+  const proxyUrl = env.PROXY_URL
+  const sanityProjectId = env.VITE_SANITY_PROJECT_ID || 'argneoi8'
+
+  // Create proxy dispatcher if local proxy URL is configured (e.g. Clash)
   const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined
 
   if (dispatcher) {
-    console.log(`[gemini-proxy] Using HTTP proxy: ${proxyUrl}`)
-  } else {
-    console.log('[gemini-proxy] No PROXY_URL set, connecting directly')
+    console.log(`[api-proxy] Using HTTP proxy: ${proxyUrl}`)
   }
 
   return {
-    name: 'gemini-proxy',
+    name: 'api-proxy',
     configureServer(server) {
+      // 1. Sanity Proxy (Bypasses direct browser-to-sanity connection)
+      server.middlewares.use('/api/sanity', async (req, res) => {
+        try {
+          // Forward path and query to Sanity API
+          const urlObj = new URL(req.url || '', 'http://localhost')
+          const targetUrl = `https://${sanityProjectId}.api.sanity.io${urlObj.pathname.replace('/api/sanity', '')}${urlObj.search}`
+
+          const sanityRes = await undiciFetch(targetUrl, {
+            method: req.method,
+            headers: Object.fromEntries(
+              Object.entries(req.headers).filter(([k, v]) => k !== 'host' && k !== 'origin' && typeof v === 'string')
+            ) as Record<string, string>,
+            ...(dispatcher ? { dispatcher } : {}),
+          })
+
+          res.writeHead(sanityRes.status, {
+            'Content-Type': sanityRes.headers.get('content-type') || 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          })
+
+          const body = await sanityRes.arrayBuffer()
+          res.end(Buffer.from(body))
+        } catch (err) {
+          console.error('[sanity-proxy] Error:', err)
+          res.writeHead(500)
+          res.end(JSON.stringify({ error: 'Sanity proxy error' }))
+        }
+      })
+
+      // 2. DashScope Proxy (OpenAI Compatible)
       server.middlewares.use('/api/chat', async (req, res) => {
         if (req.method !== 'POST') {
           res.writeHead(405, { 'Content-Type': 'application/json' })
@@ -31,9 +60,10 @@ function geminiProxy(apiKey: string | undefined, proxyUrl: string | undefined): 
           return
         }
 
+        const apiKey = env.DASHSCOPE_API_KEY
         if (!apiKey) {
           res.writeHead(500, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'GEMINI_API_KEY not set in .env.local' }))
+          res.end(JSON.stringify({ error: 'DASHSCOPE_API_KEY not set' }))
           return
         }
 
@@ -43,36 +73,35 @@ function geminiProxy(apiKey: string | undefined, proxyUrl: string | undefined): 
           try {
             const { messages } = JSON.parse(body)
 
-            const geminiContents = messages
-              .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
-              .map((m: { role: string; content: string }) => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }],
-              }))
+            const formattedMessages = [
+              { role: 'system', content: SYSTEM_PROMPT },
+              ...messages.map((m: any) => ({
+                role: m.role,
+                content: m.content,
+              })),
+            ];
 
-            const systemInstruction = {
-              parts: [{
-                text: SYSTEM_PROMPT
-              }],
-            }
+            const apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
 
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`
-
-            const geminiRes = await undiciFetch(geminiUrl, {
+            const dsRes = await undiciFetch(apiUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+              },
               body: JSON.stringify({
-                contents: geminiContents,
-                systemInstruction,
-                generationConfig: { maxOutputTokens: 1024, temperature: 0.7, topP: 0.9 },
+                model: 'qwen-coder-plus',
+                messages: formattedMessages,
+                stream: true,
+                temperature: 0.7,
               }),
               ...(dispatcher ? { dispatcher } : {}),
             })
 
-            if (!geminiRes.ok) {
-              const errText = await geminiRes.text()
-              res.writeHead(geminiRes.status, { 'Content-Type': 'application/json' })
-              res.end(JSON.stringify({ error: 'Gemini API error', details: errText }))
+            if (!dsRes.ok) {
+              const errText = await dsRes.text()
+              res.writeHead(dsRes.status, { 'Content-Type': 'application/json' })
+              res.end(JSON.stringify({ error: 'DashScope API error', details: errText }))
               return
             }
 
@@ -82,12 +111,8 @@ function geminiProxy(apiKey: string | undefined, proxyUrl: string | undefined): 
               'Connection': 'keep-alive',
             })
 
-            // Stream the response through
-            const reader = geminiRes.body?.getReader()
-            if (!reader) {
-              res.end()
-              return
-            }
+            const reader = dsRes.body?.getReader()
+            if (!reader) { res.end(); return }
 
             const decoder = new TextDecoder()
             while (true) {
@@ -97,10 +122,8 @@ function geminiProxy(apiKey: string | undefined, proxyUrl: string | undefined): 
             }
             res.end()
           } catch (err) {
-            console.error('[gemini-proxy] Error:', err)
-            if (!res.headersSent) {
-              res.writeHead(500, { 'Content-Type': 'application/json' })
-            }
+            console.error('[dashscope-proxy] Error:', err)
+            if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify({ error: 'Proxy error' }))
           }
         })
@@ -115,7 +138,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react(), tailwindcss(), geminiProxy(env.GEMINI_API_KEY, env.PROXY_URL)],
+    plugins: [react(), tailwindcss(), apiProxy(env)],
     optimizeDeps: {
       include: ['@sanity/visual-editing/react', 'styled-components']
     },
