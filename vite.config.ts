@@ -97,10 +97,11 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: 'qwen-turbo',
+                model: 'qwen3.5-plus',
                 messages: formattedMessages,
                 stream: true,
-                temperature: 0.3,
+                temperature: 0.5,
+                enable_thinking: false, // SKIP slow reasoning
               }),
               // REMOVED dispatcher: dashscope is a domestic service, bypassing local proxy for better stability
             })
