@@ -15,7 +15,7 @@ declare const process: any;
 
 export default async function handler(req: Request) {
     const url = new URL(req.url);
-    const projectId = (process.env as any).VITE_SANITY_PROJECT_ID || 'argneoi8';
+    const projectId = (process.env as any).VITE_SANITY_PROJECT_ID || (process.env as any).SANITY_PROJECT_ID || 'argneoi8';
 
     // Extract the relative path after /api/sanity
     const path = url.pathname.replace(/^\/api\/sanity/, '') || '/';
@@ -24,18 +24,24 @@ export default async function handler(req: Request) {
     try {
         const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.arrayBuffer() : undefined;
 
+        // Forward important headers (authorization, sanity tokens, etc.)
+        const headers = new Headers();
+        ['authorization', 'x-sanity-project-id', 'x-sanity-token', 'content-type'].forEach(h => {
+            const val = req.headers.get(h);
+            if (val) headers.set(h, val);
+        });
+
         const response = await fetch(targetUrl, {
             method: req.method,
-            headers: {
-                'Content-Type': req.headers.get('Content-Type') || 'application/json',
-            },
+            headers,
             body: body,
         });
 
         // Copy response headers
         const responseHeaders = new Headers();
         response.headers.forEach((v, k) => {
-            if (['content-type', 'cache-control'].includes(k.toLowerCase())) {
+            // Forward relevant metadata to client
+            if (['content-type', 'cache-control', 'x-sanity-asset-id'].includes(k.toLowerCase())) {
                 responseHeaders.set(k, v);
             }
         });
