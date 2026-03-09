@@ -67,11 +67,11 @@ export default async function handler(req: Request) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'qwen3.5-plus', // Exclusive Coding Plan model
+                model: 'qwen-turbo', // Turbo mode for instant response
                 messages: formattedMessages,
                 stream: true,
-                temperature: 0.7,
-                max_tokens: 1536,
+                temperature: 0.3, // Lower randomness = faster processing
+                max_tokens: 1024,
             }),
         });
 
