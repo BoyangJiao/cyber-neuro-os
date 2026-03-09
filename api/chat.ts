@@ -30,7 +30,7 @@ export default async function handler(req: Request) {
         });
     }
 
-    const apiKey = (process.env as any).DASHSCOPE_API_KEY;
+    const apiKey = ((process.env as any).DASHSCOPE_API_KEY || '').trim();
     if (!apiKey) {
         return new Response(JSON.stringify({ error: 'DASHSCOPE_API_KEY not configured' }), {
             status: 500,

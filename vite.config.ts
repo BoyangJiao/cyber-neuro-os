@@ -60,7 +60,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
           return
         }
 
-        const apiKey = env.DASHSCOPE_API_KEY
+        const apiKey = (env.DASHSCOPE_API_KEY || '').trim()
         if (!apiKey) {
           res.writeHead(500, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify({ error: 'DASHSCOPE_API_KEY not set' }))
@@ -71,7 +71,14 @@ function apiProxy(env: Record<string, string>): PluginOption {
         req.on('data', (chunk: Buffer) => { body += chunk.toString() })
         req.on('end', async () => {
           try {
-            const { messages } = JSON.parse(body)
+            const parsedBody = JSON.parse(body)
+            const messages = parsedBody.messages || []
+
+            if (messages.length === 0) {
+              res.writeHead(400, { 'Content-Type': 'application/json' })
+              res.end(JSON.stringify({ error: 'No messages provided' }))
+              return
+            }
 
             const formattedMessages = [
               { role: 'system', content: SYSTEM_PROMPT },
@@ -95,11 +102,16 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 stream: true,
                 temperature: 0.7,
               }),
-              ...(dispatcher ? { dispatcher } : {}),
+              // REMOVED dispatcher: dashscope is a domestic service, bypassing local proxy for better stability
             })
 
             if (!dsRes.ok) {
               const errText = await dsRes.text()
+              console.error('[dashscope-proxy] API Error:', {
+                status: dsRes.status,
+                statusText: dsRes.statusText,
+                details: errText
+              })
               res.writeHead(dsRes.status, { 'Content-Type': 'application/json' })
               res.end(JSON.stringify({ error: 'DashScope API error', details: errText }))
               return
