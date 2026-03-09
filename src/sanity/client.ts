@@ -8,17 +8,26 @@ export const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2024-01-01
 
 const isDev = import.meta.env.DEV;
 
-export const client = createClient({
+// Base configuration
+const clientConfig: any = {
     projectId,
     dataset,
     apiVersion: '2024-05-01',
-    // In dev mode, we default to our local Vite proxy to avoid direct connection issues.
-    apiHost: import.meta.env.VITE_SANITY_API_HOST || (isDev ? '/api/sanity' : undefined),
+    useCdn: false, // Revert to false (original) to ensure compatibility with react-loader
     stega: {
-        enabled: isDev,
+        enabled: true, // Revert to true (original)
         studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || 'http://localhost:3333',
     },
-});
+};
+
+// Only inject apiHost if we are in dev or explicitly configured
+if (isDev) {
+    clientConfig.apiHost = import.meta.env.VITE_SANITY_API_HOST || '/api/sanity';
+} else if (import.meta.env.VITE_SANITY_API_HOST) {
+    clientConfig.apiHost = import.meta.env.VITE_SANITY_API_HOST;
+}
+
+export const client = createClient(clientConfig);
 
 // Configure the React Loader with this client to enable Live Queries
 const { loadQuery, useQuery, useLiveMode } = createQueryStore({ client });

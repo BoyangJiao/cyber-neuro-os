@@ -22,14 +22,14 @@ export default async function handler(req: Request) {
     const targetUrl = `https://${projectId}.api.sanity.io${path}${url.search}`;
 
     try {
+        const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.arrayBuffer() : undefined;
+
         const response = await fetch(targetUrl, {
             method: req.method,
             headers: {
-                // Forward content-type and other necessary headers
                 'Content-Type': req.headers.get('Content-Type') || 'application/json',
             },
-            // Forward body for POST/PUT if needed
-            body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.blob() : undefined,
+            body: body,
         });
 
         // Copy response headers
