@@ -16,6 +16,7 @@ const loadedMediaCache = new Set<string>();
 interface MissionBriefingProps {
     project: Project | null;
     missionNumber: number;
+    isLoading?: boolean;
     className?: string;
 }
 
@@ -33,6 +34,7 @@ interface MissionBriefingProps {
 export const MissionBriefing = ({
     project,
     missionNumber,
+    isLoading,
     className,
 }: MissionBriefingProps) => {
     const navigate = useNavigate();
@@ -152,13 +154,34 @@ export const MissionBriefing = ({
         };
     }, [project?.id, project?.title]); // 每次项目切换或标题变化时触发
 
-    // Null状态处理
-    if (!project) {
+    // Loading/Null 状态处理
+    if (isLoading || !project) {
         return (
-            <div className={twMerge("flex items-center justify-center h-full", className)}>
-                <span className="text-sm text-[var(--color-text-dim)] font-mono">
-                    {t('projectLanding.noMission')}
-                </span>
+            <div className={twMerge("flex flex-col h-full animate-pulse", className)}>
+                {/* Header Skeleton */}
+                <div className="shrink-0 flex items-center justify-between mb-0 pb-1 border-b border-[var(--color-border-subtle)]">
+                    <div className="h-4 w-24 bg-[var(--color-brand-primary)]/10 rounded" />
+                    <div className="h-3 w-16 bg-[var(--color-brand-primary)]/5 rounded" />
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="flex-1 pt-1">
+                    <div className="w-full mb-4 bg-[var(--color-bg-surface-2)]/30 rounded overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <ShimmerLoader show={true} label={t('projectLanding.initializing')} />
+                    </div>
+                    <div className="space-y-4">
+                        <div className="h-6 w-1/2 bg-[var(--color-brand-primary)]/10 rounded" />
+                        <div className="space-y-2">
+                            <div className="h-3 w-full bg-[var(--color-brand-primary)]/5 rounded" />
+                            <div className="h-3 w-full bg-[var(--color-brand-primary)]/5 rounded" />
+                            <div className="h-3 w-2/3 bg-[var(--color-brand-primary)]/5 rounded" />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <div className="h-6 w-20 bg-[var(--color-brand-primary)]/10 rounded" />
+                            <div className="h-6 w-20 bg-[var(--color-brand-primary)]/10 rounded" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }

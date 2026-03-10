@@ -7,6 +7,7 @@ interface MissionListProps {
     projects: Project[];
     activeIndex: number;
     onSelect: (index: number) => void;
+    isLoading?: boolean;
     className?: string;
 }
 
@@ -20,6 +21,7 @@ export const MissionList = ({
     projects,
     activeIndex,
     onSelect,
+    isLoading,
     className,
 }: MissionListProps) => {
     const { t } = useTranslation();
@@ -83,7 +85,7 @@ export const MissionList = ({
                         {t('projectLanding.project')}
                     </span>
                     <span className="text-sm font-mono text-[var(--color-brand-primary)]">
-                        {String(projects.length > 0 ? activeIndex + 1 : 0).padStart(2, '0')}/{String(projects.length).padStart(2, '0')}
+                        {isLoading ? '--' : String(projects.length > 0 ? activeIndex + 1 : 0).padStart(2, '0')}/{isLoading ? '--' : String(projects.length).padStart(2, '0')}
                     </span>
                 </div>
             </div>
@@ -91,7 +93,27 @@ export const MissionList = ({
             {/* Mission Items - 可滚动容器 */}
             <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide pt-1 pr-1">
                 <div className="flex flex-col gap-2">
-                    {projects.length === 0 && (
+                    {isLoading && (
+                        <>
+                            {[...Array(6)].map((_, i) => (
+                                <ChamferFrame
+                                    key={`skeleton-${i}`}
+                                    chamferSize={6}
+                                    className="w-full shrink-0 animate-pulse"
+                                    bgClassName="bg-[var(--color-bg-surface-2)]/30"
+                                    isActive={false}
+                                    showEffects={false}
+                                    animate={false}
+                                >
+                                    <div className="p-3 flex flex-col gap-2">
+                                        <div className="h-3 w-3/4 bg-[var(--color-brand-primary)]/10 rounded" />
+                                        <div className="h-2 w-1/2 bg-[var(--color-brand-primary)]/5 rounded" />
+                                    </div>
+                                </ChamferFrame>
+                            ))}
+                        </>
+                    )}
+                    {!isLoading && projects.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 opacity-50">
                             <span className="text-[10px] font-mono tracking-[0.3em] animate-pulse">
                                 {t('projectLanding.initializing')}

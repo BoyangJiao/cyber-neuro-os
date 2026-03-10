@@ -157,7 +157,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         if (soundEnabled) {
             setVolume(0);
             play();
-            const targetVol = 50; // Set to 50% as requested
+            const targetVol = 20; // Set to 20% as requested
             const duration = 6000; // Slightly longer fade for smoother entry
             let startTime: number | null = null;
 
@@ -172,7 +172,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
             };
             requestAnimationFrame(fadeStep);
         } else {
-            setVolume(50);
+            setVolume(20);
             pause();
         }
         onComplete();

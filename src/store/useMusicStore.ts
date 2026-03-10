@@ -26,7 +26,7 @@ interface MusicState {
 export const useMusicStore = create<MusicState>((set, get) => ({
     currentTrack: mockTracks[0], // Initially play the first track in the playlist
     isPlaying: false,
-    volume: 50,
+    volume: 20,
     playlist: mockTracks,
     currentTime: 0,
     duration: mockTracks[0].duration,

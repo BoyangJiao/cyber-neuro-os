@@ -9,6 +9,8 @@
  */
 import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { MotionDiv } from '../motion/MotionWrappers';
 import { AGENT_NAME } from '../../data/agentSystemPrompt';
 
@@ -20,6 +22,10 @@ interface AgentMessageProps {
     /** Whether this message is part of the latest exchange (last 2 msgs) */
     isLatestExchange?: boolean;
 }
+
+// ============================================================
+// Helper: Recursive decoding for Markdown children
+// ============================================================
 
 export const AgentMessageBubble = ({ role, content, isStreaming, timestamp, isLatestExchange = true }: AgentMessageProps) => {
     const isUser = role === 'user';
@@ -123,8 +129,41 @@ export const AgentMessageBubble = ({ role, content, isStreaming, timestamp, isLa
                             {isStreaming && !content && (
                                 <ThinkingIndicator />
                             )}
-                            {/* Content */}
-                            {content}
+                            {/* Content with Markdown */}
+                            {content && (
+                                <div className="agent-markdown-content">
+                                    <ReactMarkdown 
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            p: ({ children }) => (
+                                                <p className="mb-2 last:mb-0">
+                                                    {children}
+                                                </p>
+                                            ),
+                                            ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                                            ol: ({ children }) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                                            li: ({ children }) => (
+                                                <li className="leading-relaxed">
+                                                    {children}
+                                                </li>
+                                            ),
+                                            strong: ({ children }) => <strong className="font-bold text-[var(--color-brand-primary)] drop-shadow-[0_0_8px_var(--color-brand-primary-rgb)]">{children}</strong>,
+                                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 border-b border-white/10 pb-1 text-[var(--color-brand-primary)]">{children}</h1>,
+                                            h2: ({ children }) => <h2 className="text-sm font-bold mb-1.5 text-[var(--color-brand-primary)]/90">{children}</h2>,
+                                            h3: ({ children }) => <h3 className="text-[13px] font-bold mb-1 text-[var(--color-brand-primary)]/80">{children}</h3>,
+                                            code: ({ children }) => <code className="px-1.5 py-0.5 rounded bg-white/5 font-mono text-xs text-[var(--color-brand-primary)]">{children}</code>,
+                                            a: ({ href, children }) => (
+                                                <a href={href} target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand-primary)] underline decoration-[var(--color-brand-primary)]/30 hover:decoration-[var(--color-brand-primary)] transition-all">
+                                                    {children}
+                                                </a>
+                                            ),
+                                            blockquote: ({ children }) => <blockquote className="border-l-2 border-[var(--color-brand-primary)]/30 pl-3 italic my-2 text-[var(--color-text-muted)]">{children}</blockquote>
+                                        }}
+                                    >
+                                        {content}
+                                    </ReactMarkdown>
+                                </div>
+                            )}
                             {/* Streaming cursor */}
                             {isStreaming && content && (
                                 <span className="inline-block w-[2px] h-[15px] bg-[var(--color-brand-primary)] ml-1 align-middle rounded-full shadow-[0_0_6px_var(--color-brand-primary)]"

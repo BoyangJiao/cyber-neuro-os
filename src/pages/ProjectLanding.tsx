@@ -23,7 +23,7 @@ export const ProjectLanding = () => {
     const { t } = useTranslation();
 
     // Enable Real-time synchronization for Sanity Presentation mode
-    const { data: sanityProjects } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
+    const { data: sanityProjects, loading } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
 
     useEffect(() => {
         if (sanityProjects) {
@@ -32,6 +32,7 @@ export const ProjectLanding = () => {
     }, [sanityProjects, setProjects]);
 
     // 获取所有项目
+    const isLoading = loading && projects.length === 0;
     const visibleProjects = projects;
     const activeProject = visibleProjects[activeProjectIndex] || null;
 
@@ -92,6 +93,7 @@ export const ProjectLanding = () => {
                                     projects={visibleProjects}
                                     activeIndex={activeProjectIndex}
                                     onSelect={handleSelectMission}
+                                    isLoading={isLoading}
                                 />
                             </div>
 
@@ -100,6 +102,7 @@ export const ProjectLanding = () => {
                                 <MissionBriefing
                                     project={activeProject}
                                     missionNumber={activeProjectIndex + 1}
+                                    isLoading={isLoading}
                                 />
                             </div>
 

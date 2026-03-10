@@ -29,22 +29,41 @@ const DEFAULT_HEIGHT = 580;
 // Quick-Start Prompts — 解决空白页焦虑
 // ============================================================
 const QUICK_PROMPTS = {
-    en: [
-        { icon: 'ri-user-smile-line', text: 'Tell me about yourself' },
-        { icon: 'ri-folder-6-line', text: 'Show me your best project' },
-        { icon: 'ri-lightbulb-line', text: "What's your design philosophy?" },
-        { icon: 'ri-code-s-slash-line', text: 'How do you bridge design & code?' },
-    ],
-    zh: [
-        { icon: 'ri-user-smile-line', text: '介绍一下你自己' },
-        { icon: 'ri-folder-6-line', text: '展示你最好的项目' },
-        { icon: 'ri-lightbulb-line', text: '你的设计理念是什么？' },
-        { icon: 'ri-code-s-slash-line', text: '你如何连接设计与代码？' },
-    ],
+    en: {
+        BASE: [
+            { icon: 'ri-user-smile-line', text: 'Tell me about yourself' },
+            { icon: 'ri-folder-6-line', text: 'Show me your best project' },
+            { icon: 'ri-lightbulb-line', text: "What's your design philosophy?" },
+            { icon: 'ri-code-s-slash-line', text: 'How do you bridge design & code?' },
+        ],
+        DEEP: [
+            { icon: 'ri-user-smile-line', text: 'What is your role at Ant Group?' },
+            { icon: 'ri-global-line', text: 'Tell me about the Worldfirst project' },
+            { icon: 'ri-psychology-line', text: "How does Psychology influence your design?" },
+            { icon: 'ri-code-s-slash-line', text: 'Why build a portfolio as an OS?' },
+        ]
+    },
+    zh: {
+        BASE: [
+            { icon: 'ri-user-smile-line', text: '介绍一下你自己' },
+            { icon: 'ri-folder-6-line', text: '展示你最好的项目' },
+            { icon: 'ri-lightbulb-line', text: '你的设计理念是什么？' },
+            { icon: 'ri-code-s-slash-line', text: '你如何连接设计与代码？' },
+        ],
+        DEEP: [
+            { icon: 'ri-user-smile-line', text: '你在蚂蚁集团负责什么？' },
+            { icon: 'ri-global-line', text: '聊聊 Worldfirst 项目的重构' },
+            { icon: 'ri-psychology-line', text: '心理学背景对你的设计有什么影响？' },
+            { icon: 'ri-code-s-slash-line', text: '为什么要用 OS 的形式做作品集？' },
+        ]
+    },
 };
 
 export const NeuralUplinkWindow = () => {
     const { language } = useLanguage();
+    const [promptType, setPromptType] = useState<'BASE' | 'DEEP'>('BASE');
+    const [isShuffling, setIsShuffling] = useState(false);
+    
     const {
         isOpen,
         setOpen,
@@ -140,10 +159,12 @@ export const NeuralUplinkWindow = () => {
     }, []);
 
     useEffect(() => {
-        if (!isUserScrolledUp) {
+        // Only auto-scroll when a NEW exchange starts (user sends a message)
+        // or when the window is first opened.
+        if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [messages, isUserScrolledUp]);
+    }, [messages.length]); // Track length instead of full messages array
 
     // ============================================================
     // Send Message Handler
@@ -173,7 +194,15 @@ export const NeuralUplinkWindow = () => {
         handleSend(text);
     }, [handleSend]);
 
-    const prompts = language === 'zh' ? QUICK_PROMPTS.zh : QUICK_PROMPTS.en;
+    const handleShuffle = useCallback(() => {
+        setIsShuffling(true);
+        setTimeout(() => {
+            setPromptType(prev => prev === 'BASE' ? 'DEEP' : 'BASE');
+            setIsShuffling(false);
+        }, 400);
+    }, []);
+
+    const prompts = language === 'zh' ? QUICK_PROMPTS.zh[promptType] : QUICK_PROMPTS.en[promptType];
 
     // ============================================================
     // Render
@@ -282,9 +311,18 @@ export const NeuralUplinkWindow = () => {
                                         {/* Divider */}
                                         <div className="w-full flex items-center gap-3 px-2">
                                             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-primary)]/15 to-transparent" />
-                                            <span className="text-[8px] font-mono tracking-[0.3em] uppercase text-[var(--color-text-muted)]/40">
-                                                {language === 'zh' ? '快速提问' : 'QUICK START'}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[8px] font-mono tracking-[0.3em] uppercase text-[var(--color-text-muted)]/40">
+                                                    {language === 'zh' ? (promptType === 'BASE' ? '基础指引' : '深度情报') : (promptType === 'BASE' ? 'BASE_INTEL' : 'DEEP_CORE')}
+                                                </span>
+                                                <button 
+                                                    onClick={handleShuffle}
+                                                    className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--color-brand-primary)]/[0.08] text-[var(--color-brand-primary)]/40 hover:text-[var(--color-brand-primary)] transition-all cursor-pointer"
+                                                    title={language === 'zh' ? '换一个' : 'Shuffle'}
+                                                >
+                                                    <i className={`ri-refresh-line text-[10px] ${isShuffling ? 'animate-spin' : ''}`} />
+                                                </button>
+                                            </div>
                                             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-primary)]/15 to-transparent" />
                                         </div>
 
