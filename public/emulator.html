@@ -34,23 +34,26 @@
         const gameUrl = urlParams.get('gameUrl');
         const core = urlParams.get('core') || 'gba';
 
+        // Use the same domain's API proxy to bypass connection issues
+        const proxyBase = window.location.origin + '/api/emulator';
+
         window.EJS_player = '#game';
         window.EJS_core = core;
-        // Optionally pass game name 
         window.EJS_gameName = urlParams.get('gameName') || 'Game';
 
         // Primary configuration for EmulatorJS
-        window.EJS_color = '#ef4444'; // Cyber OS Red accent
+        window.EJS_color = '#ef4444'; 
         window.EJS_startOnLoaded = true;
-        window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs@main/data/';
+        // Point to our local proxy instead of external CDNs
+        window.EJS_pathtodata = proxyBase + '/stable/data/';
 
         if (gameUrl) {
             window.EJS_gameUrl = gameUrl;
         }
 
-        // Inject EmulatorJS script
+        // Inject EmulatorJS script through proxy
         const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs@main/data/loader.js';
+        script.src = proxyBase + '/stable/data/loader.js';
         document.body.appendChild(script);
     </script>
 </body>

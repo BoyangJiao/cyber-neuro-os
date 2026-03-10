@@ -9,6 +9,10 @@
             "destination": "/api/sanity"
         },
         {
+            "source": "/api/emulator/(.*)",
+            "destination": "/api/emulator"
+        },
+        {
             "source": "/((?!api/).*)",
             "destination": "/index.html"
         }

@@ -25,9 +25,18 @@ if (typeof window !== 'undefined') {
   window.fetch = function (url, init) {
     try {
       const urlStr = typeof url === 'string' ? url : (url instanceof URL ? url.toString() : (url as Request).url);
+      
+      // Sanity Proxy
       if (urlStr.includes('.sanity.io') && !urlStr.includes('/api/sanity')) {
         const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/sanity');
         console.log(`[Proxy-Fetch] Redirecting: ${urlStr} -> ${proxiedUrl}`);
+        return originalFetch(proxiedUrl, init);
+      }
+      
+      // Emulator Proxy (Intercept both jsdelivr and emulatorjs.org)
+      if ((urlStr.includes('cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs') || urlStr.includes('cdn.emulatorjs.org')) && !urlStr.includes('/api/emulator')) {
+        const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/emulator');
+        console.log(`[Proxy-Emulator-Fetch] Redirecting: ${urlStr} -> ${proxiedUrl}`);
         return originalFetch(proxiedUrl, init);
       }
     } catch (e) { /* ignore */ }
@@ -38,10 +47,19 @@ if (typeof window !== 'undefined') {
   const originalOpen = XMLHttpRequest.prototype.open;
   (XMLHttpRequest.prototype as any).open = function (method: string, url: string | URL, ...rest: any[]) {
     let targetUrl = url;
-    if (typeof url === 'string' && url.includes('.sanity.io') && !url.includes('/api/sanity')) {
-      targetUrl = url.replace(/^https:\/\/[^/]+/, originPath + '/api/sanity');
-      console.log(`[Proxy-XHR] Redirecting: ${url} -> ${targetUrl}`);
+    const urlStr = typeof url === 'string' ? url : url.toString();
+    
+    // Sanity Proxy
+    if (urlStr.includes('.sanity.io') && !urlStr.includes('/api/sanity')) {
+      targetUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/sanity');
     }
+    
+    // Emulator Proxy
+    if ((urlStr.includes('cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs') || urlStr.includes('cdn.emulatorjs.org')) && !urlStr.includes('/api/emulator')) {
+      targetUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/emulator');
+      console.log(`[Proxy-Emulator-XHR] Redirecting: ${url} -> ${targetUrl}`);
+    }
+    
     return (originalOpen as any).apply(this, [method, targetUrl, ...rest]);
   };
 }
