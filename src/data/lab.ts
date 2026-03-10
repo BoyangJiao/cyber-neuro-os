@@ -18,7 +18,7 @@ export const labApps: LabApp[] = [
         componentType: 'AvatarGenerator',
         geometryType: 'camera',
         status: 'ACTIVE',
-        iframeUrl: 'https://avatar-generator-ruby.vercel.app/'
+        iframeUrl: 'https://generator.boyangjiao.xyz'
     },
     {
         id: 'ai-ready-guide',
@@ -28,7 +28,7 @@ export const labApps: LabApp[] = [
         componentType: 'AIReadyGuide',
         geometryType: 'book',
         status: 'ACTIVE',
-        iframeUrl: 'https://ai-ready-design-system-guide-cq7m.vercel.app/'
+        iframeUrl: 'https://dsguide.boyangjiao.xyz'
     },
     {
         id: 'coming-soon',
