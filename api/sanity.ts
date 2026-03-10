@@ -59,7 +59,12 @@ export default async function handler(req: Request) {
         });
     } catch (error) {
         console.error('[SANITY PROXY ERROR]', error);
-        return new Response(JSON.stringify({ error: 'Sanity Proxy Failed' }), {
+        return new Response(JSON.stringify({ 
+            error: 'Sanity Proxy Failed', 
+            details: error instanceof Error ? error.message : String(error),
+            status: 500,
+            result: [] // Return empty array so .map() in frontend project store doesn't crash
+        }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });

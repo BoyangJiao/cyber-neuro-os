@@ -59,8 +59,17 @@ export const useProjectStore = create<ProjectState>()(
             error: null,
 
             setProjects: (sanityProjects) => {
+                // Sanity queries may return raw array OR a wrapper object with 'result' property
+                // Support both, and fallback to empty array if data is missing/invalid
+                let rawData: SanityProjectRaw[] = [];
+                if (Array.isArray(sanityProjects)) {
+                    rawData = sanityProjects;
+                } else if (sanityProjects && typeof sanityProjects === 'object' && 'result' in sanityProjects && Array.isArray((sanityProjects as any).result)) {
+                    rawData = (sanityProjects as any).result;
+                }
+
                 // Transform Sanity data to match Project interface
-                const mappedProjects: Project[] = ((sanityProjects || []) as SanityProjectRaw[]).map((p) => ({
+                const mappedProjects: Project[] = (rawData || []).map((p) => ({
                     id: p.slug,
                     title: p.title,
                     description: p.description || '',
