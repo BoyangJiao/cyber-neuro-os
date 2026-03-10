@@ -11,16 +11,8 @@ export const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2024-01-01
 // can still see the content, as Vercel (Edge Functions) can reach Sanity.
 const proxyFetch = (url: string | URL, init?: any) => {
     const urlStr = url.toString();
-    
-    // Check if we are in a browser environment and requesting Sanity
-    if (typeof window !== 'undefined' && (urlStr.includes('.sanity.io') || urlStr.includes('sanity.io'))) {
-        // Rewrite the host to point to our Vercel API Proxy
-        // e.g., https://abc.api.sanity.io/v1/... -> /api/sanity/v1/...
-        const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, `${window.location.origin}/api/sanity`);
-        
-        // Log to console so we can verify if the proxy is being used in staging
-        console.log(`[SanityProxy] Intercepted: ${urlStr} -> ${proxiedUrl}`);
-        
+    if (typeof window !== 'undefined' && urlStr.includes('.sanity.io') && !urlStr.includes('/api/sanity')) {
+        const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, window.location.origin + '/api/sanity');
         return fetch(proxiedUrl, init);
     }
     return fetch(url, init);

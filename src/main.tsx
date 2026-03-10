@@ -14,24 +14,35 @@ import './index.css'
 import 'remixicon/fonts/remixicon.css'
 import App from './App.tsx'
 
-// GLOBAL FETCH INTERCEPTOR (V4)
-// This handles Sanity connectivity in restricted regions (like China)
-// by forcing ALL requests to .sanity.io to go through our Vercel API Proxy.
+// GLOBAL NETWORK INTERCEPTOR (V5 - Fetch + XHR)
+// This ensures ALL network traffic to Sanity (regardless of the library used)
+// goes through our Vercel API Proxy to bypass domestic network restrictions.
 if (typeof window !== 'undefined') {
+  const originPath = window.location.origin;
+
+  // 1. Hijack Fetch API
   const originalFetch = window.fetch;
-  window.fetch = function (url: string | URL | Request, init?: RequestInit) {
+  window.fetch = function (url, init) {
     try {
       const urlStr = typeof url === 'string' ? url : (url instanceof URL ? url.toString() : (url as Request).url);
-      
-      // Force proxy for any sanity.io related calls (API or CDN)
       if (urlStr.includes('.sanity.io') && !urlStr.includes('/api/sanity')) {
-        const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, window.location.origin + '/api/sanity');
+        const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/sanity');
+        console.log(`[Proxy-Fetch] Redirecting: ${urlStr} -> ${proxiedUrl}`);
         return originalFetch(proxiedUrl, init);
       }
-    } catch (e) {
-      console.warn('[FetchInterceptor] Failed to parse URL, falling back to original fetch', e);
-    }
+    } catch (e) { /* ignore */ }
     return originalFetch(url, init);
+  };
+
+  // 2. Hijack XMLHttpRequest (XHR)
+  const originalOpen = XMLHttpRequest.prototype.open;
+  (XMLHttpRequest.prototype as any).open = function (method: string, url: string | URL, ...rest: any[]) {
+    let targetUrl = url;
+    if (typeof url === 'string' && url.includes('.sanity.io') && !url.includes('/api/sanity')) {
+      targetUrl = url.replace(/^https:\/\/[^/]+/, originPath + '/api/sanity');
+      console.log(`[Proxy-XHR] Redirecting: ${url} -> ${targetUrl}`);
+    }
+    return (originalOpen as any).apply(this, [method, targetUrl, ...rest]);
   };
 }
 
