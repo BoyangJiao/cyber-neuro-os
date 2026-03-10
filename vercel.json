@@ -5,6 +5,10 @@
             "destination": "https://www.soundhelix.com/$1"
         },
         {
+            "source": "/api/sanity/(.*)",
+            "destination": "/api/sanity"
+        },
+        {
             "source": "/((?!api/).*)",
             "destination": "/index.html"
         }

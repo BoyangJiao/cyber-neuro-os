@@ -21,15 +21,17 @@ export default async function handler(req: Request) {
     const path = url.pathname.replace(/^\/api\/sanity/, '') || '/';
     const targetUrl = `https://${projectId}.api.sanity.io${path}${url.search}`;
 
+    const headers = new Headers();
+    // Forward most headers except sensitive or host-specific ones
+    req.headers.forEach((v, k) => {
+        const key = k.toLowerCase();
+        if (!['host', 'origin', 'referer', 'connection', 'content-length'].includes(key)) {
+            headers.set(k, v);
+        }
+    });
+
     try {
         const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.arrayBuffer() : undefined;
-
-        // Forward important headers (authorization, sanity tokens, etc.)
-        const headers = new Headers();
-        ['authorization', 'x-sanity-project-id', 'x-sanity-token', 'content-type'].forEach(h => {
-            const val = req.headers.get(h);
-            if (val) headers.set(h, val);
-        });
 
         const response = await fetch(targetUrl, {
             method: req.method,
@@ -46,8 +48,10 @@ export default async function handler(req: Request) {
             }
         });
 
-        // Add CORS for development flexibility
+        // Add CORS and Debug info
         responseHeaders.set('Access-Control-Allow-Origin', '*');
+        responseHeaders.set('x-debug-sanity-project-id', projectId);
+        responseHeaders.set('x-debug-target-url', targetUrl);
 
         return new Response(response.body, {
             status: response.status,
