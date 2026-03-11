@@ -298,5 +298,6 @@ export const HelmetReveal = ({ progress, className = '' }: HelmetRevealProps) =>
 // Preload models
 useGLTF.preload(HEAD_MODEL_URL);
 useGLTF.preload(HELMET_MODEL_URL);
+useGLTF.setDecoderPath('/draco/');
 
 export default HelmetReveal;

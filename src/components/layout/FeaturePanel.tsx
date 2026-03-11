@@ -117,6 +117,7 @@ export const FeaturePanel = () => {
 
     // ─── Focus State Machine ───
     const [isRevealHover, setIsRevealHover] = useState(false);   // Is user hovering the focused card? (face-on)
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const wheelCooldown = useRef(false);                         // Throttle wheel events
 
     useEffect(() => {
@@ -234,6 +235,22 @@ export const FeaturePanel = () => {
         }
     }, [featureActiveIndex, isRevealHover, navigate, t, setFeatureActiveIndex, isIntroPlaying]);
 
+    // ─── Stationary Mouse Hover Sync ───
+    // Fixes Windows issue where hover doesn't re-trigger when card moves under stationary mouse
+    useEffect(() => {
+        if (isIntroPlaying || isDeepDiveMode) return;
+        
+        const checkHover = () => {
+            const el = document.elementFromPoint(mousePos.x, mousePos.y);
+            if (el && el.closest('[data-focused="true"]')) {
+                setIsRevealHover(true);
+            }
+        };
+
+        const timer = setTimeout(checkHover, 100); // Wait for transition onset
+        return () => clearTimeout(timer);
+    }, [featureActiveIndex, mousePos, isIntroPlaying, isDeepDiveMode]);
+
     // ─── DeepDive Mode ───
     if (isDeepDiveMode) {
         return (
@@ -246,7 +263,11 @@ export const FeaturePanel = () => {
     // ─── Default Mode: Cybernetic Slot Cards ───
     return (
         <>
-            <div ref={containerRef} className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6 lg:px-0">
+            <div 
+                ref={containerRef} 
+                className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6 lg:px-0"
+                onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+            >
                 {/* Mobile View: Horizontal Scroll */}
                 <div className="lg:hidden relative z-10 w-full h-full flex items-center justify-start overflow-x-auto no-scrollbar snap-x snap-mandatory">
                     <div className="flex flex-row gap-4 items-center py-8">
@@ -351,11 +372,11 @@ export const FeaturePanel = () => {
                                 isIntroPlaying={isIntroPlaying}
                             />
                         );
-
                         return (
                             <motion.div
                                 key={`desktop-${item.titleKey}`}
-                                className="absolute origin-center w-[160px] lg:w-[180px] xl:w-[220px] cursor-pointer will-change-transform"
+                                className="absolute origin-center w-[160px] lg:w-[180px] xl:w-[220px] cursor-pointer will-change-transform feature-card"
+                                data-focused={isFocused}
                                 initial={{ opacity: 0, x: 150, z: -400, rotateY: -40, scale: 0.7 }}
                                 animate={{
                                     opacity,

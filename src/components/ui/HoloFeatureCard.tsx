@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Environment, PerspectiveCamera } from '@react-three/drei';
+import { useState, Suspense } from 'react';
+import { View, PerspectiveCamera } from '@react-three/drei';
 import { HoloGeometry, type GeometryType } from '../three/ui/HoloGeometry';
 import { HoloTiltCard } from './HoloTiltCard';
 import { useAppStore } from '../../store/useAppStore';
@@ -39,15 +39,19 @@ export const HoloFeatureCard = ({
             onClick={onClick}
             onHoverChange={setIsHovered}
             content3d={isHovered ? (
-                <View className="w-full h-full">
-                    <group>
-                        <ambientLight intensity={0.5} />
-                        <pointLight position={[10, 10, 10]} intensity={1} color={activeColor} />
-                        <HoloGeometry type={activeGeometryType} />
-                        <Environment preset="city" />
-                    </group>
-                    <PerspectiveCamera makeDefault position={[0, 0, 7]} fov={45} />
-                </View>
+                <Suspense fallback={null}>
+                    <View className="w-full h-full">
+                        <group>
+                            <ambientLight intensity={0.5} />
+                            <pointLight position={[10, 10, 10]} intensity={1} color={activeColor} />
+                            <HoloGeometry type={activeGeometryType} />
+                            {/* Removed preset="city" to avoid CDN blocking, added more local lights */}
+                            <pointLight position={[-10, -10, -10]} intensity={0.5} color={activeColor} />
+                            <pointLight position={[5, 5, 5]} intensity={2} color="#ffffff" />
+                        </group>
+                        <PerspectiveCamera makeDefault position={[0, 0, 7]} fov={45} />
+                    </View>
+                </Suspense>
             ) : null}
         />
     );

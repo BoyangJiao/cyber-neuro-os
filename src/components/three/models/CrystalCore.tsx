@@ -107,3 +107,4 @@ export const CrystalCore = () => {
 };
 
 useGLTF.preload('/models/CrystalCore_v2.glb');
+useGLTF.setDecoderPath('/draco/');
