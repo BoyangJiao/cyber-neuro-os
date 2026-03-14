@@ -40,6 +40,11 @@ export const GlobalAudioPlayer = () => {
     }, [setCurrentTime]);
 
     // Initialize WebAudio API
+    // Note: volume changes are handled by the separate Volume sync effect below.
+    // This effect only initializes the AudioContext/GainNode once on first play.
+    const volumeRef = useRef(volume);
+    useEffect(() => { volumeRef.current = volume; }, [volume]);
+
     useEffect(() => {
         if (!audioRef.current) return;
 
@@ -64,8 +69,9 @@ export const GlobalAudioPlayer = () => {
                     analyserRef.current.connect(gainNodeRef.current);
                     gainNodeRef.current.connect(audioContextRef.current.destination);
 
-                    // Set initial volume
-                    gainNodeRef.current.gain.value = volume / 100;
+                    // Set initial volume from ref (latest value)
+                    gainNodeRef.current.gain.value = volumeRef.current / 100;
+                    if (audioRef.current) audioRef.current.volume = 1.0;
 
                     setAnalyser(analyserRef.current);
                 }
@@ -87,7 +93,8 @@ export const GlobalAudioPlayer = () => {
         return () => {
             audioElement.removeEventListener('play', handlePlayAttempt);
         };
-    }, [setAnalyser, volume]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setAnalyser]);
 
     // Track/Url change sync
     useEffect(() => {
@@ -101,7 +108,7 @@ export const GlobalAudioPlayer = () => {
         const targetUrl = url.startsWith('http') ? url : window.location.origin + (url.startsWith('/') ? '' : '/') + url;
 
         if (currentSrc !== targetUrl) {
-            console.log(`[GlobalAudioPlayer] Switching source: ${targetUrl}`);
+            if (import.meta.env.DEV) console.log(`[GlobalAudioPlayer] Switching source: ${targetUrl}`);
             audioRef.current.src = url;
             if (isPlaying) {
                 audioRef.current.play().catch(e => console.error("[GlobalAudioPlayer] Playback error on src change:", e));

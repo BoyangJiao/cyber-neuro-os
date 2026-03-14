@@ -138,21 +138,37 @@ export const useProjectStore = create<ProjectState>()(
 
             preloadHeroAssets: () => {
                 const { projects } = get();
-                projects.forEach((p) => {
-                    // Preload hero images
+                const IMMEDIATE_COUNT = 2; // First N projects load immediately (above-the-fold)
+
+                // Phase 1: Immediately preload first few hero images
+                projects.slice(0, IMMEDIATE_COUNT).forEach((p) => {
                     if (p.thumbnail?.startsWith('http') || p.thumbnail?.startsWith('/')) {
                         const img = new Image();
                         img.src = p.thumbnail;
                     }
-                    // Preload video poster frames by triggering a prefetch link
-                    const videoUrl = p.videoFile || p.video;
-                    if (videoUrl) {
-                        const link = document.createElement('link');
-                        link.rel = 'prefetch';
-                        link.href = videoUrl;
-                        link.as = 'video';
-                        document.head.appendChild(link);
-                    }
+                });
+
+                // Phase 2: Defer remaining images until idle
+                const idleCb = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : (fn: () => void) => setTimeout(fn, 2000);
+                idleCb(() => {
+                    projects.slice(IMMEDIATE_COUNT).forEach((p) => {
+                        if (p.thumbnail?.startsWith('http') || p.thumbnail?.startsWith('/')) {
+                            const img = new Image();
+                            img.src = p.thumbnail;
+                        }
+                    });
+
+                    // Phase 3: Prefetch videos last (lowest priority)
+                    projects.forEach((p) => {
+                        const videoUrl = p.videoFile || p.video;
+                        if (videoUrl) {
+                            const link = document.createElement('link');
+                            link.rel = 'prefetch';
+                            link.href = videoUrl;
+                            link.as = 'video';
+                            document.head.appendChild(link);
+                        }
+                    });
                 });
             },
 
@@ -207,6 +223,7 @@ export const useProjectStore = create<ProjectState>()(
         }),
         {
             name: 'cyber-neuro-projects',
+            version: 1,
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 projects: state.projects,
@@ -214,6 +231,13 @@ export const useProjectStore = create<ProjectState>()(
                 activeProjectIndex: state.activeProjectIndex,
                 language: state.language
             }),
+            migrate: (persisted: any, version: number) => {
+                // When version < 1, discard stale cached projects to force fresh fetch
+                if (version < 1) {
+                    return { ...persisted, projects: [], activeProjectId: '', activeProjectIndex: 0 };
+                }
+                return persisted;
+            },
         }
     )
 );

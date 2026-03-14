@@ -21,7 +21,7 @@ export const ActualWaveform: React.FC<ActualWaveformProps> = ({
     durationMs,
     barCount = 40,
     className,
-    color = '#ff0055'
+    color = '#00F0FF'
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [peaks, setPeaks] = useState<number[]>([]);

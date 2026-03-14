@@ -80,7 +80,7 @@ export const MusicPlayer = () => {
                 <div className="flex items-center gap-4 text-[10px] font-mono text-brand-secondary/60">
                     <span className="min-w-[40px] tabular-nums">{formatTime(currentTime)}</span>
                     <div
-                        className="flex-1 h-2 bg-brand-primary/10 rounded-full overflow-hidden relative group cursor-pointer lg:hover:h-3 transition-all"
+                        className="flex-1 h-2 bg-brand-primary/10 overflow-hidden relative group cursor-pointer lg:hover:h-3 transition-all"
                         onClick={handleSeek}
                     >
                         <div
@@ -101,7 +101,7 @@ export const MusicPlayer = () => {
 
                         <button
                             onClick={togglePlay}
-                            className="w-12 h-12 rounded-full bg-brand-primary text-black hover:bg-white hover:scale-105 transition-all flex items-center justify-center shadow-brand-glow"
+                            className="w-12 h-12 bg-brand-primary text-black hover:bg-white hover:scale-105 transition-all flex items-center justify-center shadow-brand-glow"
                         >
                             <i className={clsx("text-2xl", isPlaying ? "ri-pause-fill" : "ri-play-fill")}></i>
                         </button>

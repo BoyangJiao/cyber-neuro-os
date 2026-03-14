@@ -4,6 +4,7 @@ import type { Sound } from '../../../data/sounds';
 import { ChamferFrame } from '../../ui/frames/ChamferFrame';
 import { ActualWaveform } from './ActualWaveform';
 import { useAppStore } from '../../../store/useAppStore';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 import { twMerge } from 'tailwind-merge';
 
 interface SoundCardProps {
@@ -21,6 +22,7 @@ export const SoundCard = ({ sound }: SoundCardProps) => {
     const playTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const { sfxVolume } = useAppStore();
+    const { primary: themeColor } = useThemeColors();
 
     // Update volume when global store changes
     useEffect(() => {
@@ -102,7 +104,7 @@ export const SoundCard = ({ sound }: SoundCardProps) => {
                         playStartTime={playStartTime}
                         durationMs={audioDurationMs}
                         barCount={24}
-                        color="#00f0ff"
+                        color={themeColor}
                     />
                 </div>
 

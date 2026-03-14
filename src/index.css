@@ -183,8 +183,8 @@ body.app-ready::after {
     background: var(--color-neutral-600);
 }
 
-/* Utility for removing rounded corners enforced by browser UA or libraries */
-* {
+/* Enforce cyberpunk sharp corners globally, except elements that opt-out via [data-rounded] */
+#root *:not([data-rounded]):not(.rounded-full):not(input[type="range"]):not(progress) {
     border-radius: 0 !important;
 }
 
@@ -192,6 +192,20 @@ body.app-ready::after {
 ::selection {
     background: var(--color-brand-primary);
     color: #000;
+}
+
+/* ============================================================
+   CSS Containment — Isolate heavy animated containers
+   Prevents repaints from propagating beyond these boundaries.
+   ============================================================ */
+/* Ambient background & particle field */
+.fixed.inset-0[aria-hidden="true"] {
+    contain: strict;
+}
+
+/* Three.js canvas container */
+.fixed.inset-0.pointer-events-none.z-\[0\] {
+    contain: layout style paint;
 }
 
 /* ============================================================

@@ -279,7 +279,12 @@ export const SettingsModal = () => {
                                 </div>
 
                                 {/* Theme Section */}
-                                <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-3">
+                                <div className="relative pt-4 space-y-3">
+                                    {/* Line with decorative dots */}
+                                    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-[var(--color-brand-secondary)]/30">
+                                        <div className="absolute left-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                        <div className="absolute right-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                    </div>
                                     <div className="flex items-center gap-2">
                                         <i className="ri-palette-line text-[var(--color-brand-primary)]/60" />
                                         <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-widest uppercase">
@@ -318,7 +323,12 @@ export const SettingsModal = () => {
                                 </div>
 
                                 {/* DeepDive Mode Section */}
-                                <div className="border-t border-[var(--color-text-subtle)]/30 pt-4 space-y-4">
+                                <div className="relative pt-4 space-y-4">
+                                    {/* Line with decorative dots */}
+                                    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-[var(--color-brand-secondary)]/30">
+                                        <div className="absolute left-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                        <div className="absolute right-0 top-[-0.25px] w-[1px] h-[1px] bg-[var(--color-brand-secondary)]" />
+                                    </div>
                                     <div className="flex items-start justify-between">
                                         <div className="flex flex-col gap-1">
                                             <div className="flex items-center gap-2">

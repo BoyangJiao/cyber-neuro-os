@@ -73,6 +73,8 @@
     --color-bg-panel: color-mix(in srgb, var(--color-brand-primary) 12%, var(--color-black));
     --color-bg-overlay: color-mix(in srgb, var(--color-brand-primary) 5%, rgba(0, 0, 0, 0.3));
     --color-bg-elevated: color-mix(in srgb, var(--color-brand-primary) 15%, var(--color-black));
+    --color-bg-deep: color-mix(in srgb, var(--color-brand-primary) 2%, #020406);
+    --color-bg-card: color-mix(in srgb, var(--color-brand-primary) 5%, #06121a);
 
     /* --- Text --- */
     --color-text-primary: var(--color-neutral-100);

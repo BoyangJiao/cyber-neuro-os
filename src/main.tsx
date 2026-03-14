@@ -29,14 +29,12 @@ if (typeof window !== 'undefined') {
       // Sanity Proxy
       if (urlStr.includes('.sanity.io') && !urlStr.includes('/api/sanity')) {
         const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/sanity');
-        console.log(`[Proxy-Fetch] Redirecting: ${urlStr} -> ${proxiedUrl}`);
         return originalFetch(proxiedUrl, init);
       }
       
       // Emulator Proxy (Intercept both jsdelivr and emulatorjs.org)
       if ((urlStr.includes('cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs') || urlStr.includes('cdn.emulatorjs.org')) && !urlStr.includes('/api/emulator')) {
         const proxiedUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/emulator');
-        console.log(`[Proxy-Emulator-Fetch] Redirecting: ${urlStr} -> ${proxiedUrl}`);
         return originalFetch(proxiedUrl, init);
       }
     } catch (e) { /* ignore */ }
@@ -57,7 +55,6 @@ if (typeof window !== 'undefined') {
     // Emulator Proxy
     if ((urlStr.includes('cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs') || urlStr.includes('cdn.emulatorjs.org')) && !urlStr.includes('/api/emulator')) {
       targetUrl = urlStr.replace(/^https:\/\/[^/]+/, originPath + '/api/emulator');
-      console.log(`[Proxy-Emulator-XHR] Redirecting: ${url} -> ${targetUrl}`);
     }
     
     return (originalOpen as any).apply(this, [method, targetUrl, ...rest]);

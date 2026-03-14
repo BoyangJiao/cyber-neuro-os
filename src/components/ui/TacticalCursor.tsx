@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import clsx from 'clsx';
+import { usePageVisible } from '../../hooks/usePageVisible';
 
 
 export const TacticalCursor = () => {
@@ -8,6 +9,7 @@ export const TacticalCursor = () => {
     const [isHovering, setIsHovering] = useState(false);
     const [isActive, setIsActive] = useState(false);
     const [isClicking, setIsClicking] = useState(false);
+    const isPageVisible = usePageVisible();
 
 
     // 状态 ref，用于避免 react render loop 中断动画流畅性
@@ -42,7 +44,7 @@ export const TacticalCursor = () => {
 
     // 核心动画循环 (RAF)
     useEffect(() => {
-        if (!isActive) return;
+        if (!isActive || !isPageVisible) return;
 
         const cursor = cursorRef.current;
         const tl = tlRef.current;
@@ -155,7 +157,7 @@ export const TacticalCursor = () => {
             document.removeEventListener('mouseenter', onMouseEnter);
             cancelAnimationFrame(rafId);
         };
-    }, [isActive]); // 移除了 isHovering 依赖，避免频繁重新绑定事件和动画循环
+    }, [isActive, isPageVisible]); // Restart loop when visibility changes
 
     if (!isActive) return null;
 

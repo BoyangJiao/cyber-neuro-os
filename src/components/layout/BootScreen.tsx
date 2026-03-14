@@ -12,6 +12,33 @@ import { BadgeProtocol } from './BadgeProtocol';
 import { BinaryGrid } from './BinaryGrid';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 
+// ─── Module-level fade animation (survives component unmount) ────────────────
+let moduleFadeRafId: number | undefined;
+
+function startVolumeFade(
+    setVolume: (vol: number) => void,
+    targetVol: number,
+    duration: number
+) {
+    // Cancel any existing fade first
+    if (moduleFadeRafId) cancelAnimationFrame(moduleFadeRafId);
+
+    let startTime: number | null = null;
+
+    const fadeStep = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const currentVol = Math.min((elapsed / duration) * targetVol, targetVol);
+        setVolume(currentVol);
+        if (elapsed < duration) {
+            moduleFadeRafId = requestAnimationFrame(fadeStep);
+        } else {
+            moduleFadeRafId = undefined;
+        }
+    };
+    moduleFadeRafId = requestAnimationFrame(fadeStep);
+}
+
 // ─── Module-level constants (never re-created) ──────────────────────────────
 const BOOT_LOGS = [
     "INITIALIZING NEURO-LINK PROTOCOL...",
@@ -143,7 +170,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
 
     const { playClick } = useSoundSystem();
 
-    // Volume fade-in using requestAnimationFrame for smoother, fewer state updates
+    // Volume fade-in using module-level rAF (survives component unmount)
     const { setVolume, play, pause } = useMusicStore(useShallow(state => ({
         setVolume: state.setVolume,
         play: state.play,
@@ -157,22 +184,10 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
         if (soundEnabled) {
             setVolume(0);
             play();
-            const targetVol = 20; // Set to 20% as requested
-            const duration = 6000; // Slightly longer fade for smoother entry
-            let startTime: number | null = null;
-
-            const fadeStep = (timestamp: number) => {
-                if (!startTime) startTime = timestamp;
-                const elapsed = timestamp - startTime;
-                const currentVol = Math.min((elapsed / duration) * targetVol, targetVol);
-                setVolume(currentVol);
-                if (elapsed < duration) {
-                    requestAnimationFrame(fadeStep);
-                }
-            };
-            requestAnimationFrame(fadeStep);
+            // Use module-level fade so it continues after BootScreen unmounts
+            startVolumeFade(setVolume, 15, 6000);
         } else {
-            setVolume(20);
+            setVolume(15);
             pause();
         }
         onComplete();
@@ -373,7 +388,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                         </div>
 
                         {/* Progress Bar Container - Matches StatCard Style */}
-                        <div className="w-full h-1.5 bg-brand-primary/10 relative overflow-hidden rounded-full">
+                        <div className="w-full h-1.5 bg-brand-primary/10 relative overflow-hidden">
                             {/* Background grid pattern inside bar - Angled 45 deg */}
                             <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
                                 backgroundImage: 'linear-gradient(45deg, var(--color-brand-primary) 25%, transparent 25%, transparent 50%, var(--color-brand-primary) 50%, var(--color-brand-primary) 75%, transparent 75%, transparent)',

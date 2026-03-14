@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Cyber Neuro OS favicon — minimalist neural node icon -->
+  <rect width="32" height="32" fill="#020406"/>
+  <!-- Central hexagonal node -->
+  <circle cx="16" cy="16" r="5" fill="none" stroke="#00F0FF" stroke-width="1.5"/>
+  <circle cx="16" cy="16" r="2" fill="#00F0FF"/>
+  <!-- Neural connection lines radiating outward -->
+  <line x1="16" y1="11" x2="16" y2="4" stroke="#00F0FF" stroke-width="1" opacity="0.6"/>
+  <line x1="16" y1="21" x2="16" y2="28" stroke="#00F0FF" stroke-width="1" opacity="0.6"/>
+  <line x1="11" y1="16" x2="4" y2="16" stroke="#00F0FF" stroke-width="1" opacity="0.6"/>
+  <line x1="21" y1="16" x2="28" y2="16" stroke="#00F0FF" stroke-width="1" opacity="0.6"/>
+  <!-- Diagonal connections -->
+  <line x1="12.5" y1="12.5" x2="7" y2="7" stroke="#00F0FF" stroke-width="0.8" opacity="0.35"/>
+  <line x1="19.5" y1="12.5" x2="25" y2="7" stroke="#00F0FF" stroke-width="0.8" opacity="0.35"/>
+  <line x1="12.5" y1="19.5" x2="7" y2="25" stroke="#00F0FF" stroke-width="0.8" opacity="0.35"/>
+  <line x1="19.5" y1="19.5" x2="25" y2="25" stroke="#00F0FF" stroke-width="0.8" opacity="0.35"/>
+  <!-- Outer endpoint dots -->
+  <circle cx="16" cy="4" r="1.2" fill="#00F0FF" opacity="0.5"/>
+  <circle cx="16" cy="28" r="1.2" fill="#00F0FF" opacity="0.5"/>
+  <circle cx="4" cy="16" r="1.2" fill="#00F0FF" opacity="0.5"/>
+  <circle cx="28" cy="16" r="1.2" fill="#00F0FF" opacity="0.5"/>
+</svg>

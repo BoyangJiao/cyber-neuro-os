@@ -69,7 +69,7 @@ export const useSoundSystem = () => {
         isLoading.current = true;
 
         try {
-            console.log("[SoundSystem] Optimizing: Loading audio buffers early...");
+            if (import.meta.env.DEV) console.log("[SoundSystem] Optimizing: Loading audio buffers early...");
 
             // Define players
             globalHoverPlayer = new Tone.Player({
@@ -117,7 +117,7 @@ export const useSoundSystem = () => {
             syncWithGlobal();
 
             updateVolumes();
-            console.log("[SoundSystem] Fast boot complete. All buffers loaded and ready.");
+            if (import.meta.env.DEV) console.log("[SoundSystem] Fast boot complete. All buffers loaded and ready.");
         } catch (err) {
             console.error("[SoundSystem] Pre-init failed:", err);
             globalLoading = false;

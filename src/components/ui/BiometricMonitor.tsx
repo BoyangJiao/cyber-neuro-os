@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
+import { usePageVisible } from '../../hooks/usePageVisible';
 
 // ============================================================
 // Organic value generators
 // ============================================================
 
-const useDriftValue = (min: number, max: number, speed: number = 1) => {
+const useDriftValue = (min: number, max: number, speed: number = 1, isVisible: boolean = true) => {
     const [value, setValue] = useState((min + max) / 2);
     const phaseRef = useRef(Math.random() * Math.PI * 2);
 
     useEffect(() => {
+        if (!isVisible) return;
         let frame: number;
         const animate = () => {
             const t = Date.now() / 1000;
@@ -26,7 +28,7 @@ const useDriftValue = (min: number, max: number, speed: number = 1) => {
         };
         frame = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(frame);
-    }, [min, max, speed]);
+    }, [min, max, speed, isVisible]);
 
     return value;
 };
@@ -342,7 +344,7 @@ const SyncRatio = () => {
     const { t } = useTranslation();
     const location = useLocation();
     const [glitching, setGlitching] = useState(false);
-    const syncVal = useDriftValue(98.1, 99.9, 0.3);
+    const syncVal = useDriftValue(98.1, 99.9, 0.3, usePageVisible());
 
     // Glitch on route change
     useEffect(() => {

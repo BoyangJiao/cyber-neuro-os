@@ -117,8 +117,9 @@ export const FeaturePanel = () => {
 
     // ─── Focus State Machine ───
     const [isRevealHover, setIsRevealHover] = useState(false);   // Is user hovering the focused card? (face-on)
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const mousePosRef = useRef({ x: 0, y: 0 });                 // Track mouse without triggering renders
     const wheelCooldown = useRef(false);                         // Throttle wheel events
+    const isTransitioning = useRef(false);                       // Track if a card transition is in flight
 
     useEffect(() => {
         // Condition 1: Don't do anything if we are currently deep diving or STILL on the BootScreen
@@ -204,6 +205,7 @@ export const FeaturePanel = () => {
         if (delta < 0 && featureActiveIndex <= 0) return;
 
         wheelCooldown.current = true;
+        isTransitioning.current = true;
         setTimeout(() => { wheelCooldown.current = false; }, 400); // 400ms cooldown = hydraulic feel
 
         setIsRevealHover(false); // cancel any reveal state during navigation
@@ -231,25 +233,30 @@ export const FeaturePanel = () => {
         } else if (index !== featureActiveIndex) {
             // Click on a background card → promote it to Focus
             setIsRevealHover(false);
+            isTransitioning.current = true;
             setFeatureActiveIndex(index);
         }
     }, [featureActiveIndex, isRevealHover, navigate, t, setFeatureActiveIndex, isIntroPlaying]);
 
-    // ─── Stationary Mouse Hover Sync ───
-    // Fixes Windows issue where hover doesn't re-trigger when card moves under stationary mouse
+    // ─── Post-Transition Hover Sync (fixes Windows) ───
+    // After a card transition completes (spring settles ~350ms), check if the mouse
+    // is already over the newly focused card. This fixes Windows where mouseover
+    // doesn't re-fire when a card moves *under* a stationary cursor.
     useEffect(() => {
         if (isIntroPlaying || isDeepDiveMode) return;
         
-        const checkHover = () => {
-            const el = document.elementFromPoint(mousePos.x, mousePos.y);
+        // Wait for the spring animation to settle before checking
+        const timer = setTimeout(() => {
+            isTransitioning.current = false;
+            const { x, y } = mousePosRef.current;
+            if (x === 0 && y === 0) return; // Mouse hasn't moved yet
+            const el = document.elementFromPoint(x, y);
             if (el && el.closest('[data-focused="true"]')) {
                 setIsRevealHover(true);
             }
-        };
-
-        const timer = setTimeout(checkHover, 100); // Wait for transition onset
+        }, 350); // Matches HYDRAULIC_SPRING settle time
         return () => clearTimeout(timer);
-    }, [featureActiveIndex, mousePos, isIntroPlaying, isDeepDiveMode]);
+    }, [featureActiveIndex, isIntroPlaying, isDeepDiveMode]);
 
     // ─── DeepDive Mode ───
     if (isDeepDiveMode) {
@@ -266,7 +273,7 @@ export const FeaturePanel = () => {
             <div 
                 ref={containerRef} 
                 className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6 lg:px-0"
-                onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+                onMouseMove={(e) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; }}
             >
                 {/* Mobile View: Horizontal Scroll */}
                 <div className="lg:hidden relative z-10 w-full h-full flex items-center justify-start overflow-x-auto no-scrollbar snap-x snap-mandatory">

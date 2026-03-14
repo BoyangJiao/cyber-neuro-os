@@ -35,6 +35,7 @@ import { AnimatePresence } from 'framer-motion'
 import { VisualEditing } from '@sanity/visual-editing/react'
 import { useLiveMode } from './sanity/client'
 import { SanityErrorBoundary } from './components/error/SanityErrorBoundary'
+import { AppErrorBoundary } from './components/error/AppErrorBoundary'
 import { Canvas } from '@react-three/fiber'
 import { View } from '@react-three/drei'
 import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
@@ -93,6 +94,11 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', brandTheme);
   }, [brandTheme]);
+
+  // Sync <html lang="..."> with active language for SEO and accessibility
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   // Manage body background state to prevent flash during bootscreen
   useEffect(() => {
@@ -262,14 +268,16 @@ function App() {
 
       {/* Shared Three.js Canvas for View Portals */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <Canvas
-          eventSource={document.getElementById('root')!}
-          className="pointer-events-none"
-          gl={{ alpha: true, antialias: true }}
-          dpr={[1, 1.5]}
-        >
-          <View.Port />
-        </Canvas>
+        <AppErrorBoundary fallback={null}>
+          <Canvas
+            eventSource={document.getElementById('root')!}
+            className="pointer-events-none"
+            gl={{ alpha: true, antialias: true }}
+            dpr={[1, 1.5]}
+          >
+            <View.Port />
+          </Canvas>
+        </AppErrorBoundary>
       </div>
       <GlobalAudioPlayer />
 

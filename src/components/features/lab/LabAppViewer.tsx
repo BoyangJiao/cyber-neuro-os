@@ -14,7 +14,7 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
         if (app.iframeUrl) {
             window.open(app.iframeUrl, '_blank', 'noopener,noreferrer');
         } else {
-            console.log(`Launch ${app.componentType}`);
+            // No external URL — component-based apps would be handled inline
         }
     };
 
