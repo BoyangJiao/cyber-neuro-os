@@ -42,15 +42,18 @@ import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
 import { NeuralUplinkWindow } from './components/agent/NeuralUplinkWindow'
-import { TimeTunnelTransition } from './components/effects/TimeTunnelTransition'
+import { TimeTunnelTransition } from './components/effects/TimeTunnelTransition';
 import { useSoundSystem } from './hooks/useSoundSystem';
+import { useIdleTimer } from './hooks/useIdleTimer';
+
+const DreamMode = lazy(() => import('./components/dream/DreamMode'));
 
 import { useQuery } from './sanity/client'
 import { PROJECTS_QUERY } from './sanity/queries'
 import type { SanityProjectRaw } from './sanity/types'
 
 function App() {
-  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode, isDeepDiveTransitioning } = useAppStore(useShallow(state => ({
+  const { isBootSequenceActive, setBootSequence, isAboutMeOpen, isSettingsOpen, debugMode, brandTheme, isDeepDiveMode, isDeepDiveTransitioning, isDreamMode } = useAppStore(useShallow(state => ({
     isBootSequenceActive: state.isBootSequenceActive,
     setBootSequence: state.setBootSequence,
     isAboutMeOpen: state.isAboutMeOpen,
@@ -58,7 +61,8 @@ function App() {
     debugMode: state.debugMode,
     brandTheme: state.brandTheme,
     isDeepDiveMode: state.isDeepDiveMode,
-    isDeepDiveTransitioning: state.isDeepDiveTransitioning
+    isDeepDiveTransitioning: state.isDeepDiveTransitioning,
+    isDreamMode: state.isDreamMode
   })));
   const { language, setProjects } = useProjectStore(useShallow(state => ({
     language: state.language,
@@ -70,6 +74,9 @@ function App() {
   useEffect(() => {
     initAudio();
   }, [initAudio]);
+
+  // Idle timer for Dream Mode screensaver
+  useIdleTimer();
 
   // Enable live mode for Sanity drafts in Presentation mode
   useLiveMode({
@@ -135,6 +142,15 @@ function App() {
       <AnimatePresence mode="wait">
         {isBootSequenceActive && (
           <BootScreen onComplete={() => setBootSequence(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Dream Mode Screensaver — above everything */}
+      <AnimatePresence>
+        {isDreamMode && (
+          <Suspense fallback={<div className="fixed inset-0 z-[200] bg-black" />}>
+            <DreamMode />
+          </Suspense>
         )}
       </AnimatePresence>
 

@@ -68,6 +68,10 @@ interface AppState {
     // Feature Intro Animation Flag
     hasPlayedFeatureIntro: boolean;
     setHasPlayedFeatureIntro: (played: boolean) => void;
+
+    // Dream Mode (Screensaver)
+    isDreamMode: boolean;
+    setDreamMode: (mode: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -127,4 +131,14 @@ export const useAppStore = create<AppState>((set) => ({
     // Feature Intro Animation Flag
     hasPlayedFeatureIntro: false,
     setHasPlayedFeatureIntro: (played) => set({ hasPlayedFeatureIntro: played }),
+
+    // Dream Mode (Screensaver)
+    isDreamMode: false,
+    setDreamMode: (mode) => set({ isDreamMode: mode }),
 }));
+
+// Expose store to window for staging/testing trigger
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    (window as any).useAppStore = useAppStore;
+}
+
