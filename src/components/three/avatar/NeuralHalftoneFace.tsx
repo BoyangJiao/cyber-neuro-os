@@ -25,10 +25,13 @@ interface Props {
     autoTalk?: boolean;
     intensity?: number;
     grid?: number;     // cells across the width
-    shimmer?: number;
     maxYaw?: number;   // max left/right head turn (radians)
     maxPitch?: number; // max up/down head tilt (radians)
     headScale?: number; // overall head size on screen (1 = fills frame)
+    scanAngle?: number;     // scanline direction (degrees)
+    scanIntensity?: number; // 0..1
+    glitch?: number;        // 0..1
+    intro?: boolean;        // play the grid entrance ramp on mount
 }
 
 function speechJaw(t: number): number {
@@ -53,24 +56,36 @@ const halftoneFrag = /* glsl */ `
   uniform float uGrid;        // cells across width
   uniform float uTime;
   uniform float uIntensity;
-  uniform float uShimmer;
   uniform vec3 uNear;         // bright (high luminance)
   uniform vec3 uFar;          // dim  (low luminance)
+  uniform float uScanAngle;   // scanline direction (degrees)
+  uniform float uScanIntensity;
+  uniform float uScanFreq;
+  uniform float uScanSpeed;
+  uniform float uGlitch;      // 0..1
   varying vec2 vUv;
 
   float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+  float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
   void main() {
+    float aspect = uResolution.x / uResolution.y;
     float cellPx = uResolution.x / uGrid;     // square cell size in px
     vec2 cells = uResolution / cellPx;        // cell counts (x,y)
     vec2 cellId = floor(vUv * cells);
     vec2 cellCenter = (cellId + 0.5) / cells;
 
+    // ── Glitch: per-band horizontal displacement in bursts ──
+    float gActive = 0.0;
+    if (uGlitch > 0.001) {
+      float band = floor(vUv.y * 26.0);
+      float tt = floor(uTime * 14.0);
+      gActive = step(1.0 - uGlitch * 0.6, hash(vec2(band, tt)));
+      cellCenter.x += gActive * (hash(vec2(band, tt + 3.0)) - 0.5) * 0.12 * uGlitch;
+    }
+
     vec4 s = texture2D(uFace, cellCenter);
     float lum = luma(s.rgb) * s.a;            // mask out background
-
-    // subtle per-cell scan flicker
-    lum *= 0.9 + 0.1 * sin(uTime * 6.0 + cellId.x * 0.7 + cellId.y * 1.3);
 
     vec2 d = (vUv - cellCenter) * cells;      // square local coords [-0.5,0.5]
     float dist = length(d);
@@ -79,6 +94,20 @@ const halftoneFrag = /* glsl */ `
 
     vec3 col = mix(uFar, uNear, clamp(lum, 0.0, 1.0));
     float a = dot * (0.25 + lum) * uIntensity;
+
+    // ── Directional scanlines (adjustable angle) ──
+    float ang = radians(uScanAngle);
+    vec2 dir = vec2(cos(ang), sin(ang));
+    float sl = 0.5 + 0.5 * sin(dot(vUv * vec2(aspect, 1.0), dir) * uScanFreq - uTime * uScanSpeed);
+    a *= mix(1.0, sl, uScanIntensity);
+
+    // ── Glitch colour split + flicker on active bands ──
+    if (gActive > 0.5) {
+      col = mix(col, col.gbr, 0.6 * uGlitch);
+      a *= 1.0 - 0.35 * uGlitch;
+      a += 0.12 * uGlitch * dot;
+    }
+
     if (a < 0.002) discard;
     gl_FragColor = vec4(col, a);
   }
@@ -90,14 +119,18 @@ export const NeuralHalftoneFace = ({
     autoTalk = false,
     intensity = 1.0,
     grid = 150,
-    shimmer = 0.0,
     maxYaw = 0.45,
     maxPitch = 0.28,
     headScale = 0.8,
+    scanAngle = 0,
+    scanIntensity = 0.18,
+    glitch = 0,
+    intro = true,
 }: Props) => {
     const { gl, size, pointer } = useThree();
     const { scene } = useGLTF(modelUrl);
     const jawRef = useRef(0);
+    const introT = useRef(intro ? 0 : 1);
 
     const built = useMemo(() => {
         scene.updateMatrixWorld(true);
@@ -142,8 +175,8 @@ export const NeuralHalftoneFace = ({
         const w = Math.max(2, Math.floor(size.width));
         const h = Math.max(2, Math.floor(size.height));
         const headCam = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
-        headCam.position.set(0, 0.15, 6);
-        headCam.lookAt(0, 0.1, 0);
+        headCam.position.set(0, 0, 6);   // dead-centered
+        headCam.lookAt(0, 0, 0);
 
         const fbo = new THREE.WebGLRenderTarget(w, h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
 
@@ -154,9 +187,13 @@ export const NeuralHalftoneFace = ({
                 uGrid: { value: grid },
                 uTime: { value: 0 },
                 uIntensity: { value: intensity },
-                uShimmer: { value: shimmer },
                 uNear: { value: new THREE.Color('#e6ffff') },
                 uFar: { value: new THREE.Color('#0e3fb0') },
+                uScanAngle: { value: scanAngle },
+                uScanIntensity: { value: scanIntensity },
+                uScanFreq: { value: 140.0 },
+                uScanSpeed: { value: 3.0 },
+                uGlitch: { value: glitch },
             },
             vertexShader: quadVert,
             fragmentShader: halftoneFrag,
@@ -183,7 +220,15 @@ export const NeuralHalftoneFace = ({
         const bl = blink(u.uTime.value);
         u.uTime.value += delta;
         u.uIntensity.value = intensity;
-        u.uGrid.value = grid;
+        u.uScanAngle.value = scanAngle;
+        u.uScanIntensity.value = scanIntensity;
+        u.uGlitch.value = glitch;
+
+        // Entrance ramp: grid builds 60 → target in rhythmic steps over ~2.2s.
+        introT.current = Math.min(1, introT.current + delta / 2.2);
+        const ease = 1 - Math.pow(1 - introT.current, 3);          // easeOutCubic
+        const stepped = Math.floor(ease * 6 + 0.0001) / 6;          // 6 rhythmic steps
+        u.uGrid.value = introT.current >= 1 ? grid : 60 + (grid - 60) * stepped;
 
         const inf = faceMesh.morphTargetInfluences;
         if (inf) {

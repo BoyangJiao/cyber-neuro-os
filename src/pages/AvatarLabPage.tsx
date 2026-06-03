@@ -12,7 +12,6 @@ import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@re
 import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
 import { NeuralScanFace } from '../components/three/avatar/NeuralScanFace';
 import { NeuralHalftoneFace } from '../components/three/avatar/NeuralHalftoneFace';
-import { HalftoneAtmosphere } from '../components/three/avatar/HalftoneAtmosphere';
 import { TypewriterTranscript } from '../components/agent/TypewriterTranscript';
 
 type Mode = 'halftone' | 'scan' | 'entity';
@@ -26,6 +25,9 @@ export const AvatarLabPage = () => {
     const [mode, setMode] = useState<Mode>('halftone');
     const [grid, setGrid] = useState(150);
     const [headScale, setHeadScale] = useState(0.8);
+    const [scanAngle, setScanAngle] = useState(0);
+    const [scanIntensity, setScanIntensity] = useState(0.18);
+    const [glitch, setGlitch] = useState(0);
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -52,7 +54,6 @@ export const AvatarLabPage = () => {
                 gl={{ alpha: false, antialias: true }}
                 dpr={[1, 1.5]}
             >
-                {mode === 'halftone' && <HalftoneAtmosphere />}
                 {mode === 'halftone' && (
                     <NeuralHalftoneFace
                         modelUrl={modelUrl}
@@ -61,6 +62,9 @@ export const AvatarLabPage = () => {
                         intensity={intensity}
                         grid={grid}
                         headScale={headScale}
+                        scanAngle={scanAngle}
+                        scanIntensity={scanIntensity}
+                        glitch={glitch}
                     />
                 )}
                 {mode === 'scan' && (
@@ -119,6 +123,9 @@ export const AvatarLabPage = () => {
                     ? sliderRow('GRID (dots)', grid, 60, 320, 2, setGrid)
                     : sliderRow('POINT_SIZE', pointScale, 0.4, 2.0, 0.05, setPointScale)}
                 {mode === 'halftone' && sliderRow('HEAD_SIZE', headScale, 0.4, 1.2, 0.02, setHeadScale)}
+                {mode === 'halftone' && sliderRow('SCAN_ANGLE', scanAngle, 0, 180, 1, setScanAngle)}
+                {mode === 'halftone' && sliderRow('SCANLINE', scanIntensity, 0, 0.8, 0.02, setScanIntensity)}
+                {mode === 'halftone' && sliderRow('GLITCH', glitch, 0, 1, 0.02, setGlitch)}
 
                 <button
                     onClick={() => setAutoTalk((v) => !v)}
