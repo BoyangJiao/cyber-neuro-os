@@ -1,0 +1,25 @@
+# Cyber Neuro OS — pre-commit (budget: seconds, changed files only)
+# Bypass when justified: git commit --no-verify
+
+# 1. Secret-leak guard — block obvious keys/tokens in the staged diff.
+#    Skips .env.example (documented placeholders only).
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep -v '\.env\.example$' || true)
+if [ -n "$staged" ]; then
+  if git diff --cached -- $staged | grep -nEi \
+      '(sk-[a-zA-Z0-9]{16,}|DASHSCOPE_API_KEY[[:space:]]*=[[:space:]]*[^[:space:]]|SANITY_AUTH_TOKEN[[:space:]]*=[[:space:]]*[^[:space:]]|AKIA[0-9A-Z]{16})' \
+      >/dev/null; then
+    echo "✖ pre-commit: a possible secret/token was found in the staged diff."
+    echo "  Remove it (use Vercel env / .env.local). Override with --no-verify if it's a false positive."
+    exit 1
+  fi
+fi
+
+# 2. Lint changed .ts/.tsx files — ADVISORY for now (the repo has a ~102-error
+#    legacy ESLint baseline; touched legacy files still carry those). Reports but
+#    never blocks and never mutates the tree. To make it a hard gate once the
+#    baseline is zero: drop the trailing `|| echo …` so a non-zero eslint exit
+#    fails the commit. See HARNESS.md.
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+if [ -n "$changed" ]; then
+  npx eslint $changed || echo "⚠ ESLint reported issues on changed files (advisory — baseline not yet zero; review before push)"
+fi

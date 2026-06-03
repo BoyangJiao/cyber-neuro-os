@@ -1,0 +1,16 @@
+{
+  "kitVersion": "0.1.0",
+  "installedAt": "2026-06-03T07:06:04.356Z",
+  "adaptedAt": "2026-06-03",
+  "mode": "fresh",
+  "adopted": {
+    "specs": ".specify/ (markdown: constitution, session-state, feature-spec, README) + docs/adr/",
+    "entryPoint": "AGENTS.md → CLAUDE.md (canonical) + .cursor/rules/000-canonical.mdc (mirror)",
+    "routing": "CLAUDE.md model-routing table (balanced posture)",
+    "gitHooks": "husky@9 (pre-commit: secret-scan hard + advisory eslint on changed; pre-push: tsc)",
+    "ci": "GitHub Actions .github/workflows/ci.yml (typecheck+build hard, lint advisory)",
+    "tests": "deferred — recommend vitest + happy-dom for sanitizeEmbed",
+    "skills": ".claude/skills/checkpoint"
+  },
+  "notes": "ESLint has ~102 pre-existing baseline errors; CI lint is advisory until burned down. StrictMode re-enable deferred. Run `npx @boyangjiao/headless-harness-kit upgrade` to re-sync methodology deltas."
+}

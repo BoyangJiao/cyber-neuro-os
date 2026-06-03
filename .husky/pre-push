@@ -1,0 +1,10 @@
+# Cyber Neuro OS — pre-push (the local hard gate before remote)
+# Bypass when justified: git push --no-verify
+
+# Full project typecheck — must be zero errors (constitution P0).
+echo "▶ pre-push: typecheck (tsc -b)…"
+if ! npm run --silent typecheck; then
+  echo "✖ pre-push: tsc reported errors. Fix them or push with --no-verify if intentional."
+  exit 1
+fi
+echo "✅ typecheck clean"
