@@ -16,6 +16,8 @@ export const AvatarLabPage = () => {
     const [autoTalk, setAutoTalk] = useState(false);
     const [intensity, setIntensity] = useState(1.0);
     const [pointScale, setPointScale] = useState(1.0);
+    const [showWire, setShowWire] = useState(true);
+    const [showPoints, setShowPoints] = useState(true);
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -35,6 +37,8 @@ export const AvatarLabPage = () => {
                     intensity={intensity}
                     pointScale={pointScale}
                     modelUrl={modelUrl}
+                    showWire={showWire}
+                    showPoints={showPoints}
                 />
                 <OrbitControls enablePan={false} minDistance={3} maxDistance={14} target={[0, 0.2, 0]} />
             </Canvas>
@@ -84,6 +88,25 @@ export const AvatarLabPage = () => {
                     onChange={(e) => setPointScale(parseFloat(e.target.value))}
                     className="w-full accent-brand-primary"
                 />
+
+                <div className="mt-4 flex gap-2">
+                    <button
+                        onClick={() => setShowWire((v) => !v)}
+                        className={`flex-1 rounded border px-2 py-1.5 tracking-widest transition-colors ${
+                            showWire ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'
+                        }`}
+                    >
+                        WIRE
+                    </button>
+                    <button
+                        onClick={() => setShowPoints((v) => !v)}
+                        className={`flex-1 rounded border px-2 py-1.5 tracking-widest transition-colors ${
+                            showPoints ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'
+                        }`}
+                    >
+                        POINTS
+                    </button>
+                </div>
 
                 <button
                     onClick={() => setAutoTalk((v) => !v)}

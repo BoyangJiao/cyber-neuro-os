@@ -1,14 +1,15 @@
 /**
- * NeuralEntity — the holographic particle AI avatar.
+ * NeuralEntity — the holographic particle/wireframe AI avatar.
  *
- * Two paths:
- *  • Morph model (e.g. facecap.glb, ARKit blendshapes): render the model's OWN
- *    vertices (head + eyes + teeth) as a glowing point cloud and deform the head
- *    points with the REAL `jawOpen` blendshape (+ idle blink) — manual delta blend
- *    of the morph targets, so it's cheap and allocation-free per frame.
- *  • Static model (LeePerrySmith): sample vertices + a procedural jaw stand-in.
- *
- * Either way the look is the shared additive-glow shader.
+ * Morph model (e.g. facecap.glb, ARKit blendshapes):
+ *   • a deforming WIREFRAME of the head mesh (native morph targets — the whole
+ *     surface moves coherently when the jaw opens) → reads clearly as a face and
+ *     looks like an intentional digital construct (escapes the uncanny valley).
+ *   • an optional layer of glowing POINTS on the same vertices for sparkle
+ *     (CPU delta-blend of the same morphs).
+ *   • driven by the real `jawOpen` blendshape + idle eye-blink. Eyes/teeth meshes
+ *     are dropped (the realistic eyeball topology reads as creepy spirals).
+ * Static model (LeePerrySmith): sampled points + a procedural jaw stand-in.
  */
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -20,18 +21,19 @@ import { avatarVertexShader, avatarFragmentShader } from './avatarShader';
 const HEAD_MODEL_URL = '/models/LeePerrySmith-draco.glb';
 
 const FIT_RADIUS = 2.4;
-const MAX_POINTS = 28000; // fallback sampling cap (morph models use all vertices)
+const MAX_POINTS = 28000;
 
 interface NeuralEntityProps {
-    jawOpen?: number;        // 0..1, driven later by audio/visemes
-    autoTalk?: boolean;      // self-animate a speech-like jaw waveform
-    breath?: number;         // idle breathing amplitude
-    intensity?: number;      // global luminance
-    pointScale?: number;     // global point-size multiplier
-    modelUrl?: string;       // GLB to load
+    jawOpen?: number;
+    autoTalk?: boolean;
+    breath?: number;
+    intensity?: number;
+    pointScale?: number;
+    modelUrl?: string;
+    showWire?: boolean;   // wireframe surface (morph models)
+    showPoints?: boolean; // glowing point layer
 }
 
-/** Pseudo-speech jaw envelope in [0,1] — layered sines + a syllable gate. */
 function speechJaw(t: number): number {
     const syllable = Math.sin(t * 9.0) * 0.5 + 0.5;
     const flutter = Math.sin(t * 23.0) * 0.25 + 0.75;
@@ -39,35 +41,32 @@ function speechJaw(t: number): number {
     return Math.max(0, syllable * flutter * gate);
 }
 
-/** Periodic eye-blink envelope in [0,1] (quick close, quick open, long gaps). */
 function blink(t: number): number {
-    const phase = (t % 4.2) / 4.2;           // a blink roughly every ~4s
+    const phase = (t % 4.2) / 4.2;
     if (phase > 0.06) return 0;
-    const x = phase / 0.06;                   // 0..1 across the blink
-    return Math.sin(x * Math.PI);             // up then down
+    return Math.sin((phase / 0.06) * Math.PI);
 }
 
-// ── Morph-model driving data (built once per model) ──────────────────────────
 interface MorphDrive {
-    headMesh: THREE.Mesh;
-    headMatrix: THREE.Matrix4;
-    headStart: number;          // point index where head vertices begin
-    headCount: number;          // number of head vertices
-    base: Float32Array;         // neutral local positions (3×headCount)
-    jaw: Float32Array | null;   // jawOpen deltas
+    headCount: number;
+    base: Float32Array;
+    jaw: Float32Array | null;
     blinkL: Float32Array | null;
     blinkR: Float32Array | null;
-    center: THREE.Vector3;
-    scale: number;
+    matrix: THREE.Matrix4;      // local → normalized world
+    jawIdx?: number;
+    blinkLIdx?: number;
+    blinkRIdx?: number;
 }
 
 interface Built {
     geometry: THREE.BufferGeometry;
     material: THREE.ShaderMaterial;
     morph: MorphDrive | null;
+    wireMesh: THREE.Mesh | null;
+    wireMat: THREE.MeshBasicMaterial | null;
 }
 
-/** Collect every mesh's world-space vertices (deduped traversal). */
 function collectMeshes(scene: THREE.Group): THREE.Mesh[] {
     const meshes: THREE.Mesh[] = [];
     scene.updateMatrixWorld(true);
@@ -78,6 +77,12 @@ function collectMeshes(scene: THREE.Group): THREE.Mesh[] {
     return meshes;
 }
 
+/** Normalization matrix: local → (matrixWorld → center/scale-fit to FIT_RADIUS). */
+function normMatrix(matrixWorld: THREE.Matrix4, center: THREE.Vector3, scale: number): THREE.Matrix4 {
+    const M = new THREE.Matrix4().makeScale(scale, scale, scale).multiply(matrixWorld);
+    return M.premultiply(new THREE.Matrix4().makeTranslation(-center.x * scale, -center.y * scale, -center.z * scale));
+}
+
 export const NeuralEntity = ({
     jawOpen = 0,
     autoTalk = false,
@@ -85,17 +90,18 @@ export const NeuralEntity = ({
     intensity = 1.0,
     pointScale = 1.0,
     modelUrl = HEAD_MODEL_URL,
+    showWire = true,
+    showPoints = true,
 }: NeuralEntityProps) => {
     const pointsRef = useRef<THREE.Points>(null);
     const jawRef = useRef(0);
     const { primary } = useThemeColors();
     const { scene } = useGLTF(modelUrl);
 
-    const { geometry, material, morph } = useMemo<Built>(() => {
+    const { geometry, material, morph, wireMesh, wireMat } = useMemo<Built>(() => {
         const meshes = collectMeshes(scene);
         const headMesh = meshes.find((m) => m.morphTargetDictionary && 'jawOpen' in m.morphTargetDictionary);
 
-        // ── Shared material ──
         const mat = new THREE.ShaderMaterial({
             uniforms: {
                 uTime: { value: 0 },
@@ -116,90 +122,86 @@ export const NeuralEntity = ({
             blending: THREE.AdditiveBlending,
         });
 
-        // ════════════════════════════════════════════════════════════════════
-        // MORPH MODEL — use the real geometry + real blendshapes
-        // ════════════════════════════════════════════════════════════════════
+        // ── MORPH MODEL: head-only wireframe + points, native + CPU morph ──
         if (headMesh) {
-            // Order meshes so the head block is contiguous and first.
-            const ordered = [headMesh, ...meshes.filter((m) => m !== headMesh)];
+            const headGeo = headMesh.geometry;
+            const headPos = headGeo.getAttribute('position');
+            const count = headPos.count;
 
-            // Neutral world positions of every vertex (for normalization + statics).
+            // Neutral bounds (world space) for normalization.
             const tmp = new THREE.Vector3();
             const bbox = new THREE.Box3();
-            const meshWorldVerts: THREE.Vector3[][] = ordered.map((m) => {
-                const pos = m.geometry.getAttribute('position');
-                const out: THREE.Vector3[] = [];
-                for (let i = 0; i < pos.count; i++) {
-                    tmp.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(m.matrixWorld);
-                    out.push(tmp.clone());
-                    bbox.expandByPoint(tmp);
-                }
-                return out;
-            });
-
+            for (let i = 0; i < count; i++) {
+                tmp.set(headPos.getX(i), headPos.getY(i), headPos.getZ(i)).applyMatrix4(headMesh.matrixWorld);
+                bbox.expandByPoint(tmp);
+            }
             const center = bbox.getCenter(new THREE.Vector3());
             const size = bbox.getSize(new THREE.Vector3());
             const scale = (FIT_RADIUS * 2) / (Math.max(size.x, size.y, size.z) || 1);
+            const matrix = normMatrix(headMesh.matrixWorld, center, scale);
 
-            const total = meshWorldVerts.reduce((s, v) => s + v.length, 0);
-            const positions = new Float32Array(total * 3);
-            const sizes = new Float32Array(total);
-            const phases = new Float32Array(total);
-            const jawWeights = new Float32Array(total); // unused for morph path (0)
-
-            let w = 0;
-            for (const verts of meshWorldVerts) {
-                for (const v of verts) {
-                    positions[w * 3] = (v.x - center.x) * scale;
-                    positions[w * 3 + 1] = (v.y - center.y) * scale;
-                    positions[w * 3 + 2] = (v.z - center.z) * scale;
-                    sizes[w] = 0.55 + Math.random() * 0.6;
-                    phases[w] = Math.random();
-                    w++;
-                }
+            // Points geometry (neutral normalized positions of head verts).
+            const positions = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+            const phases = new Float32Array(count);
+            const jawWeights = new Float32Array(count);
+            for (let i = 0; i < count; i++) {
+                tmp.set(headPos.getX(i), headPos.getY(i), headPos.getZ(i)).applyMatrix4(matrix);
+                positions[i * 3] = tmp.x;
+                positions[i * 3 + 1] = tmp.y;
+                positions[i * 3 + 2] = tmp.z;
+                sizes[i] = 0.5 + Math.random() * 0.5;
+                phases[i] = Math.random();
             }
-
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
             geo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
             geo.setAttribute('aJawWeight', new THREE.BufferAttribute(jawWeights, 1));
 
-            // Head morph deltas (glTF morph targets are relative deltas).
+            // Morph deltas (relative) for the CPU-driven point layer.
             const dict = headMesh.morphTargetDictionary!;
-            const morphPos = headMesh.geometry.morphAttributes.position;
-            const deltaOf = (name: string): Float32Array | null => {
+            const morphPos = headGeo.morphAttributes.position;
+            const deltaOf = (name: string) => {
                 const idx = dict[name];
-                if (idx === undefined || !morphPos?.[idx]) return null;
-                return morphPos[idx].array as Float32Array;
+                return idx !== undefined && morphPos?.[idx] ? (morphPos[idx].array as Float32Array) : null;
             };
-            const headPos = headMesh.geometry.getAttribute('position');
-            const base = new Float32Array(headPos.count * 3);
-            for (let i = 0; i < headPos.count; i++) {
+            const base = new Float32Array(count * 3);
+            for (let i = 0; i < count; i++) {
                 base[i * 3] = headPos.getX(i);
                 base[i * 3 + 1] = headPos.getY(i);
                 base[i * 3 + 2] = headPos.getZ(i);
             }
 
+            // Deforming wireframe of the SAME head geometry (native morph).
+            const wMat = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(primary),
+                wireframe: true,
+                transparent: true,
+                opacity: 0.55,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+            });
+            const wMesh = new THREE.Mesh(headGeo, wMat);
+            wMesh.matrixAutoUpdate = false;
+            wMesh.matrix.copy(matrix);
+
             const morph: MorphDrive = {
-                headMesh,
-                headMatrix: headMesh.matrixWorld.clone(),
-                headStart: 0, // head is first block
-                headCount: headPos.count,
+                headCount: count,
                 base,
                 jaw: deltaOf('jawOpen'),
                 blinkL: deltaOf('eyeBlink_L'),
                 blinkR: deltaOf('eyeBlink_R'),
-                center,
-                scale,
+                matrix,
+                jawIdx: dict['jawOpen'],
+                blinkLIdx: dict['eyeBlink_L'],
+                blinkRIdx: dict['eyeBlink_R'],
             };
 
-            return { geometry: geo, material: mat, morph };
+            return { geometry: geo, material: mat, morph, wireMesh: wMesh, wireMat: wMat };
         }
 
-        // ════════════════════════════════════════════════════════════════════
-        // STATIC MODEL — sample + procedural jaw (LeePerrySmith fallback)
-        // ════════════════════════════════════════════════════════════════════
+        // ── STATIC MODEL: sampled points + procedural jaw (LeePerrySmith) ──
         const verts: THREE.Vector3[] = [];
         for (const m of meshes) {
             const pos = m.geometry.getAttribute('position');
@@ -212,7 +214,6 @@ export const NeuralEntity = ({
         const center = bbox.getCenter(new THREE.Vector3());
         const size = bbox.getSize(new THREE.Vector3());
         const scale = (FIT_RADIUS * 2) / (Math.max(size.x, size.y, size.z) || 1);
-
         const stride = Math.max(1, Math.floor(verts.length / MAX_POINTS));
         const kept: THREE.Vector3[] = [];
         for (let i = 0; i < verts.length; i += stride) kept.push(verts[i].sub(center).multiplyScalar(scale));
@@ -222,15 +223,10 @@ export const NeuralEntity = ({
         const sizes = new Float32Array(n);
         const phases = new Float32Array(n);
         const jawWeights = new Float32Array(n);
-
-        const MOUTH_D = 0.10 * FIT_RADIUS;
-        const CHIN_D = 0.42 * FIT_RADIUS;
-        const NECK_D = 0.66 * FIT_RADIUS;
+        const MOUTH_D = 0.10 * FIT_RADIUS, CHIN_D = 0.42 * FIT_RADIUS, NECK_D = 0.66 * FIT_RADIUS;
         for (let i = 0; i < n; i++) {
             const v = kept[i];
-            positions[i * 3] = v.x;
-            positions[i * 3 + 1] = v.y;
-            positions[i * 3 + 2] = v.z;
+            positions[i * 3] = v.x; positions[i * 3 + 1] = v.y; positions[i * 3 + 2] = v.z;
             sizes[i] = 0.55 + Math.random() * 0.6;
             phases[i] = Math.random();
             const d = -v.y;
@@ -239,7 +235,6 @@ export const NeuralEntity = ({
             const frontish = THREE.MathUtils.smoothstep(v.z, -0.1 * FIT_RADIUS, 0.5 * FIT_RADIUS);
             jawWeights[i] = open * notNeck * frontish;
         }
-
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
@@ -247,19 +242,20 @@ export const NeuralEntity = ({
         geo.setAttribute('aJawWeight', new THREE.BufferAttribute(jawWeights, 1));
         mat.uniforms.uJawHinge.value.set(0, -MOUTH_D, -0.25 * FIT_RADIUS);
 
-        return { geometry: geo, material: mat, morph: null };
+        return { geometry: geo, material: mat, morph: null, wireMesh: null, wireMat: null };
     }, [scene]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => () => {
         geometry.dispose();
         material.dispose();
-    }, [geometry, material]);
+        wireMat?.dispose();
+    }, [geometry, material, wireMat]);
 
     useEffect(() => {
         material.uniforms.uColor.value.set(primary);
-    }, [material, primary]);
+        wireMat?.color.set(primary);
+    }, [material, wireMat, primary]);
 
-    // Reusable scratch to avoid per-frame allocation in the morph path.
     const scratch = useRef(new THREE.Vector3());
 
     useFrame((_, delta) => {
@@ -270,33 +266,43 @@ export const NeuralEntity = ({
 
         const target = autoTalk ? speechJaw(u.uTime.value) : jawOpen;
         jawRef.current += (target - jawRef.current) * Math.min(1, delta * 18);
+        const bl = morph ? blink(u.uTime.value) : 0;
 
         if (morph) {
-            // Real blendshape deform: morphed = base + jaw*Δjaw + blink*Δblink.
-            const { base, jaw, blinkL, blinkR, headMatrix, center, scale, headCount } = morph;
-            const bl = blink(u.uTime.value);
-            const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
-            const arr = posAttr.array as Float32Array;
-            const m = headMatrix;
-            const v = scratch.current;
-            for (let i = 0; i < headCount; i++) {
-                const i3 = i * 3;
-                let lx = base[i3], ly = base[i3 + 1], lz = base[i3 + 2];
-                if (jaw) { lx += jawRef.current * jaw[i3]; ly += jawRef.current * jaw[i3 + 1]; lz += jawRef.current * jaw[i3 + 2]; }
-                if (blinkL) { lx += bl * blinkL[i3]; ly += bl * blinkL[i3 + 1]; lz += bl * blinkL[i3 + 2]; }
-                if (blinkR) { lx += bl * blinkR[i3]; ly += bl * blinkR[i3 + 1]; lz += bl * blinkR[i3 + 2]; }
-                v.set(lx, ly, lz).applyMatrix4(m);
-                arr[i3] = (v.x - center.x) * scale;
-                arr[i3 + 1] = (v.y - center.y) * scale;
-                arr[i3 + 2] = (v.z - center.z) * scale;
+            // Drive the wireframe's native morph influences.
+            if (wireMesh?.morphTargetInfluences) {
+                const inf = wireMesh.morphTargetInfluences;
+                if (morph.jawIdx !== undefined) inf[morph.jawIdx] = jawRef.current;
+                if (morph.blinkLIdx !== undefined) inf[morph.blinkLIdx] = bl;
+                if (morph.blinkRIdx !== undefined) inf[morph.blinkRIdx] = bl;
             }
-            posAttr.needsUpdate = true;
+            // CPU delta-blend the point layer to match (only when visible).
+            if (showPoints) {
+                const { base, jaw, blinkL, blinkR, matrix, headCount } = morph;
+                const arr = (geometry.getAttribute('position') as THREE.BufferAttribute).array as Float32Array;
+                const v = scratch.current;
+                for (let i = 0; i < headCount; i++) {
+                    const i3 = i * 3;
+                    let lx = base[i3], ly = base[i3 + 1], lz = base[i3 + 2];
+                    if (jaw) { lx += jawRef.current * jaw[i3]; ly += jawRef.current * jaw[i3 + 1]; lz += jawRef.current * jaw[i3 + 2]; }
+                    if (blinkL) { lx += bl * blinkL[i3]; ly += bl * blinkL[i3 + 1]; lz += bl * blinkL[i3 + 2]; }
+                    if (blinkR) { lx += bl * blinkR[i3]; ly += bl * blinkR[i3 + 1]; lz += bl * blinkR[i3 + 2]; }
+                    v.set(lx, ly, lz).applyMatrix4(matrix);
+                    arr[i3] = v.x; arr[i3 + 1] = v.y; arr[i3 + 2] = v.z;
+                }
+                (geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
+            }
         } else {
-            u.uJawOpen.value = jawRef.current; // procedural path
+            u.uJawOpen.value = jawRef.current;
         }
     });
 
-    return <points ref={pointsRef} geometry={geometry} material={material} />;
+    return (
+        <>
+            {showPoints && <points ref={pointsRef} geometry={geometry} material={material} />}
+            {showWire && wireMesh && <primitive object={wireMesh} />}
+        </>
+    );
 };
 
 useGLTF.preload(HEAD_MODEL_URL);
