@@ -19,6 +19,8 @@ const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module
 
 const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').then(module => ({ default: module.SynthesisLandingPage })));
 const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
+// DEV-ONLY: Phase 0 proving ground for the Neural Entity avatar (not shipped).
+const AvatarLabPage = lazy(() => import('./pages/AvatarLabPage').then(module => ({ default: module.AvatarLabPage })));
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
@@ -215,6 +217,14 @@ function App() {
                       <LabLandingPage />
                     </Suspense>
                   } />
+                  {/* DEV-ONLY avatar proving ground — never registered in production builds */}
+                  {import.meta.env.DEV && (
+                    <Route path="/avatar-lab" element={
+                      <Suspense fallback={<ShimmerLoader variant="overlay" label="[ BOOTING_NEURAL_ENTITY... ]" />}>
+                        <AvatarLabPage />
+                      </Suspense>
+                    } />
+                  )}
                 </Routes>
 
                 {/* About Me Modal - 覆盖在 main-mid 区域内 */}
