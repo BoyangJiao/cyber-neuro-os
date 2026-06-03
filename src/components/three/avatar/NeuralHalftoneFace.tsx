@@ -26,6 +26,8 @@ interface Props {
     intensity?: number;
     grid?: number;     // cells across the width
     shimmer?: number;
+    maxYaw?: number;   // max left/right head turn (radians)
+    maxPitch?: number; // max up/down head tilt (radians)
 }
 
 function speechJaw(t: number): number {
@@ -88,8 +90,10 @@ export const NeuralHalftoneFace = ({
     intensity = 1.0,
     grid = 150,
     shimmer = 0.0,
+    maxYaw = 0.45,
+    maxPitch = 0.28,
 }: Props) => {
-    const { gl, size } = useThree();
+    const { gl, size, pointer } = useThree();
     const { scene } = useGLTF(modelUrl);
     const jawRef = useRef(0);
 
@@ -120,10 +124,14 @@ export const NeuralHalftoneFace = ({
         faceMesh.material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.0 });
         faceMesh.matrixAutoUpdate = false;
         faceMesh.matrix.copy(matrix);
-        faceMesh.updateMatrixWorld(true);
+
+        // Pivot wraps the (origin-centered) face so we can rotate it in place
+        // within limits while keeping the screen-space halftone.
+        const pivot = new THREE.Group();
+        pivot.add(faceMesh);
 
         const headScene = new THREE.Scene();
-        headScene.add(faceMesh);
+        headScene.add(pivot);
         const key = new THREE.DirectionalLight(0xffffff, 2.6);
         key.position.set(0, 0.4, 4);
         headScene.add(key);
@@ -158,7 +166,7 @@ export const NeuralHalftoneFace = ({
 
         const dict = head.morphTargetDictionary!;
         return {
-            faceMesh, headScene, headCam, fbo, material,
+            faceMesh, pivot, headScene, headCam, fbo, material,
             jawIdx: dict['jawOpen'], blinkLIdx: dict['eyeBlink_L'], blinkRIdx: dict['eyeBlink_R'],
         };
     }, [scene, size.width, size.height]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -181,6 +189,17 @@ export const NeuralHalftoneFace = ({
             if (built.blinkLIdx !== undefined) inf[built.blinkLIdx] = bl;
             if (built.blinkRIdx !== undefined) inf[built.blinkRIdx] = bl;
         }
+
+        // Limited head rotation: follow the cursor within ±maxYaw/±maxPitch,
+        // plus a slow idle drift so it feels alive when the cursor is still.
+        const t = u.uTime.value;
+        const tYaw = pointer.x * maxYaw + Math.sin(t * 0.25) * 0.05;
+        const tPitch = -pointer.y * maxPitch + Math.sin(t * 0.21) * 0.03;
+        const pivot = built.pivot;
+        pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
+        pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);
+        pivot.updateMatrixWorld(true);
+
         const prevTarget = gl.getRenderTarget();
         const prevColor = gl.getClearColor(new THREE.Color());
         const prevAlpha = gl.getClearAlpha();
