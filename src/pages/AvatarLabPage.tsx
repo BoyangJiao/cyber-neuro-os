@@ -11,6 +11,9 @@ import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
 import { NeuralScanFace } from '../components/three/avatar/NeuralScanFace';
+import { NeuralHalftoneFace } from '../components/three/avatar/NeuralHalftoneFace';
+
+type Mode = 'halftone' | 'scan' | 'entity';
 
 export const AvatarLabPage = () => {
     const [jawOpen, setJawOpen] = useState(0);
@@ -18,9 +21,8 @@ export const AvatarLabPage = () => {
     const [intensity, setIntensity] = useState(0.8);
     const [pointScale, setPointScale] = useState(1.0);
     const [bloom, setBloom] = useState(1.6);
-    const [showWire, setShowWire] = useState(false);
-    const [showPoints, setShowPoints] = useState(true);
-    const [scan, setScan] = useState(true); // depth-scan grid (Kinect/Lusion technique)
+    const [mode, setMode] = useState<Mode>('halftone');
+    const [grid, setGrid] = useState(150);
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -47,7 +49,16 @@ export const AvatarLabPage = () => {
                 gl={{ alpha: false, antialias: true }}
                 dpr={[1, 1.5]}
             >
-                {scan ? (
+                {mode === 'halftone' && (
+                    <NeuralHalftoneFace
+                        modelUrl={modelUrl}
+                        jawOpen={jawOpen}
+                        autoTalk={autoTalk}
+                        intensity={intensity}
+                        grid={grid}
+                    />
+                )}
+                {mode === 'scan' && (
                     <NeuralScanFace
                         modelUrl={modelUrl}
                         jawOpen={jawOpen}
@@ -55,18 +66,22 @@ export const AvatarLabPage = () => {
                         intensity={intensity}
                         pointScale={pointScale}
                     />
-                ) : (
+                )}
+                {mode === 'entity' && (
                     <NeuralEntity
                         jawOpen={jawOpen}
                         autoTalk={autoTalk}
                         intensity={intensity}
                         pointScale={pointScale}
                         modelUrl={modelUrl}
-                        showWire={showWire}
-                        showPoints={showPoints}
+                        showWire={false}
+                        showPoints={true}
                     />
                 )}
-                <OrbitControls enablePan={false} minDistance={3} maxDistance={14} target={[0, 0.2, 0]} />
+                {/* Orbit only matters for the 3D modes (halftone is screen-space). */}
+                {mode !== 'halftone' && (
+                    <OrbitControls enablePan={false} minDistance={3} maxDistance={14} target={[0, 0.2, 0]} />
+                )}
 
                 {/* The dreamy "digital veil": bloom halo + subtle chroma split + grain + vignette */}
                 <EffectComposer>
@@ -81,26 +96,23 @@ export const AvatarLabPage = () => {
             <div className="absolute top-4 left-4 w-[280px] rounded border border-brand-primary/30 bg-black/70 p-4 font-mono text-xs text-brand-primary backdrop-blur">
                 <div className="mb-2 tracking-[0.2em] text-brand-primary/70">[ NEURAL_ENTITY · PHASE_0 LAB ]</div>
 
+                {/* Mode selector */}
+                <div className="mb-1 mt-1 flex gap-1">
+                    {(['halftone', 'scan', 'entity'] as Mode[]).map((m) => (
+                        <button
+                            key={m}
+                            onClick={() => setMode(m)}
+                            className={`flex-1 rounded border px-1.5 py-1 text-[10px] tracking-widest uppercase transition-colors ${mode === m ? 'border-brand-primary bg-brand-primary/20' : 'border-brand-primary/30 opacity-50'}`}
+                        >{m === 'halftone' ? 'HALFTONE' : m === 'scan' ? 'SCAN3D' : 'PTS'}</button>
+                    ))}
+                </div>
+
                 {sliderRow('JAW_OPEN', jawOpen, 0, 1, 0.01, setJawOpen, autoTalk)}
                 {sliderRow('BLOOM', bloom, 0, 4, 0.05, setBloom)}
                 {sliderRow('INTENSITY', intensity, 0.2, 2.5, 0.05, setIntensity)}
-                {sliderRow('POINT_SIZE', pointScale, 0.4, 2.0, 0.05, setPointScale)}
-
-                <button
-                    onClick={() => setScan((v) => !v)}
-                    className={`mt-4 w-full rounded border px-2 py-1.5 tracking-widest transition-colors ${scan ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'}`}
-                >SCAN_GRID {scan ? '(Kinect/Lusion)' : 'OFF'}</button>
-
-                <div className={`mt-2 flex gap-2 ${scan ? 'opacity-30 pointer-events-none' : ''}`}>
-                    <button
-                        onClick={() => setShowWire((v) => !v)}
-                        className={`flex-1 rounded border px-2 py-1.5 tracking-widest transition-colors ${showWire ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'}`}
-                    >WIRE</button>
-                    <button
-                        onClick={() => setShowPoints((v) => !v)}
-                        className={`flex-1 rounded border px-2 py-1.5 tracking-widest transition-colors ${showPoints ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'}`}
-                    >POINTS</button>
-                </div>
+                {mode === 'halftone'
+                    ? sliderRow('GRID (dots)', grid, 60, 320, 2, setGrid)
+                    : sliderRow('POINT_SIZE', pointScale, 0.4, 2.0, 0.05, setPointScale)}
 
                 <button
                     onClick={() => setAutoTalk((v) => !v)}
