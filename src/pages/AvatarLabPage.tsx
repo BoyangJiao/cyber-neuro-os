@@ -17,10 +17,10 @@ export const AvatarLabPage = () => {
     const [intensity, setIntensity] = useState(1.0);
     const [pointScale, setPointScale] = useState(1.0);
 
-    // Load any GLB dropped into /public/models via ?model=<file>. Default = head scan.
-    // e.g. /avatar-lab?model=neural-avatar.glb
+    // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
+    // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
     const modelParam = new URLSearchParams(window.location.search).get('model');
-    const modelUrl = modelParam ? `/models/${modelParam}` : undefined;
+    const modelUrl = `/models/${modelParam || 'facecap-clean.glb'}`;
 
     return (
         <div className="fixed inset-0 z-100000 bg-[#020406]">
