@@ -90,10 +90,10 @@ const halftoneFrag = /* glsl */ `
     vec2 d = (vUv - cellCenter) * cells;      // square local coords [-0.5,0.5]
     float dist = length(d);
     float radius = clamp(lum, 0.0, 1.0) * 0.62;
-    float dot = 1.0 - smoothstep(radius - 0.08, radius, dist);
+    float pt = 1.0 - smoothstep(radius - 0.08, radius, dist);   // dot mask (don't shadow dot())
 
     vec3 col = mix(uFar, uNear, clamp(lum, 0.0, 1.0));
-    float a = dot * (0.25 + lum) * uIntensity;
+    float a = pt * (0.25 + lum) * uIntensity;
 
     // ── Directional scanlines (adjustable angle) ──
     float ang = radians(uScanAngle);
@@ -105,7 +105,7 @@ const halftoneFrag = /* glsl */ `
     if (gActive > 0.5) {
       col = mix(col, col.gbr, 0.6 * uGlitch);
       a *= 1.0 - 0.35 * uGlitch;
-      a += 0.12 * uGlitch * dot;
+      a += 0.12 * uGlitch * pt;
     }
 
     if (a < 0.002) discard;
