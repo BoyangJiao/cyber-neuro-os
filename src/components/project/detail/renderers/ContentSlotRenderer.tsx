@@ -10,6 +10,7 @@ import type { ContentBlock, RichTextBlock, MediaBlock, StatsBlock, CompareBlock,
 import { CustomVideoPlayer } from '../../../ui/media/CustomVideoPlayer';
 import { ComparisonSlider } from '../../../ui/media/ComparisonSlider';
 import { CyberTabPanel } from '../../../ui/media/CyberTabPanel';
+import { sanitizeEmbed } from '../../../../utils/sanitizeEmbed';
 
 // Portable Text customization
 // Rich Text Block Renderer
@@ -74,11 +75,7 @@ const RichTextRenderer = ({ block }: { block: RichTextBlock }) => {
     );
 };
 
-// ... (MediaRenderer and StatsRenderer omitted as they don't change, but ensuring we keep them) ...
-// Actually, I need to make sure I don't delete them. Since I'm using replace_file_content with a range, I need to be careful.
-// I will just replace the top part and the ContentSlotRenderer export.
-
-// Re-defining MediaRenderer and StatsRenderer to ensure they are available since I am replacing the block that likely contained ptComponents
+// Media Block Renderer — handles videoEmbed (HTML), video (file/url), and images.
 const MediaRenderer = ({ block }: { block: MediaBlock }) => {
     const objectFit = block.layout === 'cover' ? 'object-cover' : block.layout === 'contain' ? 'object-contain' : 'object-scale-down';
 
@@ -88,7 +85,7 @@ const MediaRenderer = ({ block }: { block: MediaBlock }) => {
             <div className="w-full">
                 <div className="relative rounded-lg overflow-hidden border-0 outline-none ring-0 w-full aspect-video">
                     <div
-                        dangerouslySetInnerHTML={{ __html: block.videoEmbed }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeEmbed(block.videoEmbed) }}
                         className="absolute inset-0 w-full h-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:w-full [&_iframe]:h-full [&_video]:w-full [&_video]:h-full"
                     />
                 </div>
