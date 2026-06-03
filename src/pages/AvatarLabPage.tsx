@@ -10,6 +10,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
+import { NeuralScanFace } from '../components/three/avatar/NeuralScanFace';
 
 export const AvatarLabPage = () => {
     const [jawOpen, setJawOpen] = useState(0);
@@ -19,6 +20,7 @@ export const AvatarLabPage = () => {
     const [bloom, setBloom] = useState(1.6);
     const [showWire, setShowWire] = useState(false);
     const [showPoints, setShowPoints] = useState(true);
+    const [scan, setScan] = useState(true); // depth-scan grid (Kinect/Lusion technique)
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -45,15 +47,25 @@ export const AvatarLabPage = () => {
                 gl={{ alpha: false, antialias: true }}
                 dpr={[1, 1.5]}
             >
-                <NeuralEntity
-                    jawOpen={jawOpen}
-                    autoTalk={autoTalk}
-                    intensity={intensity}
-                    pointScale={pointScale}
-                    modelUrl={modelUrl}
-                    showWire={showWire}
-                    showPoints={showPoints}
-                />
+                {scan ? (
+                    <NeuralScanFace
+                        modelUrl={modelUrl}
+                        jawOpen={jawOpen}
+                        autoTalk={autoTalk}
+                        intensity={intensity}
+                        pointScale={pointScale}
+                    />
+                ) : (
+                    <NeuralEntity
+                        jawOpen={jawOpen}
+                        autoTalk={autoTalk}
+                        intensity={intensity}
+                        pointScale={pointScale}
+                        modelUrl={modelUrl}
+                        showWire={showWire}
+                        showPoints={showPoints}
+                    />
+                )}
                 <OrbitControls enablePan={false} minDistance={3} maxDistance={14} target={[0, 0.2, 0]} />
 
                 {/* The dreamy "digital veil": bloom halo + subtle chroma split + grain + vignette */}
@@ -74,7 +86,12 @@ export const AvatarLabPage = () => {
                 {sliderRow('INTENSITY', intensity, 0.2, 2.5, 0.05, setIntensity)}
                 {sliderRow('POINT_SIZE', pointScale, 0.4, 2.0, 0.05, setPointScale)}
 
-                <div className="mt-4 flex gap-2">
+                <button
+                    onClick={() => setScan((v) => !v)}
+                    className={`mt-4 w-full rounded border px-2 py-1.5 tracking-widest transition-colors ${scan ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'}`}
+                >SCAN_GRID {scan ? '(Kinect/Lusion)' : 'OFF'}</button>
+
+                <div className={`mt-2 flex gap-2 ${scan ? 'opacity-30 pointer-events-none' : ''}`}>
                     <button
                         onClick={() => setShowWire((v) => !v)}
                         className={`flex-1 rounded border px-2 py-1.5 tracking-widest transition-colors ${showWire ? 'border-brand-primary bg-brand-primary/15' : 'border-brand-primary/30 opacity-50'}`}
