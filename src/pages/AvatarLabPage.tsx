@@ -14,7 +14,7 @@ import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
 export const AvatarLabPage = () => {
     const [jawOpen, setJawOpen] = useState(0);
     const [autoTalk, setAutoTalk] = useState(false);
-    const [intensity, setIntensity] = useState(0.9);
+    const [intensity, setIntensity] = useState(1.0);
     const [pointScale, setPointScale] = useState(1.0);
 
     return (
@@ -58,8 +58,8 @@ export const AvatarLabPage = () => {
                 </label>
                 <input
                     type="range"
-                    min={0.2}
-                    max={1.5}
+                    min={0.3}
+                    max={2.5}
                     step={0.05}
                     value={intensity}
                     onChange={(e) => setIntensity(parseFloat(e.target.value))}

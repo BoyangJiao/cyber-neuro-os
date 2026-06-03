@@ -101,7 +101,7 @@ function sampleHead(scene: THREE.Group): SampledHead {
         positions[i * 3] = v.x;
         positions[i * 3 + 1] = v.y;
         positions[i * 3 + 2] = v.z;
-        sizes[i] = 0.45 + Math.random() * 0.55;
+        sizes[i] = 0.55 + Math.random() * 0.6;
         phases[i] = Math.random();
 
         const belowMouth = THREE.MathUtils.smoothstep(v.y, MOUTH_Y, JAW_BOTTOM); // 1 at/below jaw bottom

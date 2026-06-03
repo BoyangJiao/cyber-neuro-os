@@ -48,12 +48,12 @@ export const avatarVertexShader = /* glsl */ `
 
     // Small points; gentle per-point twinkle. Hard-clamped so near points don't bloom.
     float twinkle = 0.9 + 0.1 * sin(uTime * 2.5 + aPhase * 6.283);
-    float size = aSize * twinkle * uPointScale * (90.0 / -mvPosition.z) * uPixelRatio;
-    gl_PointSize = clamp(size, 0.6, 2.6 * uPixelRatio);
+    float size = aSize * twinkle * uPointScale * (115.0 / -mvPosition.z) * uPixelRatio;
+    gl_PointSize = clamp(size, 0.8, 3.2 * uPixelRatio);
 
-    // Depth fade so the back of the head reads much softer (less additive pile-up)
+    // Depth fade so the back of the head reads softer (less additive pile-up)
     float zFade = clamp((-mvPosition.z - 4.0) / 16.0, 0.0, 1.0);
-    vAlpha = mix(0.55, 0.12, zFade);
+    vAlpha = mix(0.8, 0.22, zFade);
     vJaw = aJawWeight;
 
     gl_Position = projectionMatrix * mvPosition;
@@ -72,15 +72,16 @@ export const avatarFragmentShader = /* glsl */ `
     if (dist > 0.5) discard;
 
     // Soft round falloff — small bright center, long gentle halo.
-    float core = 1.0 - smoothstep(0.0, 0.08, dist);
-    float glow = pow(1.0 - smoothstep(0.0, 0.5, dist), 2.6);
+    float core = 1.0 - smoothstep(0.0, 0.10, dist);
+    float glow = pow(1.0 - smoothstep(0.0, 0.5, dist), 2.2);
 
     // Jaw/mouth region tints toward the accent so speech motion stays legible.
     vec3 color = mix(uColor, uAccent, vJaw * 0.35);
-    // Only a faint white hot-center — avoids additive blow-out to pure white.
-    color += core * 0.15;
+    // Keep the color (additive piles toward bright CYAN, not white). Only a hint
+    // of white at the very center so points still read as little light sources.
+    color += core * 0.08;
 
-    float alpha = (core * 0.35 + glow * 0.22) * vAlpha * uIntensity;
+    float alpha = (core * 0.6 + glow * 0.4) * vAlpha * uIntensity;
     gl_FragColor = vec4(color, alpha);
   }
 `;
