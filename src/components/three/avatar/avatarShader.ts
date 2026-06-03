@@ -1,12 +1,15 @@
 /**
  * avatarShader — point-cloud "Neural Entity" face.
  *
- * Renders a head sampled into glowing additive points (matches the holographic
- * aesthetic of ParticleMorphField / NeuralParticleField). Phase 0 proves the
- * pipeline with a PROCEDURAL jaw: each vertex carries `aJawWeight` (how much it
- * belongs to the lower jaw) and is rotated around a hinge by `uJawOpen`. In a
- * later phase this is replaced by real ARKit/Viseme morph targets — the driver
- * (uJawOpen → blendshape weights) stays the same.
+ * Renders a head sampled into glowing additive points. The look is tuned to stay
+ * delicate: small soft points with low per-point alpha so dense (front-facing)
+ * regions read as fine structure rather than a blown-out white blob. A global
+ * `uIntensity` controls overall luminance.
+ *
+ * Phase 0 proves the pipeline with a PROCEDURAL jaw: each vertex carries
+ * `aJawWeight` (how much it belongs to the lower jaw) and is rotated around a
+ * hinge by `uJawOpen`. Later this is replaced by real ARKit/Viseme morph targets
+ * — the driver (uJawOpen → blendshape weights) stays the same.
  */
 
 export const avatarVertexShader = /* glsl */ `
@@ -16,6 +19,7 @@ export const avatarVertexShader = /* glsl */ `
   uniform float uJawMaxAngle;  // radians at uJawOpen = 1
   uniform vec3  uJawHinge;     // pivot (model space)
   uniform float uBreath;       // subtle idle breathing amplitude
+  uniform float uPointScale;   // global point-size multiplier
 
   attribute float aSize;
   attribute float aPhase;
@@ -27,14 +31,13 @@ export const avatarVertexShader = /* glsl */ `
   void main() {
     vec3 pos = position;
 
-    // ── Procedural jaw: rotate lower-face points around the hinge (pitch/X) ──
+    // ── Procedural jaw: rotate lower-face points around the hinge (pitch) ──
     if (aJawWeight > 0.001) {
       float ang = uJawOpen * uJawMaxAngle * aJawWeight;
       vec3 p = pos - uJawHinge;
       float c = cos(ang);
       float s = sin(ang);
-      // rotate in Y-Z plane so the chin drops & comes forward
-      p.yz = mat2(c, s, -s, c) * p.yz;
+      p.yz = mat2(c, s, -s, c) * p.yz; // drop the chin
       pos = uJawHinge + p;
     }
 
@@ -43,13 +46,14 @@ export const avatarVertexShader = /* glsl */ `
 
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 
-    // Size with perspective attenuation; flicker a touch by phase for life
-    float twinkle = 0.85 + 0.15 * sin(uTime * 3.0 + aPhase * 6.283);
-    gl_PointSize = aSize * twinkle * (220.0 / -mvPosition.z) * uPixelRatio;
+    // Small points; gentle per-point twinkle. Hard-clamped so near points don't bloom.
+    float twinkle = 0.9 + 0.1 * sin(uTime * 2.5 + aPhase * 6.283);
+    float size = aSize * twinkle * uPointScale * (90.0 / -mvPosition.z) * uPixelRatio;
+    gl_PointSize = clamp(size, 0.6, 2.6 * uPixelRatio);
 
-    // Depth fade so the back of the head reads softer
-    float zFade = clamp((-mvPosition.z - 4.0) / 18.0, 0.0, 1.0);
-    vAlpha = mix(0.9, 0.35, zFade);
+    // Depth fade so the back of the head reads much softer (less additive pile-up)
+    float zFade = clamp((-mvPosition.z - 4.0) / 16.0, 0.0, 1.0);
+    vAlpha = mix(0.55, 0.12, zFade);
     vJaw = aJawWeight;
 
     gl_Position = projectionMatrix * mvPosition;
@@ -58,7 +62,8 @@ export const avatarVertexShader = /* glsl */ `
 
 export const avatarFragmentShader = /* glsl */ `
   uniform vec3 uColor;
-  uniform vec3 uAccent;   // highlight toward this on the moving jaw
+  uniform vec3 uAccent;     // highlight toward this on the moving jaw
+  uniform float uIntensity; // global luminance control
   varying float vAlpha;
   varying float vJaw;
 
@@ -66,14 +71,16 @@ export const avatarFragmentShader = /* glsl */ `
     float dist = length(gl_PointCoord - vec2(0.5));
     if (dist > 0.5) discard;
 
-    float core = 1.0 - smoothstep(0.0, 0.14, dist);
-    float glow = pow(1.0 - smoothstep(0.0, 0.5, dist), 1.8);
+    // Soft round falloff — small bright center, long gentle halo.
+    float core = 1.0 - smoothstep(0.0, 0.08, dist);
+    float glow = pow(1.0 - smoothstep(0.0, 0.5, dist), 2.6);
 
-    // Jaw/mouth region tints toward the accent so speech motion is legible
-    vec3 color = mix(uColor, uAccent, vJaw * 0.5);
-    color = mix(color, vec3(1.0), core * 0.4);
+    // Jaw/mouth region tints toward the accent so speech motion stays legible.
+    vec3 color = mix(uColor, uAccent, vJaw * 0.35);
+    // Only a faint white hot-center — avoids additive blow-out to pure white.
+    color += core * 0.15;
 
-    float alpha = (core * 0.85 + glow * 0.5) * vAlpha;
+    float alpha = (core * 0.35 + glow * 0.22) * vAlpha * uIntensity;
     gl_FragColor = vec4(color, alpha);
   }
 `;

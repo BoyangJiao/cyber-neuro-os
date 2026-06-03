@@ -18,8 +18,9 @@ import { avatarVertexShader, avatarFragmentShader } from './avatarShader';
 const HEAD_MODEL_URL = '/models/LeePerrySmith-draco.glb';
 
 // Target normalized size (fit head within ~this radius) and max vertices sampled.
+// More points + smaller sizes = a finer, more delicate cloud.
 const FIT_RADIUS = 2.4;
-const MAX_POINTS = 12000;
+const MAX_POINTS = 28000;
 
 interface NeuralEntityProps {
     /** 0 = mouth closed, 1 = fully open. Driven later by audio/visemes. */
@@ -28,6 +29,10 @@ interface NeuralEntityProps {
     autoTalk?: boolean;
     /** Idle breathing amplitude (0 disables). */
     breath?: number;
+    /** Global luminance (0..1.5). Lower = subtler, avoids additive blow-out. */
+    intensity?: number;
+    /** Global point-size multiplier (finer ↔ chunkier). */
+    pointScale?: number;
 }
 
 /** Pseudo-speech jaw envelope in [0,1] — layered sines + a syllable gate. */
@@ -96,7 +101,7 @@ function sampleHead(scene: THREE.Group): SampledHead {
         positions[i * 3] = v.x;
         positions[i * 3 + 1] = v.y;
         positions[i * 3 + 2] = v.z;
-        sizes[i] = 0.9 + Math.random() * 1.3;
+        sizes[i] = 0.45 + Math.random() * 0.55;
         phases[i] = Math.random();
 
         const belowMouth = THREE.MathUtils.smoothstep(v.y, MOUTH_Y, JAW_BOTTOM); // 1 at/below jaw bottom
@@ -110,7 +115,13 @@ function sampleHead(scene: THREE.Group): SampledHead {
     return { positions, sizes, phases, jawWeights, hinge };
 }
 
-export const NeuralEntity = ({ jawOpen = 0, autoTalk = false, breath = 0.012 }: NeuralEntityProps) => {
+export const NeuralEntity = ({
+    jawOpen = 0,
+    autoTalk = false,
+    breath = 0.012,
+    intensity = 0.9,
+    pointScale = 1.0,
+}: NeuralEntityProps) => {
     const pointsRef = useRef<THREE.Points>(null);
     const jawRef = useRef(0);
     const { primary } = useThemeColors();
@@ -133,6 +144,8 @@ export const NeuralEntity = ({ jawOpen = 0, autoTalk = false, breath = 0.012 }: 
                 uJawMaxAngle: { value: 0.5 }, // ~28° at full open
                 uJawHinge: { value: hinge },
                 uBreath: { value: breath },
+                uPointScale: { value: 1.0 },
+                uIntensity: { value: 0.9 },
                 uColor: { value: new THREE.Color(primary) },
                 uAccent: { value: new THREE.Color('#ffffff') },
             },
@@ -158,6 +171,8 @@ export const NeuralEntity = ({ jawOpen = 0, autoTalk = false, breath = 0.012 }: 
 
     useFrame((_, delta) => {
         material.uniforms.uTime.value += delta;
+        material.uniforms.uIntensity.value = intensity;
+        material.uniforms.uPointScale.value = pointScale;
         const target = autoTalk ? speechJaw(material.uniforms.uTime.value) : jawOpen;
         // Smooth the jaw toward the target so speech motion isn't jittery.
         jawRef.current += (target - jawRef.current) * Math.min(1, delta * 18);

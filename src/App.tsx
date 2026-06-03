@@ -126,6 +126,16 @@ function App() {
   }, [isBootSequenceActive]);
 
 
+  // DEV-ONLY: the avatar proving ground is a fully standalone page — it renders
+  // BEFORE the dashboard layout so no header/sidebars/shared-canvas leak into it.
+  if (import.meta.env.DEV && location.pathname === '/avatar-lab') {
+    return (
+      <Suspense fallback={<ShimmerLoader variant="overlay" label="[ BOOTING_NEURAL_ENTITY... ]" />}>
+        <AvatarLabPage />
+      </Suspense>
+    );
+  }
+
   // Pre-load Main Layout by rendering it hidden/behind BootScreen
   // This ensures no frame drop when boot sequence finishes
   return (
@@ -217,14 +227,6 @@ function App() {
                       <LabLandingPage />
                     </Suspense>
                   } />
-                  {/* DEV-ONLY avatar proving ground — never registered in production builds */}
-                  {import.meta.env.DEV && (
-                    <Route path="/avatar-lab" element={
-                      <Suspense fallback={<ShimmerLoader variant="overlay" label="[ BOOTING_NEURAL_ENTITY... ]" />}>
-                        <AvatarLabPage />
-                      </Suspense>
-                    } />
-                  )}
                 </Routes>
 
                 {/* About Me Modal - 覆盖在 main-mid 区域内 */}

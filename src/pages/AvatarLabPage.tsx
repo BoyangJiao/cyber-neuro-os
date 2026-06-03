@@ -14,16 +14,23 @@ import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
 export const AvatarLabPage = () => {
     const [jawOpen, setJawOpen] = useState(0);
     const [autoTalk, setAutoTalk] = useState(false);
+    const [intensity, setIntensity] = useState(0.9);
+    const [pointScale, setPointScale] = useState(1.0);
 
     return (
-        <div className="fixed inset-0 z-[100000] bg-[#020406]">
+        <div className="fixed inset-0 z-100000 bg-[#020406]">
             <Canvas
-                camera={{ position: [0, 0, 7], fov: 45 }}
+                camera={{ position: [0, 0.4, 5.5], fov: 42 }}
                 gl={{ alpha: false, antialias: true }}
                 dpr={[1, 1.5]}
             >
-                <NeuralEntity jawOpen={jawOpen} autoTalk={autoTalk} />
-                <OrbitControls enablePan={false} minDistance={3} maxDistance={14} />
+                <NeuralEntity
+                    jawOpen={jawOpen}
+                    autoTalk={autoTalk}
+                    intensity={intensity}
+                    pointScale={pointScale}
+                />
+                <OrbitControls enablePan={false} minDistance={3} maxDistance={14} target={[0, 0.2, 0]} />
             </Canvas>
 
             {/* HUD controls */}
@@ -44,6 +51,32 @@ export const AvatarLabPage = () => {
                     disabled={autoTalk}
                     onChange={(e) => setJawOpen(parseFloat(e.target.value))}
                     className="w-full accent-brand-primary disabled:opacity-40"
+                />
+
+                <label className="mb-1 mt-4 block tracking-widest text-text-secondary">
+                    INTENSITY: {intensity.toFixed(2)}
+                </label>
+                <input
+                    type="range"
+                    min={0.2}
+                    max={1.5}
+                    step={0.05}
+                    value={intensity}
+                    onChange={(e) => setIntensity(parseFloat(e.target.value))}
+                    className="w-full accent-brand-primary"
+                />
+
+                <label className="mb-1 mt-3 block tracking-widest text-text-secondary">
+                    POINT_SIZE: {pointScale.toFixed(2)}
+                </label>
+                <input
+                    type="range"
+                    min={0.4}
+                    max={2.0}
+                    step={0.05}
+                    value={pointScale}
+                    onChange={(e) => setPointScale(parseFloat(e.target.value))}
+                    className="w-full accent-brand-primary"
                 />
 
                 <button
