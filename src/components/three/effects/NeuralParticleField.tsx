@@ -314,6 +314,13 @@ const ParticleScene = () => {
         };
     }, [geometry, material]);
 
+    // Update shader color only when the theme color actually changes — not every
+    // frame. (Previously `uColor.value.set(primary)` ran 60×/s, re-parsing the
+    // color string each tick for a value that almost never changes.)
+    useEffect(() => {
+        material.uniforms.uColor.value.set(primary);
+    }, [material, primary]);
+
     // Animation loop
     useFrame((_, delta) => {
         if (!pointsRef.current) return;
@@ -323,7 +330,6 @@ const ParticleScene = () => {
         const target = targetPositions.current;
 
         material.uniforms.uTime.value += delta;
-        material.uniforms.uColor.value.set(primary);
 
         const mx = mouseWorld.current.x;
         const my = mouseWorld.current.y;

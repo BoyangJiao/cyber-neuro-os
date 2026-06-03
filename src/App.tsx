@@ -76,7 +76,9 @@ function App() {
     allowStudioOrigin: 'http://localhost:3333',
   });
 
-  // Global subscription for projects data to ensure UI sync in Presentation mode
+  // Live subscription — ONLY active in Sanity Presentation/live mode (Studio iframe),
+  // where it keeps the store in sync with draft edits. On the public site it stays
+  // dormant, so it is NOT the primary data path (see fetchProjects below).
   const { data: sanityProjects } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
 
   useEffect(() => {
@@ -107,7 +109,9 @@ function App() {
     document.body.classList.toggle('deepdive-mode', isDeepDiveMode);
   }, [isBootSequenceActive, isDeepDiveMode]);
 
-  // Initial fetch as fallback
+  // Primary data path for the PUBLIC site: client.fetch goes through the global
+  // fetch interceptor → Sanity proxy, which works without live mode. (The useQuery
+  // subscription above only fires inside Presentation mode, so this is required.)
   useEffect(() => {
     useProjectStore.getState().fetchProjects();
   }, []);

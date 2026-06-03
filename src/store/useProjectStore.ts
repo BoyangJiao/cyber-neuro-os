@@ -158,8 +158,11 @@ export const useProjectStore = create<ProjectState>()(
                         }
                     });
 
-                    // Phase 3: Prefetch videos last (lowest priority)
-                    projects.forEach((p) => {
+                    // Phase 3: Prefetch only the first few hero videos (lowest priority).
+                    // Videos are large; prefetching every project's video wasted
+                    // significant bandwidth for assets the user may never reach.
+                    const VIDEO_PREFETCH_COUNT = 3;
+                    projects.slice(0, VIDEO_PREFETCH_COUNT).forEach((p) => {
                         const videoUrl = p.videoFile || p.video;
                         if (videoUrl) {
                             const link = document.createElement('link');
@@ -197,6 +200,8 @@ export const useProjectStore = create<ProjectState>()(
                 if (typeof window !== 'undefined') {
                     localStorage.setItem('cyber-neuro-language', lang);
                 }
+                // Public site refetch: useQuery only re-runs in live mode, so the
+                // store must fetch the new-language projects itself.
                 get().fetchProjects();
             },
 

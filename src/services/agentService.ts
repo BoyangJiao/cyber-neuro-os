@@ -15,12 +15,21 @@ interface StreamChatOptions {
 }
 
 // ============================================================
-// Real API — Gemini via Vercel Serverless
+// Real API — DashScope (Qwen) via Vercel Serverless (/api/chat)
 // ============================================================
 
-const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChatOptions) => {
+/**
+ * Outcome of a real API attempt:
+ * - 'ok'       → streamed successfully (or surfaced a real API error via onError)
+ * - 'unavailable' → the endpoint isn't reachable / isn't configured; caller should
+ *                   fall back to the local mock (dev without DASHSCOPE_API_KEY).
+ */
+type RealResult = 'ok' | 'unavailable';
+
+const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChatOptions): Promise<RealResult> => {
+    let response: Response;
     try {
-        const response = await fetch('/api/chat', {
+        response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -30,17 +39,26 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
                 })),
             }),
         });
+    } catch {
+        // Network-level failure (no dev server / offline) → let caller use the mock.
+        return 'unavailable';
+    }
 
+    try {
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
+            // 500 with "not configured" means no API key locally → mock is the right UX.
+            if (response.status === 500 && /not configured|not set/i.test(errorData.error || '')) {
+                return 'unavailable';
+            }
             onError(errorData.error || `API error: ${response.status}`);
-            return;
+            return 'ok';
         }
 
         const reader = response.body?.getReader();
         if (!reader) {
             onError('No response stream available');
-            return;
+            return 'ok';
         }
 
         const decoder = new TextDecoder();
@@ -76,8 +94,11 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
         }
 
         onDone();
+        return 'ok';
     } catch (error) {
+        // Failure mid-stream (already connected) is a real error, not "unavailable".
         onError(error instanceof Error ? error.message : 'Network error');
+        return 'ok';
     }
 };
 
@@ -131,11 +152,12 @@ const mockStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
  * Tries real /api/chat first; falls back to mock if unavailable.
  */
 export const streamChat = async (options: StreamChatOptions) => {
-    try {
-        await realStreamChat(options);
-    } catch {
-        // If real API fails completely, try mock
-        console.info('[NEXUS] Real API unavailable, falling back to mock');
+    const result = await realStreamChat(options);
+    if (result === 'unavailable') {
+        // Only fall back to mock when the endpoint is truly unreachable/unconfigured
+        // (e.g. local dev without DASHSCOPE_API_KEY). Real API errors are surfaced
+        // to the user via onError instead of being silently mocked.
+        if (import.meta.env.DEV) console.info('[NEXUS] Real API unavailable, falling back to mock');
         return mockStreamChat(options);
     }
 };
