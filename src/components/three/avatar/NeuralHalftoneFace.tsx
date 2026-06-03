@@ -28,6 +28,7 @@ interface Props {
     shimmer?: number;
     maxYaw?: number;   // max left/right head turn (radians)
     maxPitch?: number; // max up/down head tilt (radians)
+    headScale?: number; // overall head size on screen (1 = fills frame)
 }
 
 function speechJaw(t: number): number {
@@ -92,6 +93,7 @@ export const NeuralHalftoneFace = ({
     shimmer = 0.0,
     maxYaw = 0.45,
     maxPitch = 0.28,
+    headScale = 0.8,
 }: Props) => {
     const { gl, size, pointer } = useThree();
     const { scene } = useGLTF(modelUrl);
@@ -198,6 +200,7 @@ export const NeuralHalftoneFace = ({
         const pivot = built.pivot;
         pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
         pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);
+        pivot.scale.setScalar(headScale);
         pivot.updateMatrixWorld(true);
 
         const prevTarget = gl.getRenderTarget();

@@ -12,6 +12,8 @@ import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@re
 import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
 import { NeuralScanFace } from '../components/three/avatar/NeuralScanFace';
 import { NeuralHalftoneFace } from '../components/three/avatar/NeuralHalftoneFace';
+import { HalftoneAtmosphere } from '../components/three/avatar/HalftoneAtmosphere';
+import { TypewriterTranscript } from '../components/agent/TypewriterTranscript';
 
 type Mode = 'halftone' | 'scan' | 'entity';
 
@@ -23,6 +25,7 @@ export const AvatarLabPage = () => {
     const [bloom, setBloom] = useState(1.6);
     const [mode, setMode] = useState<Mode>('halftone');
     const [grid, setGrid] = useState(150);
+    const [headScale, setHeadScale] = useState(0.8);
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -49,6 +52,7 @@ export const AvatarLabPage = () => {
                 gl={{ alpha: false, antialias: true }}
                 dpr={[1, 1.5]}
             >
+                {mode === 'halftone' && <HalftoneAtmosphere />}
                 {mode === 'halftone' && (
                     <NeuralHalftoneFace
                         modelUrl={modelUrl}
@@ -56,6 +60,7 @@ export const AvatarLabPage = () => {
                         autoTalk={autoTalk}
                         intensity={intensity}
                         grid={grid}
+                        headScale={headScale}
                     />
                 )}
                 {mode === 'scan' && (
@@ -113,6 +118,7 @@ export const AvatarLabPage = () => {
                 {mode === 'halftone'
                     ? sliderRow('GRID (dots)', grid, 60, 320, 2, setGrid)
                     : sliderRow('POINT_SIZE', pointScale, 0.4, 2.0, 0.05, setPointScale)}
+                {mode === 'halftone' && sliderRow('HEAD_SIZE', headScale, 0.4, 1.2, 0.02, setHeadScale)}
 
                 <button
                     onClick={() => setAutoTalk((v) => !v)}
@@ -120,10 +126,18 @@ export const AvatarLabPage = () => {
                 >{autoTalk ? '◼ STOP SIM_SPEECH' : '▶ SIM_SPEECH (auto jaw)'}</button>
 
                 <p className="mt-4 leading-relaxed text-text-muted">
-                    Drag to orbit. BLOOM drives the hazy "digital veil" glow. Toggle
-                    WIRE/POINTS to compare. Swap models via ?model=&lt;file&gt;.glb.
+                    HALFTONE = Lusion screen-space dots. Move the cursor — the head
+                    turns to watch you. HEAD_SIZE/GRID/BLOOM tune the look.
                 </p>
             </div>
+
+            {/* Transcript — typewriter beside the avatar (demo text; wires to TTS later) */}
+            {mode === 'halftone' && (
+                <div className="pointer-events-none absolute right-10 top-1/2 w-[300px] -translate-y-1/2">
+                    <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">TRANSCRIPT</div>
+                    <TypewriterTranscript className="text-sm leading-relaxed" />
+                </div>
+            )}
         </div>
     );
 };
