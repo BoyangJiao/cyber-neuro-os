@@ -17,6 +17,11 @@ export const AvatarLabPage = () => {
     const [intensity, setIntensity] = useState(1.0);
     const [pointScale, setPointScale] = useState(1.0);
 
+    // Load any GLB dropped into /public/models via ?model=<file>. Default = head scan.
+    // e.g. /avatar-lab?model=neural-avatar.glb
+    const modelParam = new URLSearchParams(window.location.search).get('model');
+    const modelUrl = modelParam ? `/models/${modelParam}` : undefined;
+
     return (
         <div className="fixed inset-0 z-100000 bg-[#020406]">
             <Canvas
@@ -29,6 +34,7 @@ export const AvatarLabPage = () => {
                     autoTalk={autoTalk}
                     intensity={intensity}
                     pointScale={pointScale}
+                    modelUrl={modelUrl}
                 />
                 <OrbitControls enablePan={false} minDistance={3} maxDistance={14} target={[0, 0.2, 0]} />
             </Canvas>

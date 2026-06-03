@@ -33,6 +33,8 @@ interface NeuralEntityProps {
     intensity?: number;
     /** Global point-size multiplier (finer ↔ chunkier). */
     pointScale?: number;
+    /** GLB to sample. Defaults to the bundled LeePerrySmith head. */
+    modelUrl?: string;
 }
 
 /** Pseudo-speech jaw envelope in [0,1] — layered sines + a syllable gate. */
@@ -91,11 +93,14 @@ function sampleHead(scene: THREE.Group): SampledHead {
     const phases = new Float32Array(n);
     const jawWeights = new Float32Array(n);
 
-    // After normalization the head is centered at origin. The mouth/jaw sits in
-    // the lower-front; weight points by how far below the mouth line and how
-    // forward (+z) they are, with a smooth falloff so the motion looks organic.
-    const MOUTH_Y = -0.15 * FIT_RADIUS; // mouth line a touch below center
-    const JAW_BOTTOM = -1.0 * FIT_RADIUS;
+    // Centered at origin. Weight ONLY a chin/lower-lip band so opening reads as a
+    // mouth drop — not a whole-head tilt. `d` = depth below center (grows downward).
+    // The band ramps up from the mouth line to the chin, then back to zero before
+    // the neck so the neck/shoulders stay put. (This procedural jaw is a stand-in
+    // for LeePerrySmith — a real GLB with a `jawOpen` morph replaces it.)
+    const MOUTH_D = 0.10 * FIT_RADIUS; // mouth line
+    const CHIN_D = 0.42 * FIT_RADIUS;  // bottom of chin (peak weight)
+    const NECK_D = 0.66 * FIT_RADIUS;  // below here is neck → no motion
     for (let i = 0; i < n; i++) {
         const v = kept[i];
         positions[i * 3] = v.x;
@@ -104,13 +109,15 @@ function sampleHead(scene: THREE.Group): SampledHead {
         sizes[i] = 0.55 + Math.random() * 0.6;
         phases[i] = Math.random();
 
-        const belowMouth = THREE.MathUtils.smoothstep(v.y, MOUTH_Y, JAW_BOTTOM); // 1 at/below jaw bottom
-        const frontish = THREE.MathUtils.smoothstep(v.z, -0.2 * FIT_RADIUS, 0.6 * FIT_RADIUS);
-        jawWeights[i] = belowMouth * frontish;
+        const d = -v.y;
+        const open = THREE.MathUtils.smoothstep(d, MOUTH_D, CHIN_D);
+        const notNeck = 1 - THREE.MathUtils.smoothstep(d, CHIN_D, NECK_D);
+        const frontish = THREE.MathUtils.smoothstep(v.z, -0.1 * FIT_RADIUS, 0.5 * FIT_RADIUS);
+        jawWeights[i] = open * notNeck * frontish;
     }
 
-    // Hinge: behind & slightly above the jaw (near the ears).
-    const hinge = new THREE.Vector3(0, MOUTH_Y + 0.15 * FIT_RADIUS, -0.35 * FIT_RADIUS);
+    // Hinge at the jaw joint: mouth height, set back toward the ears.
+    const hinge = new THREE.Vector3(0, -MOUTH_D, -0.25 * FIT_RADIUS);
 
     return { positions, sizes, phases, jawWeights, hinge };
 }
@@ -121,11 +128,12 @@ export const NeuralEntity = ({
     breath = 0.012,
     intensity = 0.9,
     pointScale = 1.0,
+    modelUrl = HEAD_MODEL_URL,
 }: NeuralEntityProps) => {
     const pointsRef = useRef<THREE.Points>(null);
     const jawRef = useRef(0);
     const { primary } = useThemeColors();
-    const { scene } = useGLTF(HEAD_MODEL_URL);
+    const { scene } = useGLTF(modelUrl);
 
     const { geometry, material } = useMemo(() => {
         const { positions, sizes, phases, jawWeights, hinge } = sampleHead(scene);
@@ -141,7 +149,7 @@ export const NeuralEntity = ({
                 uTime: { value: 0 },
                 uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
                 uJawOpen: { value: 0 },
-                uJawMaxAngle: { value: 0.5 }, // ~28° at full open
+                uJawMaxAngle: { value: 0.32 }, // subtle chin drop at full open
                 uJawHinge: { value: hinge },
                 uBreath: { value: breath },
                 uPointScale: { value: 1.0 },
