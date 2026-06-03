@@ -25,9 +25,9 @@ export const AvatarLabPage = () => {
     const [mode, setMode] = useState<Mode>('halftone');
     const [grid, setGrid] = useState(150);
     const [headScale, setHeadScale] = useState(0.8);
-    const [scanAngle, setScanAngle] = useState(0);
+    const [scanAngle, setScanAngle] = useState(133);
     const [scanIntensity, setScanIntensity] = useState(0.18);
-    const [glitch, setGlitch] = useState(0);
+    const [glitch, setGlitch] = useState(0.06);
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb

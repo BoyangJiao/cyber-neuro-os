@@ -75,13 +75,24 @@ const halftoneFrag = /* glsl */ `
     vec2 cellId = floor(vUv * cells);
     vec2 cellCenter = (cellId + 0.5) / cells;
 
-    // ── Glitch: per-band horizontal displacement in bursts ──
+    // ── Glitch: an UNSTABLE-SIGNAL feel — a faint constant micro-jitter plus
+    //    rare, IRREGULAR (non-periodic) burst displacements on random bands. ──
     float gActive = 0.0;
-    if (uGlitch > 0.001) {
-      float band = floor(vUv.y * 26.0);
-      float tt = floor(uTime * 14.0);
-      gActive = step(1.0 - uGlitch * 0.6, hash(vec2(band, tt)));
-      cellCenter.x += gActive * (hash(vec2(band, tt + 3.0)) - 0.5) * 0.12 * uGlitch;
+    if (uGlitch > 0.0001) {
+      // (a) always-on faint instability
+      float micro = hash(vec2(floor(vUv.y * 70.0), floor(uTime * 26.0))) - 0.5;
+      cellCenter.x += micro * 0.004 * uGlitch;
+
+      // (b) irregular bursts: two incommensurate clocks → non-repeating timing
+      float tA = floor(uTime * 11.0);
+      float tB = floor(uTime * 7.0 + 13.0);
+      float burst = hash(vec2(tA, tB));
+      float fire = step(1.02 - uGlitch * 0.45, burst);   // sparse; rarer at low uGlitch
+      if (fire > 0.5) {
+        float band = floor(vUv.y * 30.0);
+        gActive = step(0.55, hash(vec2(band, tA)));        // only some bands jump
+        cellCenter.x += gActive * (hash(vec2(band, tB)) - 0.5) * (0.03 + uGlitch * 0.05);
+      }
     }
 
     vec4 s = texture2D(uFace, cellCenter);
@@ -103,9 +114,9 @@ const halftoneFrag = /* glsl */ `
 
     // ── Glitch colour split + flicker on active bands ──
     if (gActive > 0.5) {
-      col = mix(col, col.gbr, 0.6 * uGlitch);
-      a *= 1.0 - 0.35 * uGlitch;
-      a += 0.12 * uGlitch * pt;
+      col = mix(col, col.gbr, 0.35 * (0.4 + uGlitch));  // mild channel shift
+      a *= 1.0 - 0.25 * uGlitch;
+      a += 0.06 * uGlitch * pt;
     }
 
     if (a < 0.002) discard;
@@ -122,9 +133,9 @@ export const NeuralHalftoneFace = ({
     maxYaw = 0.45,
     maxPitch = 0.28,
     headScale = 0.8,
-    scanAngle = 0,
+    scanAngle = 133,
     scanIntensity = 0.18,
-    glitch = 0,
+    glitch = 0.06,
     intro = true,
 }: Props) => {
     const { gl, size, pointer } = useThree();
