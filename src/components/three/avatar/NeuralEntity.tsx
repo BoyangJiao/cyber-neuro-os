@@ -111,6 +111,7 @@ export const NeuralEntity = ({
                 uJawHinge: { value: new THREE.Vector3(0, 0, 0) },
                 uBreath: { value: breath },
                 uPointScale: { value: pointScale },
+                uShimmer: { value: 0.02 },
                 uIntensity: { value: intensity },
                 uColor: { value: new THREE.Color(primary) },
                 uAccent: { value: new THREE.Color('#ffffff') },

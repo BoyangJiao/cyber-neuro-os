@@ -20,6 +20,7 @@ export const avatarVertexShader = /* glsl */ `
   uniform vec3  uJawHinge;     // pivot (model space)
   uniform float uBreath;       // subtle idle breathing amplitude
   uniform float uPointScale;   // global point-size multiplier
+  uniform float uShimmer;      // digital-veil micro-jitter amplitude
 
   attribute float aSize;
   attribute float aPhase;
@@ -28,8 +29,18 @@ export const avatarVertexShader = /* glsl */ `
   varying float vAlpha;
   varying float vJaw;
 
+  float hash31(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+
   void main() {
     vec3 pos = position;
+
+    // ── Digital-veil shimmer: tiny per-point jitter that drifts over time, so the
+    //    cloud feels like a live, slightly-unstable scan (the "veil between worlds").
+    if (uShimmer > 0.0001) {
+      float n = hash31(position * 13.0 + floor(uTime * 8.0) * 0.137);
+      vec3 dir = normalize(vec3(hash31(position + 1.0), hash31(position + 2.0), hash31(position + 3.0)) - 0.5);
+      pos += dir * (n - 0.5) * uShimmer;
+    }
 
     // ── Procedural jaw: rotate lower-face points around the hinge (pitch) ──
     if (aJawWeight > 0.001) {
