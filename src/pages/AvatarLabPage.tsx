@@ -5,7 +5,7 @@
  * point-cloud head can be tuned without the production dashboard. Route is only
  * registered in dev (App.tsx). Not shipped.
  */
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
@@ -17,6 +17,7 @@ import { streamChat } from '../services/agentService';
 import { speak } from '../services/speechService';
 import { useAvatarStore } from '../store/useAvatarStore';
 import { classifyEmotion } from '../components/three/avatar/expressions';
+import type { Emotion } from '../store/useAvatarStore';
 
 type Mode = 'halftone' | 'scan' | 'entity';
 
@@ -40,26 +41,39 @@ export const AvatarLabPage = () => {
     const [typeSpeed, setTypeSpeed] = useState(45);
     const status = useAvatarStore((s) => s.status);
     const transcript = useAvatarStore((s) => s.transcript);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll the transcript to the bottom as it types — but only if the user
+    // is already near the bottom, so they can scroll up to read earlier lines.
+    const onTranscriptUpdate = useCallback(() => {
+        const el = scrollRef.current;
+        if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 48) {
+            el.scrollTop = el.scrollHeight;
+        }
+    }, []);
 
     const handleSpeak = async () => {
         const msg = input.trim();
         if (!msg || busy) return;
         const { setStatus, setTranscript, setEmotion } = useAvatarStore.getState();
+        setInput('');                 // clear the box on send
         setBusy(true);
         setStatus('thinking');
         setTranscript('');
         let reply = '';
+        let detected: string | null = null;
         await new Promise<void>((resolve) => {
             streamChat({
                 messages: [{ id: 'u', role: 'user', content: msg, timestamp: Date.now() }],
                 onToken: (t) => { reply += t; },
+                onEmotion: (e) => { detected = e; },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });
         });
         reply = reply.trim() || '……';
-        // Emotion derived from the reply's content (heuristic; LLM-judged later).
-        setEmotion(classifyEmotion(reply));
+        // Emotion from the model's own [[emo:X]] tag; heuristic only as fallback.
+        setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));
         setStatus('speaking');
         // Reveal the transcript only when audio actually starts, paced to its
         // duration → voice and text appear together (no racing ahead).
@@ -183,13 +197,33 @@ export const AvatarLabPage = () => {
                 </p>
             </div>
 
-            {/* Transcript — live agent reply (typewriter); idle shows ambient lines */}
+            {/* Transcript — live agent reply (typewriter); idle shows ambient lines.
+                Capped at 50vh; scrolls, user can wheel up to read earlier text. */}
             {mode === 'halftone' && (
-                <div className="pointer-events-none absolute right-10 top-1/2 w-[320px] -translate-y-1/2">
+                <div className="absolute right-10 top-1/2 w-[340px] -translate-y-1/2">
                     <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                         TRANSCRIPT · <span className="text-brand-primary/70">{status.toUpperCase()}</span>
                     </div>
-                    <TypewriterTranscript key={transcript || 'idle'} text={transcript || undefined} speed={typeSpeed} className="text-sm leading-relaxed" />
+                    <div ref={scrollRef} className="pointer-events-auto max-h-[50vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]">
+                        {status === 'thinking' ? (
+                            <div className="flex items-center gap-2 font-mono text-sm text-brand-primary/80">
+                                Borvis 正在思考
+                                <span className="inline-flex gap-1">
+                                    <span className="animate-pulse">●</span>
+                                    <span className="animate-pulse [animation-delay:160ms]">●</span>
+                                    <span className="animate-pulse [animation-delay:320ms]">●</span>
+                                </span>
+                            </div>
+                        ) : (
+                            <TypewriterTranscript
+                                key={transcript || 'idle'}
+                                text={transcript || undefined}
+                                speed={typeSpeed}
+                                onUpdate={onTranscriptUpdate}
+                                className="text-sm leading-relaxed"
+                            />
+                        )}
+                    </div>
                 </div>
             )}
 

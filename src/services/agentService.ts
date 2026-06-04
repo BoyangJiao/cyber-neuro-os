@@ -12,6 +12,40 @@ interface StreamChatOptions {
     onToken: (token: string) => void;
     onDone: () => void;
     onError: (error: string) => void;
+    /** Fired once if the reply opens with a [[emo:X]] tag (stripped from onToken). */
+    onEmotion?: (emotion: string) => void;
+}
+
+/**
+ * Strips a leading `[[emo:X]]` emotion tag from a token stream, emitting the
+ * emotion once and forwarding the cleaned text. Returns a function fed each chunk
+ * plus a flush() for any buffered remainder.
+ */
+function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: string) => void) {
+    const TAG = /^\s*\[\[emo:(neutral|happy|sad|surprised|angry|curious)\]\]\s*/i;
+    let done = false;
+    let pre = '';
+    const feed = (chunk: string) => {
+        if (done) { onToken(chunk); return; }
+        pre += chunk;
+        const m = pre.match(TAG);
+        if (m) {
+            onEmotion?.(m[1].toLowerCase());
+            const rest = pre.slice(m[0].length);
+            done = true; pre = '';
+            if (rest) onToken(rest);
+            return;
+        }
+        // Decide if a tag is still possible; otherwise flush what we have.
+        const trimmed = pre.replace(/^\s+/, '');
+        if (trimmed && !'[[emo:'.startsWith(trimmed.slice(0, 6))) {
+            done = true; onToken(pre); pre = '';
+        } else if (pre.length > 24) { // tag never closed → give up
+            done = true; onToken(pre); pre = '';
+        }
+    };
+    const flush = () => { if (!done && pre) { onToken(pre); pre = ''; done = true; } };
+    return { feed, flush };
 }
 
 // ============================================================
@@ -26,7 +60,8 @@ interface StreamChatOptions {
  */
 type RealResult = 'ok' | 'unavailable';
 
-const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChatOptions): Promise<RealResult> => {
+const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }: StreamChatOptions): Promise<RealResult> => {
+    const emo = makeEmotionStripper(onToken, onEmotion);
     let response: Response;
     try {
         response = await fetch('/api/chat', {
@@ -84,7 +119,7 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
                         // Extract text from Standard OpenAI/DashScope SSE response
                         const text = parsed?.choices?.[0]?.delta?.content;
                         if (text) {
-                            onToken(text);
+                            emo.feed(text);
                         }
                     } catch {
                         // Skip unparseable chunks
@@ -93,6 +128,7 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
             }
         }
 
+        emo.flush();
         onDone();
         return 'ok';
     } catch (error) {

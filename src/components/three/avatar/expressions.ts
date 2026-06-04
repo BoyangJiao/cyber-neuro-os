@@ -23,11 +23,12 @@ export const MANAGED_MORPHS = [
 /** Resting expression per emotion (steady-state target weights). */
 export const EMOTION_TARGETS: Record<Emotion, Record<string, number>> = {
     neutral: {},
-    happy: { mouthSmile_L: 0.55, mouthSmile_R: 0.55, cheekSquint_L: 0.32, cheekSquint_R: 0.32, browInnerUp: 0.12 },
-    sad: { mouthFrown_L: 0.45, mouthFrown_R: 0.45, browInnerUp: 0.5, eyeSquint_L: 0.22, eyeSquint_R: 0.22 },
-    surprised: { eyeWide_L: 0.6, eyeWide_R: 0.6, browInnerUp: 0.4, browOuterUp_L: 0.5, browOuterUp_R: 0.5 },
-    angry: { browDown_L: 0.6, browDown_R: 0.6, noseSneer_L: 0.3, noseSneer_R: 0.3, mouthPress_L: 0.3, mouthPress_R: 0.3 },
-    curious: { browInnerUp: 0.4, browOuterUp_L: 0.32, browOuterUp_R: 0.18, eyeWide_L: 0.2, eyeWide_R: 0.2 },
+    happy: { mouthSmile_L: 0.7, mouthSmile_R: 0.7, cheekSquint_L: 0.4, cheekSquint_R: 0.4, browInnerUp: 0.12 },
+    sad: { mouthFrown_L: 0.6, mouthFrown_R: 0.6, browInnerUp: 0.7, eyeSquint_L: 0.3, eyeSquint_R: 0.3 },
+    surprised: { eyeWide_L: 0.75, eyeWide_R: 0.75, browInnerUp: 0.5, browOuterUp_L: 0.6, browOuterUp_R: 0.6 },
+    // Angry needs strong, unmistakable cues: heavy brow-down + sneer + pressed/frown.
+    angry: { browDown_L: 1.0, browDown_R: 1.0, noseSneer_L: 0.55, noseSneer_R: 0.55, mouthPress_L: 0.45, mouthPress_R: 0.45, mouthFrown_L: 0.35, mouthFrown_R: 0.35, eyeSquint_L: 0.3, eyeSquint_R: 0.3 },
+    curious: { browInnerUp: 0.45, browOuterUp_L: 0.4, browOuterUp_R: 0.2, eyeWide_L: 0.22, eyeWide_R: 0.22 },
 };
 
 /** Pick an emotion from the reply text (zh + en cues). */

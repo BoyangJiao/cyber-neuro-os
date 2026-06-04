@@ -18,9 +18,10 @@ interface Props {
     lines?: string[];
     speed?: number; // ms per character
     className?: string;
+    onUpdate?: () => void; // fired as each character is revealed (for auto-scroll)
 }
 
-export const TypewriterTranscript = ({ text, lines = DEMO_LINES, speed = 45, className = '' }: Props) => {
+export const TypewriterTranscript = ({ text, lines = DEMO_LINES, speed = 45, className = '', onUpdate }: Props) => {
     const [idx, setIdx] = useState(0);
     const [shown, setShown] = useState('');
     const timer = useRef<ReturnType<typeof setInterval>>(undefined);
@@ -33,6 +34,7 @@ export const TypewriterTranscript = ({ text, lines = DEMO_LINES, speed = 45, cla
         timer.current = setInterval(() => {
             i++;
             setShown(full.slice(0, i));
+            onUpdate?.();
             if (i >= full.length) {
                 clearInterval(timer.current);
                 if (!text) hold.current = setTimeout(() => setIdx((v) => v + 1), 2400);
