@@ -41,7 +41,10 @@ async function speakDashScope(text: string): Promise<boolean> {
         return false; // endpoint unreachable → fall back
     }
     if (!res.ok) {
-        if (import.meta.env.DEV) console.info('[speech] /api/tts not ok (', res.status, ') → browser TTS fallback');
+        if (import.meta.env.DEV) {
+            const detail = await res.text().catch(() => '');
+            console.info('[speech] /api/tts not ok (', res.status, ') → browser TTS fallback. upstream:', detail);
+        }
         return false;
     }
 

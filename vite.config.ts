@@ -88,8 +88,9 @@ function apiProxy(env: Record<string, string>): PluginOption {
               })),
             ];
 
-            // DashScope Coding Plan Global Endpoint
-            const apiUrl = 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
+            // Endpoint + model env-configurable (defaults = Coding Plan endpoint).
+            const apiUrl = (env.CHAT_API_URL || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions').trim()
+            const chatModel = (env.CHAT_MODEL || 'qwen3.5-plus').trim()
 
             const dsRes: any = await undiciFetch(apiUrl, {
               method: 'POST',
@@ -98,7 +99,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: 'qwen3.5-plus',
+                model: chatModel,
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.5,

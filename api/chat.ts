@@ -129,8 +129,12 @@ export default async function handler(req: Request) {
                 .map(m => ({ role: m.role, content: m.content })),
         ];
 
-        // DashScope Coding Plan Global Endpoint
-        const apiUrl = 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
+        // Endpoint + model are env-configurable. Defaults target the Coding Plan
+        // global endpoint (production); a standard Bailian key should set
+        // CHAT_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+        // and CHAT_MODEL=qwen-plus in its env.
+        const apiUrl = ((process.env as any).CHAT_API_URL || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions').trim();
+        const chatModel = ((process.env as any).CHAT_MODEL || 'qwen3.5-plus').trim();
 
         const dsResponse = await fetch(apiUrl, {
             method: 'POST',
@@ -139,7 +143,7 @@ export default async function handler(req: Request) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'qwen3.5-plus', // Exclusive Coding Plan model
+                model: chatModel,
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.5,
