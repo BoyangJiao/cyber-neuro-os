@@ -55,21 +55,41 @@ function blobToDataUri(blob: Blob): Promise<string> {
     });
 }
 
-/** Begin a push-to-talk recording. `onLevel` reports input loudness (0..1). */
-export async function startListening(onLevel?: (level: number) => void): Promise<Recording> {
+interface ListenOpts {
+    onLevel?: (level: number) => void;
+    /** Fired once when the speaker has spoken and then gone quiet for `silenceMs`. */
+    onSilence?: () => void;
+    silenceMs?: number;   // default 3000
+    speakLevel?: number;  // level (0..1) that counts as "speaking", default 0.08
+}
+
+/** Begin a push-to-talk recording. Reports a live level and (optionally)
+ *  auto-finalizes after a sustained pause once the user has actually spoken. */
+export async function startListening(opts: ListenOpts = {}): Promise<Recording> {
+    const { onLevel, onSilence, silenceMs = 3000, speakLevel = 0.08 } = opts;
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const source = ctx.createMediaStreamSource(stream);
     const processor = ctx.createScriptProcessor(4096, 1, 1);
     const chunks: Float32Array[] = [];
 
+    let hasSpoken = false;
+    let lastVoice = performance.now();
+    let silenceFired = false;
+
     processor.onaudioprocess = (e) => {
         const input = e.inputBuffer.getChannelData(0);
         chunks.push(new Float32Array(input));
-        if (onLevel) {
-            let sum = 0;
-            for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
-            onLevel(Math.min(1, Math.sqrt(sum / input.length) * 4));
+        let sum = 0;
+        for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+        const level = Math.min(1, Math.sqrt(sum / input.length) * 4);
+        onLevel?.(level);
+
+        const now = performance.now();
+        if (level > speakLevel) { hasSpoken = true; lastVoice = now; }
+        if (hasSpoken && !silenceFired && now - lastVoice > silenceMs) {
+            silenceFired = true;
+            onSilence?.();
         }
     };
     source.connect(processor);

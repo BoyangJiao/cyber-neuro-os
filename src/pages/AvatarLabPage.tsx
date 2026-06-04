@@ -101,23 +101,8 @@ export const AvatarLabPage = () => {
         void respond(msg);
     };
 
-    // ── Push-to-talk ── hold the mic button or Space to record; release to send.
-    const startPTT = useCallback(async () => {
-        if (recRef.current) return;            // already recording
-        cancelSpeech();                        // barge-in: interrupt Borvis
-        useAvatarStore.getState().setStatus('listening');
-        setRecording(true);
-        try {
-            recRef.current = await startListening((lvl) => {
-                avatarSignal.mic = lvl;
-                setMicLevel(lvl);
-            });
-        } catch {
-            setRecording(false);
-            useAvatarStore.getState().setStatus('idle');
-        }
-    }, []);
-
+    // ── Push-to-talk ── hold the mic button or Space to record; release (or a
+    // 3s pause after you've spoken) sends. Speaking interrupts Borvis (barge-in).
     const stopPTT = useCallback(async () => {
         const rec = recRef.current;
         if (!rec) return;
@@ -130,6 +115,23 @@ export const AvatarLabPage = () => {
         else useAvatarStore.getState().setStatus('idle');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const startPTT = useCallback(async () => {
+        if (recRef.current) return;            // already recording
+        cancelSpeech();                        // barge-in: interrupt Borvis
+        useAvatarStore.getState().setStatus('listening');
+        setRecording(true);
+        try {
+            recRef.current = await startListening({
+                onLevel: (lvl) => { avatarSignal.mic = lvl; setMicLevel(lvl); },
+                onSilence: () => { void stopPTT(); },   // auto-send after a 3s pause
+                silenceMs: 3000,
+            });
+        } catch {
+            setRecording(false);
+            useAvatarStore.getState().setStatus('idle');
+        }
+    }, [stopPTT]);
 
     // Space (when not typing in the input) = hold-to-talk.
     useEffect(() => {
@@ -258,9 +260,12 @@ export const AvatarLabPage = () => {
                         TRANSCRIPT · <span className="text-brand-primary/70">{status.toUpperCase()}</span>
                     </div>
                     <div ref={scrollRef} className="pointer-events-auto max-h-[50vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]">
-                        {status === 'thinking' ? (
+                        {/* Loading stays until real content begins (covers the LLM
+                            thinking AND the TTS-synthesis gap) — never flashes the
+                            idle placeholder mid-conversation. */}
+                        {busy && !transcript ? (
                             <div className="flex items-center gap-2 font-mono text-sm text-brand-primary/80">
-                                Borvis 正在思考
+                                {status === 'listening' ? 'Borvis 在听' : 'Borvis 正在思考'}
                                 <span className="inline-flex gap-1">
                                     <span className="animate-pulse">●</span>
                                     <span className="animate-pulse [animation-delay:160ms]">●</span>
