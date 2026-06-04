@@ -16,12 +16,13 @@ import * as THREE from 'three';
 const HEAD_MODEL_URL = '/models/Borvis.glb';   // Boyang's own face (Avaturn, with hair)
 const HELMET_MODEL_URL = '/models/DamagedHelmet-geometry-draco.glb';
 
-// Avaturn is a full body. We extract just the head: keep triangles above this
-// fraction of the model's height (0.86 ≈ top 14% = head + a little neck), then
-// recenter + auto-fit. Tune if it cuts the chin (raise) or shows shoulders (lower).
-const HEAD_CUT_RATIO = 0.86;
-const HEAD_FIT = 1.7;        // target head height in scene units (visual size)
-const HEAD_POS_Y = -0.1;     // fine vertical nudge
+// Avaturn is a full body. We keep the head + a bit of shoulders (a bust) but
+// ANCHOR position/size to the HEAD only, so adding more body doesn't move/resize
+// the face — the body just peeks out below.
+const BODY_CUT_RATIO = 0.72;     // keep triangles above this fraction (lower = more body/shoulders)
+const HEAD_ANCHOR_RATIO = 0.86;  // the head region used to anchor center + scale (keep this fixed)
+const HEAD_FIT = 1.7;            // head height in scene units (visual size)
+const HEAD_POS_Y = -0.1;         // fine vertical nudge
 
 // Debug settings constants (hardcoded after debugging)
 const HELMET_TRANSFORM = {
@@ -48,9 +49,12 @@ const SolidHead = () => {
     const { geometry, fitScale } = useMemo(() => {
         scene.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(scene);
-        const cutY = box.min.y + (box.max.y - box.min.y) * HEAD_CUT_RATIO;
+        const h = box.max.y - box.min.y;
+        const keepCutY = box.min.y + h * BODY_CUT_RATIO;   // keep head + shoulders
+        const headCutY = box.min.y + h * HEAD_ANCHOR_RATIO; // head-only, for anchoring
 
         const pts: THREE.Vector3[] = [];
+        const headBox = new THREE.Box3();                   // bounds of the HEAD region only
         const va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3();
         scene.traverse((o) => {
             const m = o as THREE.Mesh;
@@ -66,18 +70,20 @@ const SolidHead = () => {
                 va.fromBufferAttribute(pos, a).applyMatrix4(mw);
                 vb.fromBufferAttribute(pos, b).applyMatrix4(mw);
                 vc.fromBufferAttribute(pos, c).applyMatrix4(mw);
-                if ((va.y + vb.y + vc.y) / 3 > cutY) pts.push(va.clone(), vb.clone(), vc.clone());
+                const cy = (va.y + vb.y + vc.y) / 3;
+                if (cy > keepCutY) pts.push(va.clone(), vb.clone(), vc.clone());
+                if (cy > headCutY) { headBox.expandByPoint(va); headBox.expandByPoint(vb); headBox.expandByPoint(vc); }
             }
         });
 
         const geo = new THREE.BufferGeometry().setFromPoints(pts);
         geo.computeVertexNormals();
-        geo.computeBoundingBox();
-        const bb = geo.boundingBox!;
-        const center = bb.getCenter(new THREE.Vector3());
-        geo.translate(-center.x, -center.y, -center.z);   // recenter to origin
-        const sizeY = (bb.max.y - bb.min.y) || 1;
-        return { geometry: geo, fitScale: HEAD_FIT / sizeY };
+        // Anchor to the HEAD: recenter on the head's center, scale by head height —
+        // so the shoulders we kept extend below without moving/resizing the face.
+        const headCenter = headBox.getCenter(new THREE.Vector3());
+        const headSizeY = (headBox.max.y - headBox.min.y) || 1;
+        geo.translate(-headCenter.x, -headCenter.y, -headCenter.z);
+        return { geometry: geo, fitScale: HEAD_FIT / headSizeY };
     }, [scene]);
 
     const material = useMemo(() => new THREE.MeshMatcapMaterial({ color: 0xcccccc }), []);
