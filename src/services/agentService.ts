@@ -17,35 +17,27 @@ interface StreamChatOptions {
 }
 
 /**
- * Strips a leading `[[emo:X]]` emotion tag from a token stream, emitting the
- * emotion once and forwarding the cleaned text. Returns a function fed each chunk
- * plus a flush() for any buffered remainder.
+ * Removes `[[emo:X]]` emotion tags from a token stream — wherever they appear
+ * (the model sometimes re-tags mid-reply) — emitting each emotion via onEmotion
+ * and forwarding the cleaned text. Streaming-safe: a tag split across chunks is
+ * held back until complete so it can never be spoken or shown.
  */
 function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: string) => void) {
-    const TAG = /^\s*\[\[emo:(neutral|happy|sad|surprised|angry|curious)\]\]\s*/i;
-    let done = false;
-    let pre = '';
-    const feed = (chunk: string) => {
-        if (done) { onToken(chunk); return; }
-        pre += chunk;
-        const m = pre.match(TAG);
-        if (m) {
-            onEmotion?.(m[1].toLowerCase());
-            const rest = pre.slice(m[0].length);
-            done = true; pre = '';
-            if (rest) onToken(rest);
-            return;
-        }
-        // Decide if a tag is still possible; otherwise flush what we have.
-        const trimmed = pre.replace(/^\s+/, '');
-        if (trimmed && !'[[emo:'.startsWith(trimmed.slice(0, 6))) {
-            done = true; onToken(pre); pre = '';
-        } else if (pre.length > 24) { // tag never closed → give up
-            done = true; onToken(pre); pre = '';
-        }
+    const FULL = /\[\[emo:(neutral|happy|sad|surprised|angry|curious)\]\]/gi;
+    // A trailing fragment that could still grow into a tag (so we hold it back).
+    const PARTIAL = /\[(\[(e(m(o(:\w*\]?)?)?)?)?)?$/;
+    let buf = '';
+    const pump = (flush: boolean) => {
+        buf = buf.replace(FULL, (_m, e) => { onEmotion?.(e.toLowerCase()); return ''; });
+        if (flush) { if (buf) onToken(buf); buf = ''; return; }
+        const m = buf.match(PARTIAL);
+        const cut = m ? m.index! : buf.length;
+        if (cut > 0) { onToken(buf.slice(0, cut)); buf = buf.slice(cut); }
     };
-    const flush = () => { if (!done && pre) { onToken(pre); pre = ''; done = true; } };
-    return { feed, flush };
+    return {
+        feed: (chunk: string) => { buf += chunk; pump(false); },
+        flush: () => pump(true),
+    };
 }
 
 // ============================================================
