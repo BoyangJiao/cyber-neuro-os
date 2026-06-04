@@ -13,6 +13,9 @@ import { NeuralEntity } from '../components/three/avatar/NeuralEntity';
 import { NeuralScanFace } from '../components/three/avatar/NeuralScanFace';
 import { NeuralHalftoneFace } from '../components/three/avatar/NeuralHalftoneFace';
 import { TypewriterTranscript } from '../components/agent/TypewriterTranscript';
+import { streamChat } from '../services/agentService';
+import { speak } from '../services/speechService';
+import { useAvatarStore } from '../store/useAvatarStore';
 
 type Mode = 'halftone' | 'scan' | 'entity';
 
@@ -28,6 +31,37 @@ export const AvatarLabPage = () => {
     const [scanAngle, setScanAngle] = useState(133);
     const [scanIntensity, setScanIntensity] = useState(0.18);
     const [glitch, setGlitch] = useState(0.06);
+
+    // Conversation loop (Phase 2): type → LLM reply (agentService) → TTS speaks it
+    // (speechService: DashScope audio → amplitude lip-sync, browser-TTS fallback).
+    const [input, setInput] = useState('');
+    const [busy, setBusy] = useState(false);
+    const status = useAvatarStore((s) => s.status);
+    const transcript = useAvatarStore((s) => s.transcript);
+
+    const handleSpeak = async () => {
+        const msg = input.trim();
+        if (!msg || busy) return;
+        const { setStatus, setTranscript } = useAvatarStore.getState();
+        setBusy(true);
+        setStatus('thinking');
+        setTranscript('');
+        let reply = '';
+        await new Promise<void>((resolve) => {
+            streamChat({
+                messages: [{ id: 'u', role: 'user', content: msg, timestamp: Date.now() }],
+                onToken: (t) => { reply += t; },
+                onDone: () => resolve(),
+                onError: () => resolve(),
+            });
+        });
+        reply = reply.trim() || '……';
+        setStatus('speaking');
+        setTranscript(reply);
+        await speak(reply);
+        setStatus('idle');
+        setBusy(false);
+    };
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -138,11 +172,34 @@ export const AvatarLabPage = () => {
                 </p>
             </div>
 
-            {/* Transcript — typewriter beside the avatar (demo text; wires to TTS later) */}
+            {/* Transcript — live agent reply (typewriter); idle shows ambient lines */}
             {mode === 'halftone' && (
-                <div className="pointer-events-none absolute right-10 top-1/2 w-[300px] -translate-y-1/2">
-                    <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">TRANSCRIPT</div>
-                    <TypewriterTranscript className="text-sm leading-relaxed" />
+                <div className="pointer-events-none absolute right-10 top-1/2 w-[320px] -translate-y-1/2">
+                    <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
+                        TRANSCRIPT · <span className="text-brand-primary/70">{status.toUpperCase()}</span>
+                    </div>
+                    <TypewriterTranscript key={transcript || 'idle'} text={transcript || undefined} className="text-sm leading-relaxed" />
+                </div>
+            )}
+
+            {/* Conversation input — type to the agent; it thinks, then speaks */}
+            {mode === 'halftone' && (
+                <div className="absolute bottom-8 left-1/2 flex w-[min(560px,80vw)] -translate-x-1/2 items-center gap-2">
+                    <input
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSpeak(); }}
+                        disabled={busy}
+                        placeholder={busy ? `[ ${status}... ]` : '与智能体对话 / talk to the entity…'}
+                        className="flex-1 rounded border border-brand-primary/40 bg-black/60 px-4 py-2.5 font-mono text-sm text-brand-primary placeholder:text-text-muted/60 outline-none backdrop-blur focus:border-brand-primary disabled:opacity-50"
+                    />
+                    <button
+                        onClick={handleSpeak}
+                        disabled={busy}
+                        className="rounded border border-brand-primary/50 bg-brand-primary/10 px-5 py-2.5 font-mono text-sm tracking-widest text-brand-primary transition-colors hover:bg-brand-primary/20 disabled:opacity-40"
+                    >
+                        {busy ? '···' : 'SPEAK'}
+                    </button>
                 </div>
             )}
         </div>

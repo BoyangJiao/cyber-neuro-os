@@ -15,6 +15,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { avatarSignal, useAvatarStore } from '../../../store/useAvatarStore';
 
 const HEAD_MODEL_URL = '/models/facecap-clean.glb';
 const FIT_RADIUS = 2.2;
@@ -226,14 +227,25 @@ export const NeuralHalftoneFace = ({
         const { faceMesh, headScene, headCam, fbo, material } = built;
         const u = material.uniforms;
 
-        const target = autoTalk ? speechJaw(u.uTime.value) : jawOpen;
-        jawRef.current += (target - jawRef.current) * Math.min(1, delta * 18);
+        // Agent state drives mouth + mood (read without subscribing — loop-safe).
+        const status = useAvatarStore.getState().status;
+        const speaking = status === 'speaking';
+        const thinking = status === 'thinking';
+        const listening = status === 'listening';
+
+        // While speaking, the jaw follows the live audio/envelope signal.
+        const target = speaking ? avatarSignal.jaw : (autoTalk ? speechJaw(u.uTime.value) : jawOpen);
+        jawRef.current += (target - jawRef.current) * Math.min(1, delta * (speaking ? 26 : 18));
         const bl = blink(u.uTime.value);
         u.uTime.value += delta;
-        u.uIntensity.value = intensity;
+
+        // Mood: thinking → agitated (glitch up, scanlines up, gentle luminance pulse);
+        // listening → soft breathing brighten; speaking/idle → calm baseline.
+        const pulse = 1 + 0.12 * Math.sin(u.uTime.value * 6.0);
+        u.uIntensity.value = intensity * (thinking ? pulse : listening ? 1.12 : 1.0);
         u.uScanAngle.value = scanAngle;
-        u.uScanIntensity.value = scanIntensity;
-        u.uGlitch.value = glitch;
+        u.uScanIntensity.value = scanIntensity + (thinking ? 0.18 : 0);
+        u.uGlitch.value = glitch + (thinking ? 0.28 : 0);
 
         // Entrance ramp: grid builds 60 → target in rhythmic steps over ~2.2s.
         introT.current = Math.min(1, introT.current + delta / 2.2);
