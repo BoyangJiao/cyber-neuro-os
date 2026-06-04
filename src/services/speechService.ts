@@ -29,7 +29,13 @@ function speechEnv(t: number): number {
     return Math.max(0, syllable * flutter * gate);
 }
 
-async function speakDashScope(text: string): Promise<boolean> {
+interface SpeakOpts {
+    /** Fires the moment audio actually starts, with its duration (seconds), so
+     *  the transcript can be revealed in lock-step instead of racing ahead. */
+    onStart?: (durationSec: number) => void;
+}
+
+async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
     let res: Response;
     try {
         res = await fetch('/api/tts', {
@@ -96,11 +102,12 @@ async function speakDashScope(text: string): Promise<boolean> {
         src.onended = finish;
         cancelCurrent = () => { try { src.stop(); } catch { /* noop */ } finish(); };
         src.start();
+        opts.onStart?.(audioBuf.duration);
         tick();
     });
 }
 
-function speakBrowser(text: string): Promise<void> {
+function speakBrowser(text: string, opts: SpeakOpts): Promise<void> {
     return new Promise((resolve) => {
         if (typeof speechSynthesis === 'undefined') { resolve(); return; }
         speechSynthesis.cancel();
@@ -130,6 +137,12 @@ function speakBrowser(text: string): Promise<void> {
         };
 
         utter.onboundary = () => { boost = 1; };
+        utter.onstart = () => {
+            // No real duration from the API → estimate from length so the
+            // transcript paces roughly with the spoken audio.
+            const est = Math.max(1, text.length * (isZh ? 0.22 : 0.07));
+            opts.onStart?.(est);
+        };
         utter.onend = finish;
         utter.onerror = finish;
         cancelCurrent = () => { try { speechSynthesis.cancel(); } catch { /* noop */ } finish(); };
@@ -146,9 +159,9 @@ export function cancelSpeech() {
 }
 
 /** Speak `text`. Resolves when playback finishes (or is cancelled). */
-export async function speak(text: string): Promise<void> {
+export async function speak(text: string, opts: SpeakOpts = {}): Promise<void> {
     cancelSpeech();
     if (!text.trim()) return;
-    const ok = await speakDashScope(text);
-    if (!ok) await speakBrowser(text);
+    const ok = await speakDashScope(text, opts);
+    if (!ok) await speakBrowser(text, opts);
 }

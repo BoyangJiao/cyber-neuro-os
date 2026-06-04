@@ -37,6 +37,7 @@ export const AvatarLabPage = () => {
     // (speechService: DashScope audio → amplitude lip-sync, browser-TTS fallback).
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
+    const [typeSpeed, setTypeSpeed] = useState(45);
     const status = useAvatarStore((s) => s.status);
     const transcript = useAvatarStore((s) => s.transcript);
 
@@ -60,8 +61,14 @@ export const AvatarLabPage = () => {
         // Emotion derived from the reply's content (heuristic; LLM-judged later).
         setEmotion(classifyEmotion(reply));
         setStatus('speaking');
-        setTranscript(reply);
-        await speak(reply);
+        // Reveal the transcript only when audio actually starts, paced to its
+        // duration → voice and text appear together (no racing ahead).
+        await speak(reply, {
+            onStart: (dur) => {
+                setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, reply.length))));
+                setTranscript(reply);
+            },
+        });
         setStatus('idle');
         setEmotion('neutral');
         setBusy(false);
@@ -182,7 +189,7 @@ export const AvatarLabPage = () => {
                     <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                         TRANSCRIPT · <span className="text-brand-primary/70">{status.toUpperCase()}</span>
                     </div>
-                    <TypewriterTranscript key={transcript || 'idle'} text={transcript || undefined} className="text-sm leading-relaxed" />
+                    <TypewriterTranscript key={transcript || 'idle'} text={transcript || undefined} speed={typeSpeed} className="text-sm leading-relaxed" />
                 </div>
             )}
 
