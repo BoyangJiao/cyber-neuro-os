@@ -16,6 +16,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { avatarSignal, useAvatarStore } from '../../../store/useAvatarStore';
+import { EMOTION_TARGETS, MANAGED_MORPHS } from './expressions';
 
 const HEAD_MODEL_URL = '/models/facecap-clean.glb';
 const FIT_RADIUS = 2.2;
@@ -143,6 +144,7 @@ export const NeuralHalftoneFace = ({
     const { scene } = useGLTF(modelUrl);
     const jawRef = useRef(0);
     const introT = useRef(intro ? 0 : 1);
+    const expr = useRef<Record<string, number>>({}); // smoothed blendshape weights
 
     const built = useMemo(() => {
         scene.updateMatrixWorld(true);
@@ -216,10 +218,11 @@ export const NeuralHalftoneFace = ({
         });
 
         const dict = head.morphTargetDictionary!;
-        return {
-            faceMesh, pivot, headScene, headCam, fbo, material,
-            jawIdx: dict['jawOpen'], blinkLIdx: dict['eyeBlink_L'], blinkRIdx: dict['eyeBlink_R'],
-        };
+        const morphIdx: Record<string, number> = {};
+        for (const name of MANAGED_MORPHS) {
+            if (dict[name] !== undefined) morphIdx[name] = dict[name];
+        }
+        return { faceMesh, pivot, headScene, headCam, fbo, material, morphIdx };
     }, [scene, size.width, size.height]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useFrame((_, delta) => {
@@ -228,7 +231,9 @@ export const NeuralHalftoneFace = ({
         const u = material.uniforms;
 
         // Agent state drives mouth + mood (read without subscribing — loop-safe).
-        const status = useAvatarStore.getState().status;
+        const st = useAvatarStore.getState();
+        const status = st.status;
+        const emotion = st.emotion;
         const speaking = status === 'speaking';
         const thinking = status === 'thinking';
         const listening = status === 'listening';
@@ -253,18 +258,39 @@ export const NeuralHalftoneFace = ({
         const stepped = Math.floor(ease * 6 + 0.0001) / 6;          // 6 rhythmic steps
         u.uGrid.value = introT.current >= 1 ? grid : 60 + (grid - 60) * stepped;
 
+        const t = u.uTime.value;
+        const jaw = jawRef.current;
+
+        // ── Expression layer ── emotion resting pose + (while speaking) varied
+        // secondary mouth shapes so the mouth isn't a stiff open/close hinge.
+        const targets: Record<string, number> = { ...EMOTION_TARGETS[emotion] };
+        targets.jawOpen = jaw;
+        if (speaking) {
+            targets.jawForward = Math.max(targets.jawForward || 0, jaw * 0.18);
+            targets.mouthFunnel = Math.max(targets.mouthFunnel || 0, jaw * (0.28 + 0.22 * Math.sin(t * 7.0)));
+            targets.mouthPucker = Math.max(targets.mouthPucker || 0, jaw * 0.18 * (0.5 + 0.5 * Math.sin(t * 5.0 + 1.0)));
+        }
+        targets.eyeBlink_L = Math.max(targets.eyeBlink_L || 0, bl);
+        targets.eyeBlink_R = Math.max(targets.eyeBlink_R || 0, bl);
+
         const inf = faceMesh.morphTargetInfluences;
         if (inf) {
-            if (built.jawIdx !== undefined) inf[built.jawIdx] = jawRef.current;
-            if (built.blinkLIdx !== undefined) inf[built.blinkLIdx] = bl;
-            if (built.blinkRIdx !== undefined) inf[built.blinkRIdx] = bl;
+            for (const name in built.morphIdx) {
+                const cur = expr.current[name] ?? 0;
+                const tgt = targets[name] ?? 0;
+                // jaw tracks fast (lip-sync); expressions ease in slowly (natural)
+                const k = name === 'jawOpen' ? Math.min(1, delta * (speaking ? 26 : 18)) : Math.min(1, delta * 6);
+                const next = cur + (tgt - cur) * k;
+                expr.current[name] = next;
+                inf[built.morphIdx[name]] = next;
+            }
         }
 
-        // Limited head rotation: follow the cursor within ±maxYaw/±maxPitch,
-        // plus a slow idle drift so it feels alive when the cursor is still.
-        const t = u.uTime.value;
-        const tYaw = pointer.x * maxYaw + Math.sin(t * 0.25) * 0.05;
-        const tPitch = -pointer.y * maxPitch + Math.sin(t * 0.21) * 0.03;
+        // Limited head rotation: follow the cursor within ±maxYaw/±maxPitch + idle
+        // drift; while speaking add a subtle nod/sway scaled by the current jaw.
+        const sway = speaking ? jaw * 0.06 : 0;
+        const tYaw = pointer.x * maxYaw + Math.sin(t * 0.25) * 0.05 + Math.sin(t * 2.3) * sway;
+        const tPitch = -pointer.y * maxPitch + Math.sin(t * 0.21) * 0.03 + Math.sin(t * 3.1) * sway;
         const pivot = built.pivot;
         pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
         pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);

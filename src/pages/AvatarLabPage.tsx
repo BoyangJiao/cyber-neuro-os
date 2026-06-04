@@ -16,6 +16,7 @@ import { TypewriterTranscript } from '../components/agent/TypewriterTranscript';
 import { streamChat } from '../services/agentService';
 import { speak } from '../services/speechService';
 import { useAvatarStore } from '../store/useAvatarStore';
+import { classifyEmotion } from '../components/three/avatar/expressions';
 
 type Mode = 'halftone' | 'scan' | 'entity';
 
@@ -42,7 +43,7 @@ export const AvatarLabPage = () => {
     const handleSpeak = async () => {
         const msg = input.trim();
         if (!msg || busy) return;
-        const { setStatus, setTranscript } = useAvatarStore.getState();
+        const { setStatus, setTranscript, setEmotion } = useAvatarStore.getState();
         setBusy(true);
         setStatus('thinking');
         setTranscript('');
@@ -56,10 +57,13 @@ export const AvatarLabPage = () => {
             });
         });
         reply = reply.trim() || '……';
+        // Emotion derived from the reply's content (heuristic; LLM-judged later).
+        setEmotion(classifyEmotion(reply));
         setStatus('speaking');
         setTranscript(reply);
         await speak(reply);
         setStatus('idle');
+        setEmotion('neutral');
         setBusy(false);
     };
 

@@ -152,6 +152,54 @@ function apiProxy(env: Record<string, string>): PluginOption {
           }
         })
       })
+
+      // 3. DashScope TTS Proxy (HTTP SpeechSynthesizer → audio bytes)
+      server.middlewares.use('/api/tts', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405); res.end(JSON.stringify({ error: 'Method not allowed' })); return
+        }
+        const apiKey = (env.DASHSCOPE_API_KEY || '').trim()
+        if (!apiKey) {
+          res.writeHead(501, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: 'TTS not configured' })); return
+        }
+        let body = ''
+        req.on('data', (c: Buffer) => { body += c.toString() })
+        req.on('end', async () => {
+          try {
+            const text = (JSON.parse(body || '{}').text || '').slice(0, 2000)
+            if (!text.trim()) { res.writeHead(400); res.end(JSON.stringify({ error: 'No text' })); return }
+            const model = (env.TTS_MODEL || 'sambert-zhichu-v1').trim()
+            const format = (env.TTS_FORMAT || 'mp3').trim()
+            const upstream: any = await undiciFetch('https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model, input: { text }, parameters: { text_type: 'PlainText', format, sample_rate: 48000 } }),
+              ...(dispatcher ? { dispatcher } : {}),
+            })
+            const ct = upstream.headers.get('content-type') || ''
+            if (upstream.ok && ct.includes('audio')) {
+              res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': 'no-store' })
+              res.end(Buffer.from(await upstream.arrayBuffer())); return
+            }
+            // Some models return JSON { output: { audio: { url } } }
+            const json: any = await upstream.json().catch(() => null)
+            const url = json?.output?.audio?.url
+            if (url) {
+              const audio: any = await undiciFetch(url, { ...(dispatcher ? { dispatcher } : {}) })
+              res.writeHead(200, { 'Content-Type': audio.headers.get('content-type') || 'audio/mpeg', 'Cache-Control': 'no-store' })
+              res.end(Buffer.from(await audio.arrayBuffer())); return
+            }
+            console.error('[tts-proxy] unexpected response:', json)
+            res.writeHead(502, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: 'TTS produced no audio', details: json }))
+          } catch (err) {
+            console.error('[tts-proxy] Error:', err)
+            if (!res.headersSent) res.writeHead(502, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: 'TTS proxy error' }))
+          }
+        })
+      })
     },
   }
 }
