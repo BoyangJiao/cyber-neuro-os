@@ -13,15 +13,15 @@ import * as THREE from 'three';
 
 // URLs for the 3D models
 // Local compressed models
-const HEAD_MODEL_URL = '/models/Borvist2.glb';   // Boyang's own face (Avaturn white model)
+const HEAD_MODEL_URL = '/models/Borvis.glb';   // Boyang's own face (Avaturn, with hair)
 const HELMET_MODEL_URL = '/models/DamagedHelmet-geometry-draco.glb';
 
-// The Avaturn model is a FULL BODY; we scale it up and push it down so only the
-// head is framed inside the helmet (body extends off-screen below). Tune these
-// two if the head sits too high/low or too big/small.
-//   LeePerrySmith (a head bust) used: scale 0.35, posY -0.6
-const HEAD_SCALE = 6.5;
-const HEAD_POS_Y = -10.0;
+// Avaturn is a full body. We extract just the head: keep triangles above this
+// fraction of the model's height (0.86 ≈ top 14% = head + a little neck), then
+// recenter + auto-fit. Tune if it cuts the chin (raise) or shows shoulders (lower).
+const HEAD_CUT_RATIO = 0.86;
+const HEAD_FIT = 1.7;        // target head height in scene units (visual size)
+const HEAD_POS_Y = -0.1;     // fine vertical nudge
 
 // Debug settings constants (hardcoded after debugging)
 const HELMET_TRANSFORM = {
@@ -40,32 +40,50 @@ const globalUniforms = {
     progress: { value: 0 }
 };
 
-// Solid Matcap Head (grey/white smooth head)
+// Solid Matcap Head — extracts just the head from the full-body Avaturn model
+// (keeps triangles above HEAD_CUT_RATIO of the height), recenters + auto-fits.
 const SolidHead = () => {
     const { scene } = useGLTF(HEAD_MODEL_URL);
-    // Remove meshRef as it's not strictly needed for the group logic here, or we can keep it if we want to add rotation later
-    const meshRef = useRef<THREE.Group>(null);
 
-    useEffect(() => {
-        scene.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-                // White/grey matcap material
-                child.material = new THREE.MeshMatcapMaterial({
-                    color: 0xcccccc,
-                });
+    const { geometry, fitScale } = useMemo(() => {
+        scene.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(scene);
+        const cutY = box.min.y + (box.max.y - box.min.y) * HEAD_CUT_RATIO;
+
+        const pts: THREE.Vector3[] = [];
+        const va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3();
+        scene.traverse((o) => {
+            const m = o as THREE.Mesh;
+            const pos = m.isMesh ? (m.geometry.getAttribute('position') as THREE.BufferAttribute) : null;
+            if (!pos) return;
+            const index = m.geometry.index;
+            const mw = m.matrixWorld;
+            const count = index ? index.count : pos.count;
+            for (let i = 0; i < count; i += 3) {
+                const a = index ? index.getX(i) : i;
+                const b = index ? index.getX(i + 1) : i + 1;
+                const c = index ? index.getX(i + 2) : i + 2;
+                va.fromBufferAttribute(pos, a).applyMatrix4(mw);
+                vb.fromBufferAttribute(pos, b).applyMatrix4(mw);
+                vc.fromBufferAttribute(pos, c).applyMatrix4(mw);
+                if ((va.y + vb.y + vc.y) / 3 > cutY) pts.push(va.clone(), vb.clone(), vc.clone());
             }
         });
+
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        geo.computeVertexNormals();
+        geo.computeBoundingBox();
+        const bb = geo.boundingBox!;
+        const center = bb.getCenter(new THREE.Vector3());
+        geo.translate(-center.x, -center.y, -center.z);   // recenter to origin
+        const sizeY = (bb.max.y - bb.min.y) || 1;
+        return { geometry: geo, fitScale: HEAD_FIT / sizeY };
     }, [scene]);
 
-    return (
-        <primitive
-            ref={meshRef}
-            object={scene}
-            scale={HEAD_SCALE}
-            position={[0, HEAD_POS_Y, 0]}  // push body down so only the head is framed
-            rotation={[0, 0, 0]}
-        />
-    );
+    const material = useMemo(() => new THREE.MeshMatcapMaterial({ color: 0xcccccc }), []);
+    useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+
+    return <mesh geometry={geometry} material={material} scale={fitScale} position={[0, HEAD_POS_Y, 0]} />;
 };
 
 // Wireframe Helmet - progressively reveals from top to bottom
