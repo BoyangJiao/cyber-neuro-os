@@ -13,8 +13,15 @@ import * as THREE from 'three';
 
 // URLs for the 3D models
 // Local compressed models
-const HEAD_MODEL_URL = '/models/LeePerrySmith-draco.glb';
+const HEAD_MODEL_URL = '/models/Borvist2.glb';   // Boyang's own face (Avaturn white model)
 const HELMET_MODEL_URL = '/models/DamagedHelmet-geometry-draco.glb';
+
+// The Avaturn model is a FULL BODY; we scale it up and push it down so only the
+// head is framed inside the helmet (body extends off-screen below). Tune these
+// two if the head sits too high/low or too big/small.
+//   LeePerrySmith (a head bust) used: scale 0.35, posY -0.6
+const HEAD_SCALE = 6.5;
+const HEAD_POS_Y = -10.0;
 
 // Debug settings constants (hardcoded after debugging)
 const HELMET_TRANSFORM = {
@@ -54,8 +61,8 @@ const SolidHead = () => {
         <primitive
             ref={meshRef}
             object={scene}
-            scale={0.35}
-            position={[0, -0.6, 0]}  // Lower position so bottom touches screen edge
+            scale={HEAD_SCALE}
+            position={[0, HEAD_POS_Y, 0]}  // push body down so only the head is framed
             rotation={[0, 0, 0]}
         />
     );
