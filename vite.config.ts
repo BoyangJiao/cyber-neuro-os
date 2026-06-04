@@ -249,24 +249,11 @@ export default defineConfig(({ mode }: { mode: string }) => {
     optimizeDeps: {
       include: ['@sanity/visual-editing/react', 'styled-components']
     },
-    build: {
-      // Split the heavy, independently-cacheable vendor libs out of the main
-      // bundle. Three.js, Sanity, the animation stack, and Tone are large and
-      // change on different cadences than app code — separate chunks let the
-      // browser cache them across deploys and parallelize download.
-      rollupOptions: {
-        output: {
-          manualChunks: (id: string) => {
-            if (!id.includes('node_modules')) return undefined
-            if (/[\\/]node_modules[\\/](three|three-stdlib|@react-three)[\\/]/.test(id)) return 'vendor-three'
-            if (/[\\/]node_modules[\\/]@sanity[\\/]/.test(id)) return 'vendor-sanity'
-            if (/[\\/]node_modules[\\/](framer-motion|gsap|@gsap)[\\/]/.test(id)) return 'vendor-motion'
-            if (/[\\/]node_modules[\\/]tone[\\/]/.test(id)) return 'vendor-tone'
-            return 'vendor'
-          },
-        },
-      },
-    },
+    // NOTE: no custom manualChunks. A hand-rolled vendor split (three / sanity /
+    // motion / tone) created a CIRCULAR chunk (vendor-three ↔ vendor) whose
+    // init order broke the production bundle — the app got stuck on the loading
+    // skeleton (React never mounted). Vite's automatic chunking handles the
+    // shared graph safely; route-level code-splitting (React.lazy) still applies.
     server: {
       port: 5173,
       strictPort: true,
