@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const DEMO_LINES = [
-    '神经链接已建立。我是你的智能体。',
+    '神经链接已建立。我是 Borvis。',
     '你可以用语音，或者打字和我对话。',
     '我在听……',
 ];

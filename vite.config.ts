@@ -169,28 +169,23 @@ function apiProxy(env: Record<string, string>): PluginOption {
           try {
             const text = (JSON.parse(body || '{}').text || '').slice(0, 2000)
             if (!text.trim()) { res.writeHead(400); res.end(JSON.stringify({ error: 'No text' })); return }
-            const model = (env.TTS_MODEL || 'sambert-zhichu-v1').trim()
-            const format = (env.TTS_FORMAT || 'mp3').trim()
-            const upstream: any = await undiciFetch('https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer', {
+            const model = (env.TTS_MODEL || 'qwen3-tts-flash').trim()
+            const voice = (env.TTS_VOICE || 'Kai').trim()
+            const languageType = /[一-鿿]/.test(text) ? 'Chinese' : 'English'
+            const upstream: any = await undiciFetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ model, input: { text }, parameters: { text_type: 'PlainText', format, sample_rate: 48000 } }),
+              body: JSON.stringify({ model, input: { text, voice, language_type: languageType } }),
               ...(dispatcher ? { dispatcher } : {}),
             })
-            const ct = upstream.headers.get('content-type') || ''
-            if (upstream.ok && ct.includes('audio')) {
-              res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': 'no-store' })
-              res.end(Buffer.from(await upstream.arrayBuffer())); return
-            }
-            // Some models return JSON { output: { audio: { url } } }
             const json: any = await upstream.json().catch(() => null)
             const url = json?.output?.audio?.url
-            if (url) {
+            if (upstream.ok && url) {
               const audio: any = await undiciFetch(url, { ...(dispatcher ? { dispatcher } : {}) })
               res.writeHead(200, { 'Content-Type': audio.headers.get('content-type') || 'audio/mpeg', 'Cache-Control': 'no-store' })
               res.end(Buffer.from(await audio.arrayBuffer())); return
             }
-            console.error('[tts-proxy] unexpected response:', json)
+            console.error('[tts-proxy] no audio from upstream:', upstream.status, JSON.stringify(json))
             res.writeHead(502, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify({ error: 'TTS produced no audio', details: json }))
           } catch (err) {

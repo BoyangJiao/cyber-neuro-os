@@ -40,18 +40,26 @@ async function speakDashScope(text: string): Promise<boolean> {
     } catch {
         return false; // endpoint unreachable → fall back
     }
-    if (!res.ok) return false;
+    if (!res.ok) {
+        if (import.meta.env.DEV) console.info('[speech] /api/tts not ok (', res.status, ') → browser TTS fallback');
+        return false;
+    }
 
     const buf = await res.arrayBuffer();
-    if (buf.byteLength < 256) return false; // not real audio → fall back
+    if (buf.byteLength < 256) {
+        if (import.meta.env.DEV) console.info('[speech] /api/tts returned no audio → browser TTS fallback');
+        return false;
+    }
 
     const ctx = getAudioCtx();
     let audioBuf: AudioBuffer;
     try {
         audioBuf = await ctx.decodeAudioData(buf.slice(0));
     } catch {
+        if (import.meta.env.DEV) console.info('[speech] /api/tts payload not decodable audio → browser TTS fallback');
         return false; // not decodable audio → fall back
     }
+    if (import.meta.env.DEV) console.info('[speech] DashScope TTS ok — amplitude lip-sync');
 
     const src = ctx.createBufferSource();
     src.buffer = audioBuf;

@@ -194,7 +194,7 @@ export const AvatarLabPage = () => {
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleSpeak(); }}
                         disabled={busy}
-                        placeholder={busy ? `[ ${status}... ]` : '与智能体对话 / talk to the entity…'}
+                        placeholder={busy ? `[ ${status}... ]` : '和 Borvis 对话 / talk to Borvis…'}
                         className="flex-1 rounded border border-brand-primary/40 bg-black/60 px-4 py-2.5 font-mono text-sm text-brand-primary placeholder:text-text-muted/60 outline-none backdrop-blur focus:border-brand-primary disabled:opacity-50"
                     />
                     <button

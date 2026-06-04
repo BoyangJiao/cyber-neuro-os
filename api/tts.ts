@@ -12,7 +12,9 @@ export const config = { runtime: 'edge' };
 
 declare const process: any;
 
-const ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer';
+// Qwen-TTS uses the multimodal-generation endpoint (named voices: Kai, Cherry…)
+// and returns the audio as a URL in output.audio.url.
+const ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
 const MAX_CHARS = 2000;
 
 function isOriginAllowed(req: Request): boolean {
@@ -50,9 +52,9 @@ export default async function handler(req: Request) {
     }
     if (!text.trim()) return new Response(JSON.stringify({ error: 'No text' }), { status: 400 });
 
-    // sambert voices are per-model (zhichu = female zh, etc.). Override via env.
-    const model = (process.env.TTS_MODEL || 'sambert-zhichu-v1').trim();
-    const format = (process.env.TTS_FORMAT || 'mp3').trim();
+    const model = (process.env.TTS_MODEL || 'qwen3-tts-flash').trim();
+    const voice = (process.env.TTS_VOICE || 'Kai').trim();
+    const languageType = /[一-鿿]/.test(text) ? 'Chinese' : 'English';
 
     let upstream: Response;
     try {
@@ -64,8 +66,7 @@ export default async function handler(req: Request) {
             },
             body: JSON.stringify({
                 model,
-                input: { text },
-                parameters: { text_type: 'PlainText', format, sample_rate: 48000 },
+                input: { text, voice, language_type: languageType },
             }),
         });
     } catch (e) {
@@ -73,36 +74,22 @@ export default async function handler(req: Request) {
         return new Response(JSON.stringify({ error: 'TTS upstream failed' }), { status: 502 });
     }
 
-    const ct = upstream.headers.get('content-type') || '';
-    // Success path: sambert returns the audio bytes directly.
-    if (upstream.ok && ct.includes('audio')) {
-        return new Response(upstream.body, {
+    // Qwen-TTS returns JSON with the audio at output.audio.url (24h validity).
+    let json: any = null;
+    try { json = await upstream.json(); } catch { /* not JSON */ }
+    const url = json?.output?.audio?.url;
+    if (upstream.ok && url) {
+        const audio = await fetch(url);
+        return new Response(audio.body, {
             status: 200,
             headers: {
-                'Content-Type': ct,
+                'Content-Type': audio.headers.get('content-type') || 'audio/mpeg',
                 'Cache-Control': 'no-store',
                 'Access-Control-Allow-Origin': '*',
             },
         });
     }
 
-    // Some models answer with JSON { output: { audio: { url } } } — fetch & relay.
-    try {
-        const json: any = await upstream.json();
-        const url = json?.output?.audio?.url;
-        if (url) {
-            const audio = await fetch(url);
-            return new Response(audio.body, {
-                status: 200,
-                headers: {
-                    'Content-Type': audio.headers.get('content-type') || 'audio/mpeg',
-                    'Cache-Control': 'no-store',
-                    'Access-Control-Allow-Origin': '*',
-                },
-            });
-        }
-        console.error('[TTS PROXY] unexpected response', json);
-    } catch { /* not JSON */ }
-
-    return new Response(JSON.stringify({ error: 'TTS produced no audio' }), { status: 502 });
+    console.error('[TTS PROXY] no audio from upstream', upstream.status, json);
+    return new Response(JSON.stringify({ error: 'TTS produced no audio', upstream: json }), { status: 502 });
 }
