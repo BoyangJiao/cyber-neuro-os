@@ -247,7 +247,9 @@ export const NeuralHalftoneFace = ({
         // Mood: thinking → agitated (glitch up, scanlines up, gentle luminance pulse);
         // listening → soft breathing brighten; speaking/idle → calm baseline.
         const pulse = 1 + 0.12 * Math.sin(u.uTime.value * 6.0);
-        u.uIntensity.value = intensity * (thinking ? pulse : listening ? 1.12 : 1.0);
+        // While listening, Borvis brightens/leans in with the USER's voice level.
+        const listenGain = listening ? 1.12 + avatarSignal.mic * 0.5 : 1.0;
+        u.uIntensity.value = intensity * (thinking ? pulse : listenGain);
         u.uScanAngle.value = scanAngle;
         u.uScanIntensity.value = scanIntensity + (thinking ? 0.18 : 0);
         u.uGlitch.value = glitch + (thinking ? 0.28 : 0);

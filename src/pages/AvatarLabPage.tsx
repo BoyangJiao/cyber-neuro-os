@@ -5,7 +5,7 @@
  * point-cloud head can be tuned without the production dashboard. Route is only
  * registered in dev (App.tsx). Not shipped.
  */
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
@@ -14,8 +14,9 @@ import { NeuralScanFace } from '../components/three/avatar/NeuralScanFace';
 import { NeuralHalftoneFace } from '../components/three/avatar/NeuralHalftoneFace';
 import { TypewriterTranscript } from '../components/agent/TypewriterTranscript';
 import { streamChat } from '../services/agentService';
-import { speak } from '../services/speechService';
-import { useAvatarStore } from '../store/useAvatarStore';
+import { speak, cancelSpeech } from '../services/speechService';
+import { startListening } from '../services/asrService';
+import { useAvatarStore, avatarSignal } from '../store/useAvatarStore';
 import { classifyEmotion } from '../components/three/avatar/expressions';
 import type { Emotion } from '../store/useAvatarStore';
 
@@ -39,9 +40,13 @@ export const AvatarLabPage = () => {
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
     const [typeSpeed, setTypeSpeed] = useState(45);
+    const [recording, setRecording] = useState(false);
+    const [micLevel, setMicLevel] = useState(0);
     const status = useAvatarStore((s) => s.status);
     const transcript = useAvatarStore((s) => s.transcript);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const busyRef = useRef(false);
+    const recRef = useRef<Awaited<ReturnType<typeof startListening>> | null>(null);
 
     // Auto-scroll the transcript to the bottom as it types — but only if the user
     // is already near the bottom, so they can scroll up to read earlier lines.
@@ -52,11 +57,11 @@ export const AvatarLabPage = () => {
         }
     }, []);
 
-    const handleSpeak = async () => {
-        const msg = input.trim();
-        if (!msg || busy) return;
+    // Shared response pipeline used by both text and voice input.
+    const respond = async (msg: string) => {
+        if (!msg.trim() || busyRef.current) return;
         const { setStatus, setTranscript, setEmotion } = useAvatarStore.getState();
-        setInput('');                 // clear the box on send
+        busyRef.current = true;
         setBusy(true);
         setStatus('thinking');
         setTranscript('');
@@ -85,8 +90,56 @@ export const AvatarLabPage = () => {
         });
         setStatus('idle');
         setEmotion('neutral');
+        busyRef.current = false;
         setBusy(false);
     };
+
+    const handleSend = () => {
+        const msg = input.trim();
+        if (!msg) return;
+        setInput('');
+        void respond(msg);
+    };
+
+    // ── Push-to-talk ── hold the mic button or Space to record; release to send.
+    const startPTT = useCallback(async () => {
+        if (recRef.current) return;            // already recording
+        cancelSpeech();                        // barge-in: interrupt Borvis
+        useAvatarStore.getState().setStatus('listening');
+        setRecording(true);
+        try {
+            recRef.current = await startListening((lvl) => {
+                avatarSignal.mic = lvl;
+                setMicLevel(lvl);
+            });
+        } catch {
+            setRecording(false);
+            useAvatarStore.getState().setStatus('idle');
+        }
+    }, []);
+
+    const stopPTT = useCallback(async () => {
+        const rec = recRef.current;
+        if (!rec) return;
+        recRef.current = null;
+        setRecording(false);
+        avatarSignal.mic = 0;
+        setMicLevel(0);
+        const text = await rec.stop();
+        if (text) void respond(text);
+        else useAvatarStore.getState().setStatus('idle');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Space (when not typing in the input) = hold-to-talk.
+    useEffect(() => {
+        const isTyping = () => document.activeElement?.tagName === 'INPUT';
+        const down = (e: KeyboardEvent) => { if (e.code === 'Space' && !e.repeat && !isTyping()) { e.preventDefault(); void startPTT(); } };
+        const up = (e: KeyboardEvent) => { if (e.code === 'Space' && !isTyping()) { e.preventDefault(); void stopPTT(); } };
+        window.addEventListener('keydown', down);
+        window.addEventListener('keyup', up);
+        return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
+    }, [startPTT, stopPTT]);
 
     // Load any GLB in /public/models via ?model=<file>. Defaults to the facecap
     // head (real ARKit blendshapes). e.g. /avatar-lab?model=neural-avatar.glb
@@ -227,23 +280,42 @@ export const AvatarLabPage = () => {
                 </div>
             )}
 
-            {/* Conversation input — type to the agent; it thinks, then speaks */}
+            {/* Conversation input — type, or hold the mic / Space to talk */}
             {mode === 'halftone' && (
-                <div className="absolute bottom-8 left-1/2 flex w-[min(560px,80vw)] -translate-x-1/2 items-center gap-2">
+                <div className="absolute bottom-8 left-1/2 flex w-[min(600px,82vw)] -translate-x-1/2 items-center gap-2">
+                    {/* Hold-to-talk mic */}
+                    <button
+                        onPointerDown={(e) => { e.preventDefault(); void startPTT(); }}
+                        onPointerUp={(e) => { e.preventDefault(); void stopPTT(); }}
+                        onPointerLeave={() => { if (recording) void stopPTT(); }}
+                        title="按住说话 / hold to talk (or hold Space)"
+                        className={`relative flex h-11 w-11 flex-none items-center justify-center rounded-full border font-mono transition-colors ${
+                            recording ? 'border-status-error bg-status-error/20 text-status-error' : 'border-brand-primary/50 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20'
+                        }`}
+                    >
+                        {recording && (
+                            <span
+                                className="absolute inset-0 rounded-full border border-status-error/60"
+                                style={{ transform: `scale(${1 + micLevel * 0.6})`, opacity: 0.4 + micLevel * 0.6 }}
+                            />
+                        )}
+                        <i className="ri-mic-line text-lg" />
+                    </button>
+
                     <input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleSpeak(); }}
-                        disabled={busy}
-                        placeholder={busy ? `[ ${status}... ]` : '和 Borvis 对话 / talk to Borvis…'}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                        disabled={busy || recording}
+                        placeholder={recording ? '[ listening… 松手发送 ]' : busy ? `[ ${status}... ]` : '打字，或按住麦克风/空格说话…'}
                         className="flex-1 rounded border border-brand-primary/40 bg-black/60 px-4 py-2.5 font-mono text-sm text-brand-primary placeholder:text-text-muted/60 outline-none backdrop-blur focus:border-brand-primary disabled:opacity-50"
                     />
                     <button
-                        onClick={handleSpeak}
-                        disabled={busy}
+                        onClick={handleSend}
+                        disabled={busy || recording}
                         className="rounded border border-brand-primary/50 bg-brand-primary/10 px-5 py-2.5 font-mono text-sm tracking-widest text-brand-primary transition-colors hover:bg-brand-primary/20 disabled:opacity-40"
                     >
-                        {busy ? '···' : 'SPEAK'}
+                        {busy ? '···' : 'SEND'}
                     </button>
                 </div>
             )}

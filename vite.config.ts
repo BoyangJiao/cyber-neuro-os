@@ -196,6 +196,45 @@ function apiProxy(env: Record<string, string>): PluginOption {
           }
         })
       })
+
+      // 4. DashScope ASR Proxy (Qwen3-ASR-Flash, OpenAI-compatible)
+      server.middlewares.use('/api/asr', async (req, res) => {
+        if (req.method !== 'POST') { res.writeHead(405); res.end(JSON.stringify({ error: 'Method not allowed' })); return }
+        const apiKey = (env.DASHSCOPE_API_KEY || '').trim()
+        if (!apiKey) { res.writeHead(501, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'ASR not configured' })); return }
+        let body = ''
+        req.on('data', (c: Buffer) => { body += c.toString() })
+        req.on('end', async () => {
+          try {
+            const audio = JSON.parse(body || '{}').audio || ''
+            if (!String(audio).startsWith('data:audio')) { res.writeHead(400); res.end(JSON.stringify({ error: 'Invalid audio' })); return }
+            const url = (env.ASR_API_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions').trim()
+            const model = (env.ASR_MODEL || 'qwen3-asr-flash').trim()
+            const upstream: any = await undiciFetch(url, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model,
+                messages: [{ role: 'user', content: [{ type: 'input_audio', input_audio: { data: audio } }] }],
+                stream: false,
+                asr_options: { enable_itn: true },
+              }),
+              ...(dispatcher ? { dispatcher } : {}),
+            })
+            const json: any = await upstream.json().catch(() => null)
+            const text = json?.choices?.[0]?.message?.content
+            if (upstream.ok && typeof text === 'string') {
+              res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text })); return
+            }
+            console.error('[asr-proxy] no transcript:', upstream.status, JSON.stringify(json))
+            res.writeHead(502, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'ASR produced no text', details: json }))
+          } catch (err) {
+            console.error('[asr-proxy] Error:', err)
+            if (!res.headersSent) res.writeHead(502, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: 'ASR proxy error' }))
+          }
+        })
+      })
     },
   }
 }

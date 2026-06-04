@@ -13,8 +13,9 @@ export type AgentStatus = 'idle' | 'listening' | 'thinking' | 'speaking';
  *  now; an LLM-judged signal can set this later — same field). */
 export type Emotion = 'neutral' | 'happy' | 'sad' | 'surprised' | 'angry' | 'curious';
 
-/** Per-frame mouth-open signal (0..1). Read in useFrame; never triggers React. */
-export const avatarSignal = { jaw: 0 };
+/** Per-frame signals read in useFrame (never trigger React):
+ *  jaw = Borvis's mouth-open while speaking; mic = user's input loudness while listening. */
+export const avatarSignal = { jaw: 0, mic: 0 };
 
 interface AvatarState {
     status: AgentStatus;
