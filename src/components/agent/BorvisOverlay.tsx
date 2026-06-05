@@ -35,6 +35,7 @@ export const BorvisOverlay = () => {
 
     const recRef = useRef<Awaited<ReturnType<typeof startListening>> | null>(null);
     const busyRef = useRef(false);
+    const aliveRef = useRef(true);   // false once unmounted → in-flight respond() must not speak
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const { exitBorvis, isBorvisTransitioning, borvisTransitionDir } = useAgentStore(useShallow((s) => ({
@@ -72,6 +73,7 @@ export const BorvisOverlay = () => {
     // Hard teardown on unmount — stop any TTS playback AND tear down a live mic
     // recording (getUserMedia stream + AudioContext), so exiting never leaks audio.
     useEffect(() => () => {
+        aliveRef.current = false;       // stop any in-flight respond() from speaking after exit
         cancelSpeech();
         recRef.current?.cancel();
         recRef.current = null;
@@ -85,7 +87,7 @@ export const BorvisOverlay = () => {
             ? '神经链接已建立。我是 Borvis，有什么想问的？'
             : 'Neural link established. I am Borvis — ask me anything.';
         const t = setTimeout(() => {
-            if (busyRef.current) return;            // user already started talking
+            if (!aliveRef.current || busyRef.current) return;   // exited or user already talking
             busyRef.current = true; setBusy(true);
             setStatus('speaking');
             speak(greeting, {
@@ -135,6 +137,9 @@ export const BorvisOverlay = () => {
                 onError: () => resolve(),
             });
         });
+
+        // Exited (e.g. ESC) while still thinking? Don't speak on the home page.
+        if (!aliveRef.current) { busyRef.current = false; return; }
 
         reply = reply.trim() || '……';
         setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));

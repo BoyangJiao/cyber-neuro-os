@@ -28,17 +28,17 @@ export const BorvisSignalHijack = ({ mode = 'enter' }: { mode?: 'enter' | 'exit'
     return (
         <motion.div
             className="fixed inset-0 z-[500] pointer-events-none overflow-hidden"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}      // cover instantly — no fade-in, so the home page never flashes through
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, exit: { duration: 0.35 } } as never}
+            transition={{ exit: { duration: 0.35 } } as never}
         >
-            {/* Base dark overlay */}
+            {/* Base dark overlay — opaque almost immediately */}
             <motion.div
                 className="absolute inset-0 bg-black"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: phase >= 1 ? 0.94 : 0 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0.85 }}
+                animate={{ opacity: 0.94 }}
+                transition={{ duration: 0.1 }}
             />
 
             {/* Scanline texture (always present on overlay) */}

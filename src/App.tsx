@@ -127,10 +127,15 @@ function App() {
     useProjectStore.getState().fetchProjects();
   }, []);
 
-  // Preload AboutMePage chunk after boot to avoid first-open flash
+  // Preload heavy on-demand chunks after boot to avoid first-open flash.
   useEffect(() => {
     if (!isBootSequenceActive) {
       aboutMeImport();
+      // Borvis: warm the overlay + transition chunks (and, via NeuralHalftoneFace's
+      // module-level useGLTF.preload, the facecap model) so entering is instant and
+      // the transition never reveals the home page while the chunk loads.
+      import('./components/agent/BorvisOverlay');
+      import('./components/effects/BorvisSignalHijack');
     }
   }, [isBootSequenceActive]);
 
@@ -288,10 +293,11 @@ function App() {
           )}
         </AnimatePresence>
 
-        {/* Borvis — fullscreen immersive interface (z-[250]) */}
+        {/* Borvis — fullscreen immersive interface (z-[250]). Black Suspense
+            fallback so a still-loading chunk never reveals the home page. */}
         <AnimatePresence>
           {isBorvisMode && (
-            <Suspense fallback={null}>
+            <Suspense fallback={<div className="fixed inset-0 z-[250] bg-[#020406]" />}>
               <BorvisOverlay />
             </Suspense>
           )}

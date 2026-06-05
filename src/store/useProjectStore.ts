@@ -75,7 +75,9 @@ export const useProjectStore = create<ProjectState>()(
                     description: p.description || '',
                     techStack: p.techStack || [],
                     status: (p.status || 'In Development') as Project['status'],
-                    thumbnail: p.heroImage ? `${p.heroImage}?auto=format&w=1920&q=90` : 'ri-code-s-slash-line',
+                    // Card thumbnail: was w=1920&q=90 (a ~10× over-fetch for a small
+                    // card — painfully slow on the China network). Right-size + webp.
+                    thumbnail: p.heroImage ? `${p.heroImage}?auto=format&fit=max&w=1000&q=72` : 'ri-code-s-slash-line',
                     videoFile: p.heroVideoFile,
                     video: p.heroVideoUrl,
                     projectType: p.projectType,
