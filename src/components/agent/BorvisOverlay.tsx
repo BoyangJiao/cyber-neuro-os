@@ -34,6 +34,7 @@ export const BorvisOverlay = () => {
     const [showExit, setShowExit] = useState(false);
 
     const recRef = useRef<Awaited<ReturnType<typeof startListening>> | null>(null);
+    const stopRequestedRef = useRef(false);   // set if the user releases before startListening() resolves
     const busyRef = useRef(false);
     const aliveRef = useRef(true);   // false once unmounted → in-flight respond() must not speak
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -168,7 +169,13 @@ export const BorvisOverlay = () => {
     // ── Push-to-talk ───────────────────────────────────────────────
     const stopPTT = useCallback(async () => {
         const rec = recRef.current;
-        if (!rec) return;
+        if (!rec) {
+            // start may still be in-flight (getUserMedia permission prompt pending) —
+            // flag it so startPTT tears the mic down the instant it resolves instead
+            // of leaving an orphaned, un-stoppable recording with the mic live.
+            stopRequestedRef.current = true;
+            return;
+        }
         recRef.current = null;
         setRecording(false);
         avatarSignal.mic = 0;
@@ -180,15 +187,28 @@ export const BorvisOverlay = () => {
 
     const startPTT = useCallback(async () => {
         if (recRef.current) return;
+        stopRequestedRef.current = false;
         cancelSpeech();
         useAvatarStore.getState().setStatus('listening');
         setRecording(true);
         try {
-            recRef.current = await startListening({
+            const rec = await startListening({
                 onLevel: (lvl) => { avatarSignal.mic = lvl; setMicLevel(lvl); },
                 onSilence: () => { void stopPTT(); },
                 silenceMs: 3000,
             });
+            // If the user already released (or the overlay exited) while the mic was
+            // coming up, don't keep a live recording — discard it cleanly.
+            if (stopRequestedRef.current || !aliveRef.current) {
+                stopRequestedRef.current = false;
+                rec.cancel();
+                setRecording(false);
+                avatarSignal.mic = 0;
+                setMicLevel(0);
+                useAvatarStore.getState().setStatus('idle');
+                return;
+            }
+            recRef.current = rec;
         } catch {
             setRecording(false);
             useAvatarStore.getState().setStatus('idle');

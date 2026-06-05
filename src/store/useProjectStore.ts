@@ -47,6 +47,12 @@ const getInitialLanguage = (): 'en' | 'zh' => {
     return 'en';
 };
 
+// Hero assets already preloaded this session. fetchProjects() (and thus
+// preloadHeroAssets) re-runs on every language switch, so without this guard each
+// toggle re-creates Image() preloads and re-appends <link rel=prefetch> tags to
+// <head> unboundedly.
+const _preloadedAssets = new Set<string>();
+
 export const useProjectStore = create<ProjectState>()(
     persist(
         (set, get) => ({
@@ -142,23 +148,23 @@ export const useProjectStore = create<ProjectState>()(
                 const { projects } = get();
                 const IMMEDIATE_COUNT = 2; // First N projects load immediately (above-the-fold)
 
+                // Preload a thumbnail once per session (browser also caches, but this
+                // avoids re-issuing Image() requests on every language switch).
+                const preloadImage = (url?: string) => {
+                    if (!url || _preloadedAssets.has(url)) return;
+                    if (!url.startsWith('http') && !url.startsWith('/')) return;
+                    _preloadedAssets.add(url);
+                    const img = new Image();
+                    img.src = url;
+                };
+
                 // Phase 1: Immediately preload first few hero images
-                projects.slice(0, IMMEDIATE_COUNT).forEach((p) => {
-                    if (p.thumbnail?.startsWith('http') || p.thumbnail?.startsWith('/')) {
-                        const img = new Image();
-                        img.src = p.thumbnail;
-                    }
-                });
+                projects.slice(0, IMMEDIATE_COUNT).forEach((p) => preloadImage(p.thumbnail));
 
                 // Phase 2: Defer remaining images until idle
                 const idleCb = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : (fn: () => void) => setTimeout(fn, 2000);
                 idleCb(() => {
-                    projects.slice(IMMEDIATE_COUNT).forEach((p) => {
-                        if (p.thumbnail?.startsWith('http') || p.thumbnail?.startsWith('/')) {
-                            const img = new Image();
-                            img.src = p.thumbnail;
-                        }
-                    });
+                    projects.slice(IMMEDIATE_COUNT).forEach((p) => preloadImage(p.thumbnail));
 
                     // Phase 3: Prefetch only the first few hero videos (lowest priority).
                     // Videos are large; prefetching every project's video wasted
@@ -166,7 +172,9 @@ export const useProjectStore = create<ProjectState>()(
                     const VIDEO_PREFETCH_COUNT = 3;
                     projects.slice(0, VIDEO_PREFETCH_COUNT).forEach((p) => {
                         const videoUrl = p.videoFile || p.video;
-                        if (videoUrl) {
+                        // Dedup so language toggles don't stack duplicate <link> tags in <head>.
+                        if (videoUrl && !_preloadedAssets.has(videoUrl)) {
+                            _preloadedAssets.add(videoUrl);
                             const link = document.createElement('link');
                             link.rel = 'prefetch';
                             link.href = videoUrl;

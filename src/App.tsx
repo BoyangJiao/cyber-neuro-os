@@ -20,7 +20,12 @@ const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module
 const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').then(module => ({ default: module.SynthesisLandingPage })));
 const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
 // DEV-ONLY: Phase 0 proving ground for the Neural Entity avatar (not shipped).
-const AvatarLabPage = lazy(() => import('./pages/AvatarLabPage').then(module => ({ default: module.AvatarLabPage })));
+// Guard the lazy import behind import.meta.env.DEV so the production build
+// dead-strips AvatarLabPage (and its NeuralEntity/NeuralScanFace/avatarShader
+// deps) instead of emitting an unreachable chunk into the public bundle.
+const AvatarLabPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/AvatarLabPage').then(module => ({ default: module.AvatarLabPage })))
+  : null;
 // Borvis immersive interface + its transition overlay — lazy so the halftone +
 // postprocessing payload only loads when a visitor actually opens Borvis.
 const BorvisOverlay = lazy(() => import('./components/agent/BorvisOverlay').then(module => ({ default: module.BorvisOverlay })));
@@ -142,7 +147,7 @@ function App() {
 
   // DEV-ONLY: the avatar proving ground is a fully standalone page — it renders
   // BEFORE the dashboard layout so no header/sidebars/shared-canvas leak into it.
-  if (import.meta.env.DEV && location.pathname === '/avatar-lab') {
+  if (import.meta.env.DEV && AvatarLabPage && location.pathname === '/avatar-lab') {
     return (
       <Suspense fallback={<ShimmerLoader variant="overlay" label="[ BOOTING_NEURAL_ENTITY... ]" />}>
         <AvatarLabPage />

@@ -14,7 +14,11 @@ import { avatarSignal } from '../store/useAvatarStore';
 
 let audioCtx: AudioContext | null = null;
 function getAudioCtx(): AudioContext {
-    if (!audioCtx) audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Recreate if missing OR closed — some mobile browsers close the context when
+    // the tab is backgrounded/suspended; a closed context throws on createBufferSource.
+    if (!audioCtx || audioCtx.state === 'closed') {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
     if (audioCtx.state === 'suspended') void audioCtx.resume();
     return audioCtx;
 }

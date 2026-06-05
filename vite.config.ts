@@ -74,18 +74,32 @@ function apiProxy(env: Record<string, string>): PluginOption {
             const parsedBody = JSON.parse(body)
             const messages = parsedBody.messages || []
 
-            if (messages.length === 0) {
+            // Mirror the prod guards in api/_shared.ts (kept in sync by hand — this
+            // proxy runs on a Node request, not a web Request). Without parity, a
+            // payload that prod rejects would pass locally, giving false confidence.
+            const MAX_MESSAGES = 30, MAX_CONTENT_CHARS = 8000, MAX_TOTAL_CHARS = 16000
+            let invalid: string | null = null
+            let totalChars = 0
+            if (!Array.isArray(messages) || messages.length === 0) invalid = 'No messages provided'
+            else if (messages.length > MAX_MESSAGES) invalid = `Too many messages (max ${MAX_MESSAGES})`
+            else for (const m of messages) {
+              if (!m || typeof m.content !== 'string' || !['user', 'assistant', 'system'].includes(m.role)) { invalid = 'Malformed message'; break }
+              if (m.content.length > MAX_CONTENT_CHARS) { invalid = `Message too long (max ${MAX_CONTENT_CHARS} chars)`; break }
+              totalChars += m.content.length
+            }
+            if (!invalid && totalChars > MAX_TOTAL_CHARS) invalid = `Conversation too long (max ${MAX_TOTAL_CHARS} chars)`
+            if (invalid) {
               res.writeHead(400, { 'Content-Type': 'application/json' })
-              res.end(JSON.stringify({ error: 'No messages provided' }))
+              res.end(JSON.stringify({ error: invalid }))
               return
             }
 
+            // System prompt is server-injected; drop any client-supplied 'system' role.
             const formattedMessages = [
               { role: 'system', content: SYSTEM_PROMPT },
-              ...messages.map((m: any) => ({
-                role: m.role,
-                content: m.content,
-              })),
+              ...messages
+                .filter((m: { role: string }) => m.role !== 'system')
+                .map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
             ];
 
             // Endpoint + model env-configurable (defaults = Coding Plan endpoint).
@@ -183,6 +197,11 @@ function apiProxy(env: Record<string, string>): PluginOption {
             const url = json?.output?.audio?.url
             if (upstream.ok && url) {
               const audio: any = await undiciFetch(url, { ...(dispatcher ? { dispatcher } : {}) })
+              if (!audio.ok) {
+                console.error('[tts-proxy] audio url fetch failed:', audio.status)
+                res.writeHead(502, { 'Content-Type': 'application/json' })
+                res.end(JSON.stringify({ error: 'TTS audio fetch failed' })); return
+              }
               res.writeHead(200, { 'Content-Type': audio.headers.get('content-type') || 'audio/mpeg', 'Cache-Control': 'no-store' })
               res.end(Buffer.from(await audio.arrayBuffer())); return
             }

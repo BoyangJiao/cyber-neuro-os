@@ -57,16 +57,33 @@ const ENTER_DONE_AT = 1100;
 const EXIT_UNMOUNT_AT = 450;
 const EXIT_DONE_AT = 950;
 
+// Pending enter/exit setTimeouts. Tracked so an opposite transition can cancel
+// them — otherwise a stale enter timer could fire after exit and re-mount the
+// overlay onto the home page (or restore the wrong music volume).
+let _transitionTimers: ReturnType<typeof setTimeout>[] = [];
+function clearTransitionTimers() {
+    for (const t of _transitionTimers) clearTimeout(t);
+    _transitionTimers = [];
+}
+function scheduleTransition(fn: () => void, ms: number) {
+    _transitionTimers.push(setTimeout(fn, ms));
+}
+
 // ============================================================
 // Store
 // ============================================================
 
-export const useAgentStore = create<AgentState>((set) => ({
+export const useAgentStore = create<AgentState>((set, get) => ({
     isBorvisMode: false,
     isBorvisTransitioning: false,
     borvisTransitionDir: 'enter',
 
     enterBorvis: () => {
+        // Ignore repeat triggers while already inside or mid-enter, so we never
+        // re-capture the music baseline mid-fade or stack duplicate mount timers.
+        if (get().isBorvisMode || (get().isBorvisTransitioning && get().borvisTransitionDir === 'enter')) return;
+        clearTransitionTimers();
+
         // Clear any stale session state so we don't flash the last reply.
         const av = useAvatarStore.getState();
         av.setTranscript('');
@@ -77,11 +94,16 @@ export const useAgentStore = create<AgentState>((set) => ({
         startMusicFade(0, 600);
 
         set({ borvisTransitionDir: 'enter', isBorvisTransitioning: true });
-        setTimeout(() => set({ isBorvisMode: true }), ENTER_MOUNT_AT);
-        setTimeout(() => set({ isBorvisTransitioning: false }), ENTER_DONE_AT);
+        scheduleTransition(() => set({ isBorvisMode: true }), ENTER_MOUNT_AT);
+        scheduleTransition(() => set({ isBorvisTransitioning: false }), ENTER_DONE_AT);
     },
 
     exitBorvis: () => {
+        // Allow exit while open OR mid-enter (so a user can bail during the entrance).
+        if (!get().isBorvisMode && !(get().isBorvisTransitioning && get().borvisTransitionDir === 'enter')) return;
+        // Cancel any pending enter timers so a stale one can't re-open after exit.
+        clearTransitionTimers();
+
         // Tear down audio immediately (mic capture is torn down by the overlay's
         // unmount cleanup). Status reset so re-entry starts clean.
         cancelSpeech();
@@ -90,7 +112,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 
         // Reverse transition: glitch cover in → overlay unmounts beneath it → reveal.
         set({ borvisTransitionDir: 'exit', isBorvisTransitioning: true });
-        setTimeout(() => set({ isBorvisMode: false }), EXIT_UNMOUNT_AT);
-        setTimeout(() => set({ isBorvisTransitioning: false }), EXIT_DONE_AT);
+        scheduleTransition(() => set({ isBorvisMode: false }), EXIT_UNMOUNT_AT);
+        scheduleTransition(() => set({ isBorvisTransitioning: false }), EXIT_DONE_AT);
     },
 }));

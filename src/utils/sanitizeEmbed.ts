@@ -27,8 +27,12 @@ const URL_ATTRS = new Set(['src', 'href', 'poster']);
 
 function isSafeUrl(value: string): boolean {
     const v = value.trim().toLowerCase();
-    // Allow protocol-relative, root-relative, fragment, and http(s) only.
-    if (v.startsWith('//') || v.startsWith('/') || v.startsWith('#')) return true;
+    // Protocol-relative (`//host`) points OFF our origin while looking root-relative —
+    // an attacker iframe/anchor could render a full-bleed phishing page on the trusted
+    // domain. Reject it explicitly (note `//x` also passes startsWith('/'), so order matters).
+    if (v.startsWith('//')) return false;
+    // Same-origin root-relative + fragment are safe.
+    if (v.startsWith('/') || v.startsWith('#')) return true;
     return v.startsWith('https:') || v.startsWith('http:');
 }
 

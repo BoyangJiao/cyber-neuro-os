@@ -11,19 +11,7 @@ export const config = { runtime: 'edge' };
 
 declare const process: any;
 
-const MAX_AUDIO_CHARS = 9_000_000; // ~6.5MB of audio after base64; Qwen limit is 10MB
-
-function isOriginAllowed(req: Request): boolean {
-    const origin = req.headers.get('origin');
-    if (!origin) return true;
-    try {
-        const host = new URL(origin).host;
-        if (host === new URL(req.url).host) return true;
-        if (host.endsWith('.vercel.app')) return true;
-        const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
-        return allowed.some((a: string) => { try { return new URL(a).host === host; } catch { return a === host; } });
-    } catch { return false; }
-}
+import { isOriginAllowed, MAX_AUDIO_CHARS } from './_shared';
 
 export default async function handler(req: Request) {
     if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });

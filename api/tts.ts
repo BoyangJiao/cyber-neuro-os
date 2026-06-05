@@ -12,22 +12,12 @@ export const config = { runtime: 'edge' };
 
 declare const process: any;
 
+import { isOriginAllowed } from './_shared';
+
 // Qwen-TTS uses the multimodal-generation endpoint (named voices: Kai, Cherry…)
 // and returns the audio as a URL in output.audio.url.
 const ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
 const MAX_CHARS = 2000;
-
-function isOriginAllowed(req: Request): boolean {
-    const origin = req.headers.get('origin');
-    if (!origin) return true;
-    try {
-        const host = new URL(origin).host;
-        if (host === new URL(req.url).host) return true;
-        if (host.endsWith('.vercel.app')) return true;
-        const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
-        return allowed.some((a: string) => { try { return new URL(a).host === host; } catch { return a === host; } });
-    } catch { return false; }
-}
 
 export default async function handler(req: Request) {
     if (req.method !== 'POST') {
@@ -80,6 +70,12 @@ export default async function handler(req: Request) {
     const url = json?.output?.audio?.url;
     if (upstream.ok && url) {
         const audio = await fetch(url);
+        // The signed CDN URL can be expired/403 by the time we fetch it — don't
+        // relay a non-audio error body as a 200, or the client decodes garbage.
+        if (!audio.ok) {
+            console.error('[TTS PROXY] audio url fetch failed', audio.status);
+            return new Response(JSON.stringify({ error: 'TTS audio fetch failed' }), { status: 502 });
+        }
         return new Response(audio.body, {
             status: 200,
             headers: {
