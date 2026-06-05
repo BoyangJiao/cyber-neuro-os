@@ -12,15 +12,51 @@ interface StreamChatOptions {
     onToken: (token: string) => void;
     onDone: () => void;
     onError: (error: string) => void;
+    /** Fired once if the reply opens with a [[emo:X]] tag (stripped from onToken). */
+    onEmotion?: (emotion: string) => void;
+}
+
+/**
+ * Removes `[[emo:X]]` emotion tags from a token stream — wherever they appear
+ * (the model sometimes re-tags mid-reply) — emitting each emotion via onEmotion
+ * and forwarding the cleaned text. Streaming-safe: a tag split across chunks is
+ * held back until complete so it can never be spoken or shown.
+ */
+function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: string) => void) {
+    const FULL = /\[\[emo:(neutral|happy|sad|surprised|angry|curious)\]\]/gi;
+    // A trailing fragment that could still grow into a tag (so we hold it back).
+    const PARTIAL = /\[(\[(e(m(o(:\w*\]?)?)?)?)?)?$/;
+    let buf = '';
+    const pump = (flush: boolean) => {
+        buf = buf.replace(FULL, (_m, e) => { onEmotion?.(e.toLowerCase()); return ''; });
+        if (flush) { if (buf) onToken(buf); buf = ''; return; }
+        const m = buf.match(PARTIAL);
+        const cut = m ? m.index! : buf.length;
+        if (cut > 0) { onToken(buf.slice(0, cut)); buf = buf.slice(cut); }
+    };
+    return {
+        feed: (chunk: string) => { buf += chunk; pump(false); },
+        flush: () => pump(true),
+    };
 }
 
 // ============================================================
-// Real API — Gemini via Vercel Serverless
+// Real API — DashScope (Qwen) via Vercel Serverless (/api/chat)
 // ============================================================
 
-const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChatOptions) => {
+/**
+ * Outcome of a real API attempt:
+ * - 'ok'       → streamed successfully (or surfaced a real API error via onError)
+ * - 'unavailable' → the endpoint isn't reachable / isn't configured; caller should
+ *                   fall back to the local mock (dev without DASHSCOPE_API_KEY).
+ */
+type RealResult = 'ok' | 'unavailable';
+
+const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }: StreamChatOptions): Promise<RealResult> => {
+    const emo = makeEmotionStripper(onToken, onEmotion);
+    let response: Response;
     try {
-        const response = await fetch('/api/chat', {
+        response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -30,17 +66,26 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
                 })),
             }),
         });
+    } catch {
+        // Network-level failure (no dev server / offline) → let caller use the mock.
+        return 'unavailable';
+    }
 
+    try {
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
+            // 500 with "not configured" means no API key locally → mock is the right UX.
+            if (response.status === 500 && /not configured|not set/i.test(errorData.error || '')) {
+                return 'unavailable';
+            }
             onError(errorData.error || `API error: ${response.status}`);
-            return;
+            return 'ok';
         }
 
         const reader = response.body?.getReader();
         if (!reader) {
             onError('No response stream available');
-            return;
+            return 'ok';
         }
 
         const decoder = new TextDecoder();
@@ -66,7 +111,7 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
                         // Extract text from Standard OpenAI/DashScope SSE response
                         const text = parsed?.choices?.[0]?.delta?.content;
                         if (text) {
-                            onToken(text);
+                            emo.feed(text);
                         }
                     } catch {
                         // Skip unparseable chunks
@@ -75,9 +120,13 @@ const realStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
             }
         }
 
+        emo.flush();
         onDone();
+        return 'ok';
     } catch (error) {
+        // Failure mid-stream (already connected) is a real error, not "unavailable".
         onError(error instanceof Error ? error.message : 'Network error');
+        return 'ok';
     }
 };
 
@@ -131,11 +180,12 @@ const mockStreamChat = async ({ messages, onToken, onDone, onError }: StreamChat
  * Tries real /api/chat first; falls back to mock if unavailable.
  */
 export const streamChat = async (options: StreamChatOptions) => {
-    try {
-        await realStreamChat(options);
-    } catch {
-        // If real API fails completely, try mock
-        console.info('[NEXUS] Real API unavailable, falling back to mock');
+    const result = await realStreamChat(options);
+    if (result === 'unavailable') {
+        // Only fall back to mock when the endpoint is truly unreachable/unconfigured
+        // (e.g. local dev without DASHSCOPE_API_KEY). Real API errors are surfaced
+        // to the user via onError instead of being silently mocked.
+        if (import.meta.env.DEV) console.info('[NEXUS] Real API unavailable, falling back to mock');
         return mockStreamChat(options);
     }
 };

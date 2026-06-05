@@ -21,11 +21,17 @@ export default async function handler(req: Request) {
     const path = url.pathname.replace(/^\/api\/sanity/, '') || '/';
     const targetUrl = `https://${projectId}.api.sanity.io${path}${url.search}`;
 
+    // This proxy is a public read relay for the Sanity *query* API (no token is
+    // configured on the client — useCdn:false, anonymous). We therefore strip any
+    // credential-bearing headers so the relay can never be abused to perform
+    // authenticated writes on behalf of a token holder, and drop host-specific ones.
+    const STRIPPED_HEADERS = new Set([
+        'host', 'origin', 'referer', 'connection', 'content-length',
+        'authorization', 'cookie', 'x-sanity-token',
+    ]);
     const headers = new Headers();
-    // Forward most headers except sensitive or host-specific ones
     req.headers.forEach((v, k) => {
-        const key = k.toLowerCase();
-        if (!['host', 'origin', 'referer', 'connection', 'content-length'].includes(key)) {
+        if (!STRIPPED_HEADERS.has(k.toLowerCase())) {
             headers.set(k, v);
         }
     });
@@ -48,10 +54,9 @@ export default async function handler(req: Request) {
             }
         });
 
-        // Add CORS and Debug info
+        // CORS for the browser client. (Debug headers that leaked the upstream
+        // project id / target URL have been removed.)
         responseHeaders.set('Access-Control-Allow-Origin', '*');
-        responseHeaders.set('x-debug-sanity-project-id', projectId);
-        responseHeaders.set('x-debug-target-url', targetUrl);
 
         return new Response(response.body, {
             status: response.status,

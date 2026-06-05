@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment secrets — never commit. Use .env.example for documented placeholders.
+.env
+.env.*
+!.env.example
+
+# Harness-kit scaffolding (methodology now lives in-repo; keep only the stamp).
+.harness-kit/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

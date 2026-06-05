@@ -1,0 +1,22 @@
+---
+description: Canonical rules pointer for Cyber Neuro OS — all rules live in the repo root docs.
+alwaysApply: true
+---
+
+# Cyber Neuro OS — rules live in the canonical docs (do not duplicate here)
+
+Cursor shares one rule set with every other AI tool. Read, in order:
+
+1. `.specify/session-state.md` — current progress + next step (read first)
+2. `CLAUDE.md` — orientation, structure, dev commands, **model-routing table + rules**
+3. `.specify/constitution.md` — P0 constraints (release safety, secrets, China-proxy integrity, tsc/lint gates)
+4. `.agent/instructions.md` — 简体中文 responses, 1440px design baseline, collaboration modes
+
+Key non-negotiables (see constitution for the full list + enforcement):
+
+- **Production is live.** Ship via local verify → Vercel preview (预发) → `main`. Never straight to `main`.
+- **Secrets stay server-side.** No keys/tokens in `src/` or git; `.env*` is gitignored.
+- **Do not break the China no-VPN proxy chain** (`src/main.tsx` interceptor + `api/*` + `vercel.json`).
+- `tsc -b` clean; **no new** ESLint errors on changed files (legacy baseline tracked in `HARNESS.md`).
+
+End a session by updating `.specify/session-state.md` (the `/checkpoint` ritual).

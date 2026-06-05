@@ -74,22 +74,37 @@ function apiProxy(env: Record<string, string>): PluginOption {
             const parsedBody = JSON.parse(body)
             const messages = parsedBody.messages || []
 
-            if (messages.length === 0) {
+            // Mirror the prod guards in api/_shared.ts (kept in sync by hand — this
+            // proxy runs on a Node request, not a web Request). Without parity, a
+            // payload that prod rejects would pass locally, giving false confidence.
+            const MAX_MESSAGES = 30, MAX_CONTENT_CHARS = 8000, MAX_TOTAL_CHARS = 16000
+            let invalid: string | null = null
+            let totalChars = 0
+            if (!Array.isArray(messages) || messages.length === 0) invalid = 'No messages provided'
+            else if (messages.length > MAX_MESSAGES) invalid = `Too many messages (max ${MAX_MESSAGES})`
+            else for (const m of messages) {
+              if (!m || typeof m.content !== 'string' || !['user', 'assistant', 'system'].includes(m.role)) { invalid = 'Malformed message'; break }
+              if (m.content.length > MAX_CONTENT_CHARS) { invalid = `Message too long (max ${MAX_CONTENT_CHARS} chars)`; break }
+              totalChars += m.content.length
+            }
+            if (!invalid && totalChars > MAX_TOTAL_CHARS) invalid = `Conversation too long (max ${MAX_TOTAL_CHARS} chars)`
+            if (invalid) {
               res.writeHead(400, { 'Content-Type': 'application/json' })
-              res.end(JSON.stringify({ error: 'No messages provided' }))
+              res.end(JSON.stringify({ error: invalid }))
               return
             }
 
+            // System prompt is server-injected; drop any client-supplied 'system' role.
             const formattedMessages = [
               { role: 'system', content: SYSTEM_PROMPT },
-              ...messages.map((m: any) => ({
-                role: m.role,
-                content: m.content,
-              })),
+              ...messages
+                .filter((m: { role: string }) => m.role !== 'system')
+                .map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
             ];
 
-            // DashScope Coding Plan Global Endpoint
-            const apiUrl = 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
+            // Endpoint + model env-configurable (defaults = Coding Plan endpoint).
+            const apiUrl = (env.CHAT_API_URL || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions').trim()
+            const chatModel = (env.CHAT_MODEL || 'qwen3.5-plus').trim()
 
             const dsRes: any = await undiciFetch(apiUrl, {
               method: 'POST',
@@ -98,7 +113,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: 'qwen3.5-plus',
+                model: chatModel,
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.5,
@@ -152,6 +167,93 @@ function apiProxy(env: Record<string, string>): PluginOption {
           }
         })
       })
+
+      // 3. DashScope TTS Proxy (HTTP SpeechSynthesizer → audio bytes)
+      server.middlewares.use('/api/tts', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405); res.end(JSON.stringify({ error: 'Method not allowed' })); return
+        }
+        const apiKey = (env.DASHSCOPE_API_KEY || '').trim()
+        if (!apiKey) {
+          res.writeHead(501, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: 'TTS not configured' })); return
+        }
+        let body = ''
+        req.on('data', (c: Buffer) => { body += c.toString() })
+        req.on('end', async () => {
+          try {
+            const text = (JSON.parse(body || '{}').text || '').slice(0, 2000)
+            if (!text.trim()) { res.writeHead(400); res.end(JSON.stringify({ error: 'No text' })); return }
+            const model = (env.TTS_MODEL || 'qwen3-tts-flash').trim()
+            const voice = (env.TTS_VOICE || 'Kai').trim()
+            const languageType = /[一-鿿]/.test(text) ? 'Chinese' : 'English'
+            const upstream: any = await undiciFetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model, input: { text, voice, language_type: languageType } }),
+              ...(dispatcher ? { dispatcher } : {}),
+            })
+            const json: any = await upstream.json().catch(() => null)
+            const url = json?.output?.audio?.url
+            if (upstream.ok && url) {
+              const audio: any = await undiciFetch(url, { ...(dispatcher ? { dispatcher } : {}) })
+              if (!audio.ok) {
+                console.error('[tts-proxy] audio url fetch failed:', audio.status)
+                res.writeHead(502, { 'Content-Type': 'application/json' })
+                res.end(JSON.stringify({ error: 'TTS audio fetch failed' })); return
+              }
+              res.writeHead(200, { 'Content-Type': audio.headers.get('content-type') || 'audio/mpeg', 'Cache-Control': 'no-store' })
+              res.end(Buffer.from(await audio.arrayBuffer())); return
+            }
+            console.error('[tts-proxy] no audio from upstream:', upstream.status, JSON.stringify(json))
+            res.writeHead(502, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: 'TTS produced no audio', details: json }))
+          } catch (err) {
+            console.error('[tts-proxy] Error:', err)
+            if (!res.headersSent) res.writeHead(502, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: 'TTS proxy error' }))
+          }
+        })
+      })
+
+      // 4. DashScope ASR Proxy (Qwen3-ASR-Flash, OpenAI-compatible)
+      server.middlewares.use('/api/asr', async (req, res) => {
+        if (req.method !== 'POST') { res.writeHead(405); res.end(JSON.stringify({ error: 'Method not allowed' })); return }
+        const apiKey = (env.DASHSCOPE_API_KEY || '').trim()
+        if (!apiKey) { res.writeHead(501, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'ASR not configured' })); return }
+        let body = ''
+        req.on('data', (c: Buffer) => { body += c.toString() })
+        req.on('end', async () => {
+          try {
+            const audio = JSON.parse(body || '{}').audio || ''
+            if (!String(audio).startsWith('data:audio')) { res.writeHead(400); res.end(JSON.stringify({ error: 'Invalid audio' })); return }
+            const url = (env.ASR_API_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions').trim()
+            const model = (env.ASR_MODEL || 'qwen3-asr-flash').trim()
+            const upstream: any = await undiciFetch(url, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model,
+                messages: [{ role: 'user', content: [{ type: 'input_audio', input_audio: { data: audio } }] }],
+                stream: false,
+                asr_options: { enable_itn: true },
+              }),
+              ...(dispatcher ? { dispatcher } : {}),
+            })
+            const json: any = await upstream.json().catch(() => null)
+            const text = json?.choices?.[0]?.message?.content
+            if (upstream.ok && typeof text === 'string') {
+              res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text })); return
+            }
+            console.error('[asr-proxy] no transcript:', upstream.status, JSON.stringify(json))
+            res.writeHead(502, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'ASR produced no text', details: json }))
+          } catch (err) {
+            console.error('[asr-proxy] Error:', err)
+            if (!res.headersSent) res.writeHead(502, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: 'ASR proxy error' }))
+          }
+        })
+      })
     },
   }
 }
@@ -166,6 +268,11 @@ export default defineConfig(({ mode }: { mode: string }) => {
     optimizeDeps: {
       include: ['@sanity/visual-editing/react', 'styled-components']
     },
+    // NOTE: no custom manualChunks. A hand-rolled vendor split (three / sanity /
+    // motion / tone) created a CIRCULAR chunk (vendor-three ↔ vendor) whose
+    // init order broke the production bundle — the app got stuck on the loading
+    // skeleton (React never mounted). Vite's automatic chunking handles the
+    // shared graph safely; route-level code-splitting (React.lazy) still applies.
     server: {
       port: 5173,
       strictPort: true,

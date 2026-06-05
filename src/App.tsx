@@ -19,6 +19,17 @@ const GameLandingPage = lazy(() => import('./pages/GameLandingPage').then(module
 
 const SynthesisLandingPage = lazy(() => import('./pages/SynthesisLandingPage').then(module => ({ default: module.SynthesisLandingPage })));
 const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module => ({ default: module.LabLandingPage })));
+// DEV-ONLY: Phase 0 proving ground for the Neural Entity avatar (not shipped).
+// Guard the lazy import behind import.meta.env.DEV so the production build
+// dead-strips AvatarLabPage (and its NeuralEntity/NeuralScanFace/avatarShader
+// deps) instead of emitting an unreachable chunk into the public bundle.
+const AvatarLabPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/AvatarLabPage').then(module => ({ default: module.AvatarLabPage })))
+  : null;
+// Borvis immersive interface + its transition overlay — lazy so the halftone +
+// postprocessing payload only loads when a visitor actually opens Borvis.
+const BorvisOverlay = lazy(() => import('./components/agent/BorvisOverlay').then(module => ({ default: module.BorvisOverlay })));
+const BorvisSignalHijack = lazy(() => import('./components/effects/BorvisSignalHijack').then(module => ({ default: module.BorvisSignalHijack })));
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
@@ -28,6 +39,7 @@ import { CyberDebugPanel } from './components/ui/debug'
 import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
 import { BadgeDatabase } from './components/ui/decos/BadgeDatabase'
 import { useAppStore } from './store/useAppStore'
+import { useAgentStore } from './store/useAgentStore'
 import { useProjectStore } from './store/useProjectStore'
 import { useShallow } from 'zustand/react/shallow'
 import { LanguageProvider } from './i18n'
@@ -41,7 +53,6 @@ import { View } from '@react-three/drei'
 import { GlobalAudioPlayer } from './components/audio/GlobalAudioPlayer'
 import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
-import { NeuralUplinkWindow } from './components/agent/NeuralUplinkWindow'
 import { TimeTunnelTransition } from './components/effects/TimeTunnelTransition'
 import { useSoundSystem } from './hooks/useSoundSystem';
 
@@ -60,6 +71,11 @@ function App() {
     isDeepDiveMode: state.isDeepDiveMode,
     isDeepDiveTransitioning: state.isDeepDiveTransitioning
   })));
+  const { isBorvisMode, isBorvisTransitioning, borvisTransitionDir } = useAgentStore(useShallow(state => ({
+    isBorvisMode: state.isBorvisMode,
+    isBorvisTransitioning: state.isBorvisTransitioning,
+    borvisTransitionDir: state.borvisTransitionDir,
+  })));
   const { language, setProjects } = useProjectStore(useShallow(state => ({
     language: state.language,
     setProjects: state.setProjects
@@ -76,7 +92,9 @@ function App() {
     allowStudioOrigin: 'http://localhost:3333',
   });
 
-  // Global subscription for projects data to ensure UI sync in Presentation mode
+  // Live subscription — ONLY active in Sanity Presentation/live mode (Studio iframe),
+  // where it keeps the store in sync with draft edits. On the public site it stays
+  // dormant, so it is NOT the primary data path (see fetchProjects below).
   const { data: sanityProjects } = useQuery<SanityProjectRaw[]>(PROJECTS_QUERY, { language });
 
   useEffect(() => {
@@ -107,18 +125,35 @@ function App() {
     document.body.classList.toggle('deepdive-mode', isDeepDiveMode);
   }, [isBootSequenceActive, isDeepDiveMode]);
 
-  // Initial fetch as fallback
+  // Primary data path for the PUBLIC site: client.fetch goes through the global
+  // fetch interceptor → Sanity proxy, which works without live mode. (The useQuery
+  // subscription above only fires inside Presentation mode, so this is required.)
   useEffect(() => {
     useProjectStore.getState().fetchProjects();
   }, []);
 
-  // Preload AboutMePage chunk after boot to avoid first-open flash
+  // Preload heavy on-demand chunks after boot to avoid first-open flash.
   useEffect(() => {
     if (!isBootSequenceActive) {
       aboutMeImport();
+      // Borvis: warm the overlay + transition chunks (and, via NeuralHalftoneFace's
+      // module-level useGLTF.preload, the facecap model) so entering is instant and
+      // the transition never reveals the home page while the chunk loads.
+      import('./components/agent/BorvisOverlay');
+      import('./components/effects/BorvisSignalHijack');
     }
   }, [isBootSequenceActive]);
 
+
+  // DEV-ONLY: the avatar proving ground is a fully standalone page — it renders
+  // BEFORE the dashboard layout so no header/sidebars/shared-canvas leak into it.
+  if (import.meta.env.DEV && AvatarLabPage && location.pathname === '/avatar-lab') {
+    return (
+      <Suspense fallback={<ShimmerLoader variant="overlay" label="[ BOOTING_NEURAL_ENTITY... ]" />}>
+        <AvatarLabPage />
+      </Suspense>
+    );
+  }
 
   // Pre-load Main Layout by rendering it hidden/behind BootScreen
   // This ensures no frame drop when boot sequence finishes
@@ -139,8 +174,10 @@ function App() {
       </AnimatePresence>
 
       <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
-        {/* Layer 0: Background — conditional on DeepDive mode */}
-        {!isBootSequenceActive && (isDeepDiveMode ? <NeuralParticleField /> : <AmbientBackground />)}
+        {/* Layer 0: Background — conditional on DeepDive mode. Paused while Borvis
+            is open (it fully covers the screen) to free the GPU / avoid two heavy
+            WebGL scenes running at once. */}
+        {!isBootSequenceActive && !isBorvisMode && (isDeepDiveMode ? <NeuralParticleField /> : <AmbientBackground />)}
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
           <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">
@@ -252,8 +289,24 @@ function App() {
           {debugMode && <CyberDebugPanel />}
         </AnimatePresence>
 
-        {/* Neural Uplink — AI Agent Chat Window */}
-        <NeuralUplinkWindow />
+        {/* Borvis — Signal Hijack transition overlay (z-[500]) */}
+        <AnimatePresence>
+          {isBorvisTransitioning && (
+            <Suspense fallback={null}>
+              <BorvisSignalHijack mode={borvisTransitionDir} />
+            </Suspense>
+          )}
+        </AnimatePresence>
+
+        {/* Borvis — fullscreen immersive interface (z-[250]). Black Suspense
+            fallback so a still-loading chunk never reveals the home page. */}
+        <AnimatePresence>
+          {isBorvisMode && (
+            <Suspense fallback={<div className="fixed inset-0 z-[250] bg-[#020406]" />}>
+              <BorvisOverlay />
+            </Suspense>
+          )}
+        </AnimatePresence>
 
         {/* Visual Editing Overlay for Sanity Presentation */}
         {/* Only render when inside an iframe (Sanity Studio) to avoid UI clutter on main site */}
