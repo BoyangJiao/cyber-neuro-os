@@ -83,6 +83,8 @@ body {
     margin: 0;
     display: flex;
     min-height: 100vh;
+    /* dvh tracks the mobile browser UI (address bar) — overrides where supported */
+    min-height: 100dvh;
     min-width: 320px;
     overflow: hidden;
     /* Prevent scrolling for SPA feel */
@@ -92,6 +94,7 @@ body {
 #root {
     width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 /* ============================================================

@@ -34,6 +34,7 @@ import { ConnectionLine } from './components/about/ConnectionLine'
 import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
 import { MobileGate } from './components/layout/MobileGate'
+import { MobileProfileBar } from './components/layout/MobileProfileBar'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
 import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
@@ -173,14 +174,17 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
+      <div className="min-h-dvh w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
         {/* Layer 0: Background — conditional on DeepDive mode. Paused while Borvis
             is open (it fully covers the screen) to free the GPU / avoid two heavy
             WebGL scenes running at once. */}
         {!isBootSequenceActive && !isBorvisMode && (isDeepDiveMode ? <NeuralParticleField /> : <AmbientBackground />)}
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
-          <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">
+          <div className="flex flex-col lg:flex-row h-full w-full relative overflow-hidden gap-3 lg:gap-6 2xl:gap-8">
+
+            {/* Mobile profile strip — home route only (sidebars are lg-only) */}
+            {!isFullWidth && location.pathname === '/' && <MobileProfileBar />}
 
             {/* Bottom Deco (Lowest Z-Index Layer) */}
             {!isFullWidth && (
@@ -208,7 +212,7 @@ function App() {
             )}
 
             {/* CENTER MAIN CONTENT (Fluid width, takes remaining space) */}
-            <main className={`flex-1 h-full relative min-w-0 flex flex-col z-10 transition-all duration-300 ${isFullWidth ? 'w-full' : ''}`}>
+            <main className={`flex-1 min-h-0 lg:h-full relative min-w-0 flex flex-col z-10 transition-all duration-300 ${isFullWidth ? 'w-full' : ''}`}>
               <div className="w-full h-full relative overflow-hidden py-3 lg:py-4 max-w-[1600px] mx-auto">
                 {/* Routes without key - prevents unnecessary re-mounting */}
                 <Routes location={location}>

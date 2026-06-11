@@ -7,22 +7,8 @@ import { useTranslation } from '../../i18n';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { InterceptModal } from '../ui/modals/InterceptModal';
 import { useAppStore } from '../../store/useAppStore';
-
-// ─── Navigation Node Data ──────────────────────────────────
-interface NavNodeData {
-    id: string;
-    titleKey: string;
-    link?: string;
-}
-
-const NAV_NODES: NavNodeData[] = [
-    { id: 'project', titleKey: 'features.project', link: '/projects' },
-    { id: 'game', titleKey: 'features.game', link: '/games' },
-    { id: 'music', titleKey: 'features.music', link: '/music' },
-    { id: 'lab', titleKey: 'features.lab', link: '/lab' },
-    { id: 'sound', titleKey: 'features.sound', link: '/synthesis' },
-    { id: 'video', titleKey: 'features.video' },
-];
+import { NAV_NODES } from './navNodes';
+import { MobileNavDrawer } from './MobileNavDrawer';
 
 // ─── Diamond Icon ──────────────────────────────────────────
 const DiamondIcon = ({ active }: { active: boolean }) => (
@@ -64,6 +50,7 @@ export const Header = () => {
     const [time, setTime] = useState(new Date());
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
+    const [isNavOpen, setIsNavOpen] = useState(false);
     const setActiveNodeId = useAppStore((s) => s.setActiveNodeId);
     const isDeepDiveMode = useAppStore((s) => s.isDeepDiveMode);
 
@@ -96,7 +83,7 @@ export const Header = () => {
                         className="flex items-center gap-2 2xl:gap-3 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
                         onClick={() => navigate('/')}
                     >
-                        <NeuralLogo size={28} className="hidden sm:inline-flex 2xl:!w-[34px] 2xl:!h-[34px]" />
+                        <NeuralLogo size={28} className="inline-flex 2xl:!w-[34px] 2xl:!h-[34px]" />
                         <h1 className="relative text-[16px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
                             <span className="relative z-10 text-brand-primary">
                                 {t('header.brand')}<span className="text-brand-primary">{t('header.brandHighlight')}</span>
@@ -155,6 +142,16 @@ export const Header = () => {
                         </nav>
                     )}
 
+                    {/* Right (mobile): hamburger opens the nav drawer */}
+                    <button
+                        type="button"
+                        aria-label="Open navigation"
+                        className="lg:hidden flex items-center justify-center w-10 h-10 -mr-2 text-brand-primary active:opacity-60 transition-opacity"
+                        onClick={() => setIsNavOpen(true)}
+                    >
+                        <i className="ri-menu-4-line text-xl" />
+                    </button>
+
                     {/* Right: Status Info */}
                     <div className="hidden lg:flex items-center justify-end gap-4 2xl:gap-6 font-display tracking-widest flex-shrink-0">
                         <GhostText
@@ -179,6 +176,12 @@ export const Header = () => {
                     <CyberLine variant="surface" className="w-full" />
                 </div>
             </header>
+
+            <MobileNavDrawer
+                isOpen={isNavOpen}
+                onClose={() => setIsNavOpen(false)}
+                onIntercept={handleInterceptClick}
+            />
 
             <InterceptModal
                 isOpen={!!interceptedModule}

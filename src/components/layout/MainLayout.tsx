@@ -14,7 +14,9 @@ export const MainLayout = ({ children, footer }: MainLayoutProps) => {
     const { t } = useTranslation();
 
     return (
-        <div className="relative w-full h-screen bg-transparent overflow-hidden font-sans text-cyan-50 selection:bg-cyan-500/30 flex flex-col">
+        // h-dvh (not h-screen): mobile browser address bars shrink the visual
+        // viewport; 100vh would push the footer below the fold on iOS Safari
+        <div className="relative w-full h-dvh bg-transparent overflow-hidden font-sans text-cyan-50 selection:bg-cyan-500/30 flex flex-col">
 
             {/* 3. Header: Fixed height at top */}
             <header id="site-header" className="relative z-50 flex-none w-full">
