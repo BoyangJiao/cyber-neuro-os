@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import { SystemInfoBlockAlpha, SystemInfoBlockBeta } from '../components/ui/decos/SystemInfoBlock';
 import { useSoundSystem } from '../hooks/useSoundSystem';
+import { useIsMobile } from '../hooks/useDevice';
 
 /**
  * AboutMePage — with purely decoupled WebGL Canvas layout.
@@ -25,6 +26,9 @@ export const AboutMePage = () => {
     const { setAboutMeOpen, isCharacterStatsOpen, setCharacterStatsOpen } = useAppStore();
     const { playTransition } = useSoundSystem();
     const { t } = useTranslation();
+    // Mobile: no WebGL avatar layer, text takes full width, stats render as a
+    // flat list after the text (the stats-mode interaction is desktop-only)
+    const isMobile = useIsMobile();
 
     // ESC to close stats
     useEffect(() => {
@@ -111,30 +115,32 @@ export const AboutMePage = () => {
                     </div>
 
                     {/* === CANVAS BACKGROUND LAYER (Never changes size) === */}
-                    <motion.div
-                        className="absolute inset-x-0 bottom-0 top-[60px] z-[5] pointer-events-none"
-                        initial={false}
-                        // Shift character to the right panel center based on 60% left panel (40% remaining space -> +30% from center)
-                        animate={{
-                            x: isCharacterStatsOpen ? "0%" : "30%",
-                            y: isCharacterStatsOpen ? -60 : 0
-                        }}
-                        transition={springTransition}
-                    >
-                        <HolographicAvatar className="pointer-events-auto" />
-                    </motion.div>
+                    {!isMobile && (
+                        <motion.div
+                            className="absolute inset-x-0 bottom-0 top-[60px] z-[5] pointer-events-none"
+                            initial={false}
+                            // Shift character to the right panel center based on 60% left panel (40% remaining space -> +30% from center)
+                            animate={{
+                                x: isCharacterStatsOpen ? "0%" : "30%",
+                                y: isCharacterStatsOpen ? -60 : 0
+                            }}
+                            transition={springTransition}
+                        >
+                            <HolographicAvatar className="pointer-events-auto" />
+                        </motion.div>
+                    )}
 
                     {/* === DOM HUD LAYER === */}
-                    <div className="flex-1 w-full relative min-h-0 flex p-6 2xl:p-10 overflow-hidden pointer-events-none z-[20]">
+                    <div className="flex-1 w-full relative min-h-0 flex p-4 lg:p-6 2xl:p-10 overflow-hidden pointer-events-none z-[20]">
 
-                        {/* LEFT: Text Content Window */}
+                        {/* LEFT: Text Content Window (full width on mobile) */}
                         <motion.div
                             className="shrink-0 h-full overflow-y-auto overflow-x-hidden scrollbar-hide pointer-events-auto"
                             initial={false}
                             animate={{
-                                width: isCharacterStatsOpen ? "0%" : "60%",
-                                opacity: isCharacterStatsOpen ? 0 : 1,
-                                marginRight: isCharacterStatsOpen ? "0rem" : "3rem",
+                                width: isMobile ? "100%" : isCharacterStatsOpen ? "0%" : "60%",
+                                opacity: isCharacterStatsOpen && !isMobile ? 0 : 1,
+                                marginRight: isMobile || isCharacterStatsOpen ? "0rem" : "3rem",
                             }}
                             transition={{
                                 ...springTransition,
@@ -201,10 +207,34 @@ export const AboutMePage = () => {
                                         </p>
                                     </div>
                                 </div>
+
+                                {/* Mobile-only: character stats as a flat list (desktop shows
+                                    them in the interactive avatar HUD instead) */}
+                                <div className="lg:hidden flex flex-col gap-2">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-1.5 h-5 bg-[var(--color-brand-secondary)] shadow-[0_0_10px_var(--color-brand-secondary)]" />
+                                        <span className="text-xs font-bold font-display text-brand-secondary tracking-[0.2em] uppercase">
+                                            ATTRIBUTES
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-6">
+                                        {statsData.map((stat, i) => (
+                                            <StatCard
+                                                key={stat.key}
+                                                title={t(`about.stats.${stat.key}.name`)}
+                                                desc={t(`about.stats.${stat.key}.desc`)}
+                                                value={stat.value}
+                                                aligned="left"
+                                                delay={0.2 + i * 0.08}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
 
-                        {/* RIGHT: HUD Interaction Column */}
+                        {/* RIGHT: HUD Interaction Column (desktop-only stats mode) */}
+                        {!isMobile && (
                         <motion.div
                             className="h-full relative flex-1 min-w-0"
                             layout
@@ -280,6 +310,7 @@ export const AboutMePage = () => {
                                 )}
                             </AnimatePresence>
                         </motion.div>
+                        )}
                     </div>
                 </div>
             </HoloFrame>

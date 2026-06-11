@@ -83,12 +83,46 @@ export const ProjectLanding = () => {
                         </div>
                     </div>
 
-                    {/* === MAIN CONTENT - 8 Column Grid === */}
-                    <div className="flex-1 w-full min-h-0 px-4 2xl:px-6 pb-4 2xl:pb-6">
-                        <div className="w-full h-full grid grid-cols-8 gap-4 2xl:gap-6">
+                    {/* === MAIN CONTENT - mobile: selector strip + briefing / lg+: 8-col grid === */}
+                    <div className="flex-1 w-full min-h-0 px-3 lg:px-4 2xl:px-6 pb-3 lg:pb-4 2xl:pb-6">
+                        <div className="w-full h-full flex flex-col lg:grid lg:grid-cols-8 gap-3 lg:gap-4 2xl:gap-6">
 
-                            {/* 左侧：任务列表 (2 列) */}
-                            <div className="col-span-2 h-full overflow-hidden">
+                            {/* 移动端：横滑任务选择条 */}
+                            <div className="lg:hidden shrink-0 -mx-3 px-3 overflow-x-auto no-scrollbar">
+                                <div className="flex gap-2 w-max">
+                                    {isLoading
+                                        ? [...Array(4)].map((_, i) => (
+                                            <div
+                                                key={`chip-skeleton-${i}`}
+                                                className="w-28 h-9 shrink-0 animate-pulse bg-[var(--color-bg-surface-2)]/30 border border-[var(--color-border-subtle)]"
+                                            />
+                                        ))
+                                        : visibleProjects.map((project, index) => {
+                                            const isActive = index === activeProjectIndex;
+                                            return (
+                                                <button
+                                                    key={project.id}
+                                                    onClick={() => handleSelectMission(index)}
+                                                    className={`shrink-0 flex items-center gap-2 px-3 py-2 min-h-[36px] border transition-colors ${
+                                                        isActive
+                                                            ? 'border-[var(--color-brand-primary)]/60 bg-[var(--color-brand-primary)]/15 text-[var(--color-text-accent)]'
+                                                            : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]/40 text-[var(--color-text-secondary)] active:bg-[var(--color-bg-surface)]/70'
+                                                    }`}
+                                                >
+                                                    <span className="text-[10px] font-mono text-[var(--color-brand-primary)]">
+                                                        M-{String(index + 1).padStart(2, '0')}
+                                                    </span>
+                                                    <span className="text-[10px] font-display tracking-wider uppercase max-w-[120px] truncate">
+                                                        {project.title}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+
+                            {/* 左侧：任务列表 (2 列, lg+) */}
+                            <div className="hidden lg:block col-span-2 h-full overflow-hidden">
                                 <MissionList
                                     projects={visibleProjects}
                                     activeIndex={activeProjectIndex}
@@ -97,8 +131,8 @@ export const ProjectLanding = () => {
                                 />
                             </div>
 
-                            {/* 右侧：任务简报 (6 列) */}
-                            <div className="col-span-6 h-full overflow-hidden">
+                            {/* 右侧：任务简报 (6 列 / 移动端占满) */}
+                            <div className="flex-1 min-h-0 lg:col-span-6 lg:h-full overflow-hidden">
                                 <MissionBriefing
                                     project={activeProject}
                                     missionNumber={activeProjectIndex + 1}

@@ -187,9 +187,9 @@ export const ProjectDetail = () => {
 
                     <div className="w-full px-4 lg:px-6 xl:px-10 2xl:px-12 pb-20 2xl:pb-28">
                         <div className="flex gap-4">
-                            {/* Sticky Sidebar */}
+                            {/* Sticky Sidebar — anchor nav is desktop-only; mobile scrolls linearly */}
                             <div
-                                className="sticky top-6 h-fit self-start overflow-hidden flex-shrink-0 min-w-[180px] max-w-[220px]"
+                                className="hidden lg:block sticky top-6 h-fit self-start overflow-hidden flex-shrink-0 min-w-[180px] max-w-[220px]"
                             >
                                 <HUDSidebar
                                     detail={detail}
