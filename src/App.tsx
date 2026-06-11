@@ -33,7 +33,6 @@ const BorvisSignalHijack = lazy(() => import('./components/effects/BorvisSignalH
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
-import { MobileGate } from './components/layout/MobileGate'
 import { MobileProfileBar } from './components/layout/MobileProfileBar'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
@@ -340,9 +339,6 @@ function App() {
 
       {/* Tactical HUD Cursor - Topmost Layer */}
       <TacticalCursor />
-
-      {/* Mobile viewport gate - blocks access on narrow screens */}
-      <MobileGate />
     </LanguageProvider>
   )
 }

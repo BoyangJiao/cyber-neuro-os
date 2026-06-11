@@ -23,9 +23,13 @@ import { startListening } from '../../services/asrService';
 import { classifyEmotion } from '../three/avatar/expressions';
 import type { Emotion } from '../../store/useAvatarStore';
 import { useLanguage } from '../../i18n';
+import { useIsMobile, useIsCoarsePointer } from '../../hooks/useDevice';
 
 export const BorvisOverlay = () => {
     const { language } = useLanguage();
+    const isMobile = useIsMobile();
+    // Touch has no top-edge hover — the disconnect button must stay visible
+    const isCoarsePointer = useIsCoarsePointer();
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
     const [typeSpeed, setTypeSpeed] = useState(45);
@@ -259,7 +263,7 @@ export const BorvisOverlay = () => {
                 >
                     <NeuralHalftoneFace
                         intensity={1.0}
-                        grid={150}
+                        grid={isMobile ? 120 : 150}
                         headScale={0.7}
                         scanAngle={133}
                         scanIntensity={0.15}
@@ -282,15 +286,16 @@ export const BorvisOverlay = () => {
                 </Canvas>
             </AppErrorBoundary>
 
-            {/* ── Transcript panel (right side, vertically centered) ── */}
-            <div className="absolute right-10 top-1/2 w-[340px] -translate-y-1/2">
+            {/* ── Transcript panel — mobile: above the input bar, full width;
+                 lg+: right side, vertically centered ── */}
+            <div className="absolute left-4 right-4 bottom-24 lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:w-[340px] lg:-translate-y-1/2">
                 <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                     TRANSCRIPT ·{' '}
                     <span className="text-brand-primary/70">{status.toUpperCase()}</span>
                 </div>
                 <div
                     ref={scrollRef}
-                    className="pointer-events-auto max-h-[50vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]"
+                    className="pointer-events-auto max-h-[28dvh] lg:max-h-[50vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]"
                 >
                     {busy && !transcript ? (
                         <div className="flex items-center gap-2 font-mono text-sm text-brand-primary/80">
@@ -314,7 +319,7 @@ export const BorvisOverlay = () => {
             </div>
 
             {/* ── Input bar (bottom center) ── */}
-            <div className="absolute bottom-8 left-1/2 flex w-[min(600px,82vw)] -translate-x-1/2 items-center gap-2">
+            <div className="absolute bottom-[max(2rem,env(safe-area-inset-bottom))] left-1/2 flex w-[min(600px,92vw)] lg:w-[min(600px,82vw)] -translate-x-1/2 items-center gap-2">
                 {/* Hold-to-talk mic */}
                 <button
                     onPointerDown={(e) => { e.preventDefault(); void startPTT(); }}
@@ -356,9 +361,9 @@ export const BorvisOverlay = () => {
 
             {/* ── Exit controls ── */}
 
-            {/* Edge-reveal disconnect button */}
+            {/* Edge-reveal disconnect button (always visible on touch) */}
             <AnimatePresence>
-                {showExit && (
+                {(showExit || isCoarsePointer) && (
                     <motion.button
                         className="fixed top-4 left-5 z-[260] flex items-center gap-2 px-3 py-1.5 border border-brand-primary/20 rounded-sm text-text-muted/50 hover:text-red-400 hover:border-red-400/30 transition-colors bg-black/60 backdrop-blur-sm font-mono text-[9px] tracking-[0.2em] uppercase"
                         initial={{ opacity: 0, y: -8 }}
@@ -373,10 +378,12 @@ export const BorvisOverlay = () => {
                 )}
             </AnimatePresence>
 
-            {/* Persistent dim hint */}
-            <div className="fixed bottom-5 left-5 z-[260] text-[8px] font-mono tracking-[0.3em] text-brand-primary/20 pointer-events-none select-none">
-                ESC · DISCONNECT
-            </div>
+            {/* Persistent dim hint (keyboard-only affordance) */}
+            {!isCoarsePointer && (
+                <div className="fixed bottom-5 left-5 z-[260] text-[8px] font-mono tracking-[0.3em] text-brand-primary/20 pointer-events-none select-none">
+                    ESC · DISCONNECT
+                </div>
+            )}
         </motion.div>
     );
 };

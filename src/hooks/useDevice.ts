@@ -4,8 +4,8 @@ import { useSyncExternalStore } from 'react';
  * useDevice — single source of truth for device/viewport classification.
  *
  * The mobile/desktop split mirrors the Tailwind `lg` breakpoint (1024px) that
- * the entire layout system keys off (`hidden lg:flex` sidebars, MobileGate,
- * FeaturePanel's dual views). If the design breakpoint ever moves, it must
+ * the entire layout system keys off (`hidden lg:flex` sidebars, FeaturePanel's
+ * dual views, the nav drawer). If the design breakpoint ever moves, it must
  * move here too — never hardcode a second width check elsewhere.
  *
  * Pointer coarseness is tracked separately from viewport width: an iPad in

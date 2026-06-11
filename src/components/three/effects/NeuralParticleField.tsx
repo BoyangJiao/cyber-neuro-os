@@ -11,9 +11,12 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useAppStore } from '../../../store/useAppStore';
 import { useThemeColors } from '../../../hooks/useThemeColors';
+import { isMobileViewport } from '../../../hooks/useDevice';
 
 // ─── Config ────────────────────────────────────────────────
-const PARTICLE_COUNT = 6000;
+// Mobile GPUs get a third of the particles — evaluated once at module load,
+// which is fine: crossing the 1024px boundary mid-session is a resize edge case
+const PARTICLE_COUNT = isMobileViewport() ? 2000 : 6000;
 const SPHERE_RADIUS = 22;
 const MORPH_RATIO = 0.4;
 const MORPH_COUNT = Math.floor(PARTICLE_COUNT * MORPH_RATIO);

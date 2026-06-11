@@ -144,14 +144,6 @@ export const translations = {
             jitter: '△ JITTER',
         },
 
-        // Mobile Gate
-        mobile: {
-            title: 'DESKTOP VIEWPORT REQUIRED',
-            description: 'NeuralOS is architected for wide-screen interfaces. The current viewport cannot render the neural dashboard correctly.',
-            instruction: 'Please switch to a desktop browser or increase your window width to continue.',
-            dismiss: 'FORCE ENTRY',
-        },
-
         // Project Detail
         projectDetail: {
             loading: 'LOADING NEURAL LINK...',
@@ -392,14 +384,6 @@ export const translations = {
             active: '活跃状态',
             windDown: '系统降温',
             jitter: '△ 波动异常',
-        },
-
-        // Mobile Gate
-        mobile: {
-            title: '需要桌面端视口',
-            description: 'NeuralOS 为宽屏界面设计，当前视口无法正确渲染神经仪表盘。',
-            instruction: '请切换到桌面浏览器，或增大窗口宽度以继续使用。',
-            dismiss: '强制进入',
         },
 
         // Project Detail
