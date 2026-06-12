@@ -2,19 +2,20 @@
  * MobileProfileBar — compact <lg replacement for the desktop ProfileSidebar.
  *
  * Rendered on the home route only (vertical space is scarce on phones).
- * Tapping it triggers the same avatar-scan → About Me flow as the sidebar.
+ * Opens the About Me bottom sheet directly — the desktop avatar-scan
+ * animation is invisible at this size, so it's skipped.
  */
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../i18n';
 
 export const MobileProfileBar = () => {
-    const startAvatarScan = useAppStore((s) => s.startAvatarScan);
+    const setAboutMeOpen = useAppStore((s) => s.setAboutMeOpen);
     const { t } = useTranslation();
 
     return (
         <button
             type="button"
-            onClick={startAvatarScan}
+            onClick={() => setAboutMeOpen(true)}
             className="lg:hidden flex-none flex items-center gap-3 mx-4 px-3 py-2.5 text-left border border-[var(--color-brand-primary)]/20 bg-[var(--color-brand-primary)]/[0.03] active:bg-[var(--color-brand-primary)]/10 transition-colors"
         >
             {/* Avatar */}

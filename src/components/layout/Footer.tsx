@@ -7,7 +7,7 @@ import { AudioWaveform } from '../ui/AudioWaveform';
 import { useIsMobile } from '../../hooks/useDevice';
 
 export const Footer = () => {
-    const { setSettingsOpen, setMobileNavOpen } = useAppStore();
+    const { setSettingsOpen, isMobileNavOpen, setMobileNavOpen } = useAppStore();
     const { enterBorvis } = useAgentStore();
     const { isPlaying, togglePlay } = useMusicStore();
     const { t } = useTranslation();
@@ -35,11 +35,11 @@ export const Footer = () => {
                     size="sm"
                     iconOnly
                     silentClick={false}
-                    onClick={() => setMobileNavOpen(true)}
-                    aria-label="Open navigation"
+                    onClick={() => setMobileNavOpen(!isMobileNavOpen)}
+                    aria-label={isMobileNavOpen ? 'Close navigation' : 'Open navigation'}
                     className="flex items-center justify-center min-w-[48px]"
                 >
-                    <i className="ri-menu-4-line text-lg"></i>
+                    <i className={`${isMobileNavOpen ? 'ri-close-line' : 'ri-menu-4-line'} text-lg`}></i>
                 </CyberButton>
             </div>
         );

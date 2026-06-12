@@ -32,7 +32,9 @@ export const MobileNavDrawer = ({ isOpen, onClose, onIntercept }: MobileNavDrawe
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[120] lg:hidden">
+                /* Stops above the footer so the bottom tab bar stays visible
+                   and usable (the menu button doubles as the close toggle) */
+                <div className="fixed top-0 inset-x-0 bottom-[var(--footer-height,72px)] z-[120] lg:hidden overflow-hidden">
                     {/* Backdrop */}
                     <motion.div
                         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -43,16 +45,15 @@ export const MobileNavDrawer = ({ isOpen, onClose, onIntercept }: MobileNavDrawe
                         onClick={onClose}
                     />
 
-                    {/* Panel */}
+                    {/* Panel — full-width top sheet */}
                     <motion.nav
-                        className="absolute right-0 top-0 h-full w-[78vw] max-w-[320px] flex flex-col bg-[#020406]/95 backdrop-blur-md border-l border-[var(--color-brand-primary)]/25"
+                        className="absolute top-0 inset-x-0 max-h-full flex flex-col bg-[#020406]/95 backdrop-blur-md border-b border-[var(--color-brand-primary)]/25 shadow-[0_8px_40px_rgba(0,0,0,0.6)]"
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
-                            paddingBottom: 'env(safe-area-inset-bottom)',
                         }}
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
+                        initial={{ y: '-100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '-100%' }}
                         transition={{ type: 'spring', stiffness: 320, damping: 32 }}
                     >
                         {/* Header */}
