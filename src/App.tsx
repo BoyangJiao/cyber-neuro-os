@@ -55,6 +55,7 @@ import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
 import { TimeTunnelTransition } from './components/effects/TimeTunnelTransition'
 import { useSoundSystem } from './hooks/useSoundSystem';
+import { useIsMobile } from './hooks/useDevice';
 
 import { useQuery } from './sanity/client'
 import { PROJECTS_QUERY } from './sanity/queries'
@@ -81,6 +82,15 @@ function App() {
     setProjects: state.setProjects
   })));
   const { initAudio } = useSoundSystem();
+  const isMobile = useIsMobile();
+
+  // Mobile skips the boot sequence entirely: it's desktop-scale WebGL art
+  // (helmet GLB + datastream edges) with no meaningful small-screen layout.
+  useEffect(() => {
+    if (isMobile && isBootSequenceActive) {
+      setBootSequence(false);
+    }
+  }, [isMobile, isBootSequenceActive, setBootSequence]);
 
   // Pre-initialize audio as soon as possible
   useEffect(() => {
@@ -166,9 +176,9 @@ function App() {
         </div>
       )}
 
-      {/* Boot Screen Overlay - Highest Z-Index */}
+      {/* Boot Screen Overlay - Highest Z-Index (desktop only) */}
       <AnimatePresence mode="wait">
-        {isBootSequenceActive && (
+        {isBootSequenceActive && !isMobile && (
           <BootScreen onComplete={() => setBootSequence(false)} />
         )}
       </AnimatePresence>
@@ -273,8 +283,8 @@ function App() {
 
           </div>
 
-          {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪 */}
-          <ConnectionLine />
+          {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪（依赖桌面侧栏锚点） */}
+          {!isMobile && <ConnectionLine />}
         </MainLayout>
 
 

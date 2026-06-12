@@ -275,9 +275,11 @@ export const FeaturePanel = () => {
                 className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6 lg:px-0"
                 onMouseMove={(e) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; }}
             >
-                {/* Mobile View: Horizontal Scroll */}
-                <div className="lg:hidden relative z-10 w-full h-full flex items-center justify-start overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                    <div className="flex flex-row gap-4 items-center py-8">
+                {/* Mobile View: fixed-height row, horizontal swipe ONLY —
+                    cards size off the container height so nothing can
+                    overflow vertically and trigger page scroll */}
+                <div className="lg:hidden relative z-10 w-full h-full flex items-center justify-start overflow-x-auto overflow-y-hidden no-scrollbar snap-x snap-mandatory touch-pan-x overscroll-x-contain">
+                    <div className="flex flex-row gap-4 items-center h-full px-2">
                         {features.map((item) => {
                             const cardContent = (
                                 <CyberSlotCard
@@ -293,7 +295,7 @@ export const FeaturePanel = () => {
                             return (
                                 <div
                                     key={`mobile-${item.titleKey}`}
-                                    className="feature-card snap-center shrink-0 w-[60vw] max-w-[240px] aspect-[4/7] flex flex-col"
+                                    className="feature-card snap-center shrink-0 h-[420px] max-h-[88%] aspect-[4/7] flex flex-col"
                                 >
                                     {item.link ? (
                                         <Link to={item.link} className="block h-full">

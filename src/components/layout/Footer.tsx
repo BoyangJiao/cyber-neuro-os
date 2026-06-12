@@ -4,12 +4,57 @@ import { useAgentStore } from '../../store/useAgentStore';
 import { useTranslation } from '../../i18n';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AudioWaveform } from '../ui/AudioWaveform';
+import { useIsMobile } from '../../hooks/useDevice';
 
 export const Footer = () => {
     const { setSettingsOpen } = useAppStore();
     const { enterBorvis } = useAgentStore();
     const { isPlaying, togglePlay } = useMusicStore();
     const { t } = useTranslation();
+    const isMobile = useIsMobile();
+
+    // Mobile: three evenly-spaced icon-only actions, app-tab-bar style
+    if (isMobile) {
+        return (
+            <div className="w-full h-auto flex items-center justify-evenly pt-2">
+                <CyberButton
+                    variant="dot"
+                    size="sm"
+                    iconOnly
+                    silentClick={false}
+                    onClick={enterBorvis}
+                    aria-label={t('footer.neuralUplink')}
+                    className="flex items-center justify-center min-w-[48px]"
+                >
+                    <i className="ri-chat-ai-4-line text-lg"></i>
+                </CyberButton>
+
+                <CyberButton
+                    variant="dot"
+                    size="sm"
+                    iconOnly
+                    silentClick={false}
+                    onClick={() => setSettingsOpen(true)}
+                    aria-label={t('footer.system')}
+                    className="flex items-center justify-center min-w-[48px]"
+                >
+                    <i className="ri-settings-line animate-spin-slow text-lg"></i>
+                </CyberButton>
+
+                <CyberButton
+                    variant="dot"
+                    size="sm"
+                    iconOnly
+                    silentClick={false}
+                    onClick={togglePlay}
+                    aria-label="Toggle music"
+                    className="flex items-center justify-center min-w-[48px]"
+                >
+                    <AudioWaveform isPlaying={isPlaying} className="text-brand-primary" />
+                </CyberButton>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-auto flex items-center justify-between pt-2 2xl:pt-3">

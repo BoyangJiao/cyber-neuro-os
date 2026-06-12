@@ -22,6 +22,76 @@ import { useIsMobile } from '../hooks/useDevice';
  * fixed-size canvas layer linearly to perfectly align with the Right Panel DOM elements.
  * This guarantees a structurally flawless 60fps trajectory.
  */
+/**
+ * The three biography text sections — shared by the desktop HUD layout and
+ * the mobile bottom sheet.
+ */
+const AboutTextSections = () => {
+    const { t } = useTranslation();
+    return (
+        <>
+            {/* DESIGN PHILOSOPHY */}
+            <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
+                <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
+                    <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
+                        {t('about.workExperience.label')}
+                    </span>
+                    <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
+                        {t('about.workExperience.subtitle')}
+                    </span>
+                </div>
+                <div className="flex-1">
+                    <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
+                        {t('about.workExperience.content')}
+                    </p>
+                </div>
+            </div>
+
+            {/* CAREER EXPERIENCE */}
+            <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
+                <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
+                    <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
+                        {t('about.careerAndDesign.label')}
+                    </span>
+                    <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
+                        {t('about.careerAndDesign.subtitle')}
+                    </span>
+                </div>
+                <div className="flex-1">
+                    <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
+                        {t('about.careerAndDesign.content')}
+                    </p>
+                </div>
+            </div>
+
+            {/* FOUNDATION */}
+            <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
+                <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
+                    <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
+                        {t('about.educationAndPassions.label')}
+                    </span>
+                    <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
+                        {t('about.educationAndPassions.subtitle')}
+                    </span>
+                </div>
+                <div className="flex-1">
+                    <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
+                        {t('about.educationAndPassions.content').split(/(CCA|Mizzou)/g).map((part, i) => {
+                            if (part === 'CCA') return (
+                                <a key={i} href="https://www.cca.edu/" target="_blank" rel="noopener noreferrer" className="underline decoration-brand-secondary/40 hover:text-brand-secondary transition-colors">CCA</a>
+                            );
+                            if (part === 'Mizzou') return (
+                                <a key={i} href="https://missouri.edu" target="_blank" rel="noopener noreferrer" className="underline decoration-brand-secondary/40 hover:text-brand-secondary transition-colors">Mizzou</a>
+                            );
+                            return part;
+                        })}
+                    </p>
+                </div>
+            </div>
+        </>
+    );
+};
+
 export const AboutMePage = () => {
     const { setAboutMeOpen, isCharacterStatsOpen, setCharacterStatsOpen } = useAppStore();
     const { playTransition } = useSoundSystem();
@@ -53,6 +123,61 @@ export const AboutMePage = () => {
 
     // Perfect fluid ease
     const springTransition = { ease: [0.22, 1, 0.36, 1] as const, duration: 0.8 };
+
+    // ── Mobile: full-screen bottom sheet, text only (no avatar, no stats) ──
+    if (isMobile) {
+        return (
+            <MotionDiv
+                className="fixed inset-0 z-[150]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.25 } }}
+            >
+                {/* Backdrop */}
+                <div
+                    className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                    onClick={() => setAboutMeOpen(false)}
+                />
+
+                {/* Bottom sheet */}
+                <motion.div
+                    className="absolute inset-x-0 bottom-0 h-[82dvh] flex flex-col bg-[var(--color-bg-app)]/98 border-t border-brand-primary/30 shadow-[0_-8px_40px_rgba(0,0,0,0.6)]"
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 34 }}
+                >
+                    {/* Grab handle */}
+                    <div className="flex justify-center pt-2.5 pb-1">
+                        <div className="w-10 h-1 bg-brand-primary/30 rounded-full" />
+                    </div>
+
+                    {/* Header */}
+                    <div className="shrink-0 flex items-center justify-between px-5 py-2">
+                        <h1 className="text-sm font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
+                            {t('about.title')}
+                        </h1>
+                        <CyberButton
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
+                            onClick={() => setAboutMeOpen(false)}
+                            className="text-brand-primary"
+                        >
+                            <i className="ri-close-line text-xl" />
+                        </CyberButton>
+                    </div>
+
+                    {/* Text content */}
+                    <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 pb-[max(2.5rem,env(safe-area-inset-bottom))]">
+                        <div className="flex flex-col gap-8 pt-2">
+                            <AboutTextSections />
+                        </div>
+                    </div>
+                </motion.div>
+            </MotionDiv>
+        );
+    }
 
     return (
         <MotionDiv
@@ -115,32 +240,30 @@ export const AboutMePage = () => {
                     </div>
 
                     {/* === CANVAS BACKGROUND LAYER (Never changes size) === */}
-                    {!isMobile && (
-                        <motion.div
-                            className="absolute inset-x-0 bottom-0 top-[60px] z-[5] pointer-events-none"
-                            initial={false}
-                            // Shift character to the right panel center based on 60% left panel (40% remaining space -> +30% from center)
-                            animate={{
-                                x: isCharacterStatsOpen ? "0%" : "30%",
-                                y: isCharacterStatsOpen ? -60 : 0
-                            }}
-                            transition={springTransition}
-                        >
-                            <HolographicAvatar className="pointer-events-auto" />
-                        </motion.div>
-                    )}
+                    <motion.div
+                        className="absolute inset-x-0 bottom-0 top-[60px] z-[5] pointer-events-none"
+                        initial={false}
+                        // Shift character to the right panel center based on 60% left panel (40% remaining space -> +30% from center)
+                        animate={{
+                            x: isCharacterStatsOpen ? "0%" : "30%",
+                            y: isCharacterStatsOpen ? -60 : 0
+                        }}
+                        transition={springTransition}
+                    >
+                        <HolographicAvatar className="pointer-events-auto" />
+                    </motion.div>
 
                     {/* === DOM HUD LAYER === */}
-                    <div className="flex-1 w-full relative min-h-0 flex p-4 lg:p-6 2xl:p-10 overflow-hidden pointer-events-none z-[20]">
+                    <div className="flex-1 w-full relative min-h-0 flex p-6 2xl:p-10 overflow-hidden pointer-events-none z-[20]">
 
-                        {/* LEFT: Text Content Window (full width on mobile) */}
+                        {/* LEFT: Text Content Window */}
                         <motion.div
                             className="shrink-0 h-full overflow-y-auto overflow-x-hidden scrollbar-hide pointer-events-auto"
                             initial={false}
                             animate={{
-                                width: isMobile ? "100%" : isCharacterStatsOpen ? "0%" : "60%",
-                                opacity: isCharacterStatsOpen && !isMobile ? 0 : 1,
-                                marginRight: isMobile || isCharacterStatsOpen ? "0rem" : "3rem",
+                                width: isCharacterStatsOpen ? "0%" : "60%",
+                                opacity: isCharacterStatsOpen ? 0 : 1,
+                                marginRight: isCharacterStatsOpen ? "0rem" : "3rem",
                             }}
                             transition={{
                                 ...springTransition,
@@ -149,92 +272,11 @@ export const AboutMePage = () => {
                         >
                             {/* Inner wrapper prevents text reflow constraint bugs during shrink */}
                             <div className="w-full pr-4 2xl:pr-6 flex flex-col gap-8 2xl:gap-12 pb-10">
-                                {/* DESIGN PHILOSOPHY */}
-                                <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
-                                    <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
-                                        <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
-                                            {t('about.workExperience.label')}
-                                        </span>
-                                        <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
-                                            {t('about.workExperience.subtitle')}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
-                                            {t('about.workExperience.content')}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* CAREER EXPERIENCE */}
-                                <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
-                                    <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
-                                        <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
-                                            {t('about.careerAndDesign.label')}
-                                        </span>
-                                        <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
-                                            {t('about.careerAndDesign.subtitle')}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
-                                            {t('about.careerAndDesign.content')}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* FOUNDATION */}
-                                <div className="flex flex-col xl:flex-row gap-2 xl:gap-4 2xl:gap-8">
-                                    <div className="w-full xl:w-36 2xl:w-48 shrink-0 flex flex-col gap-1 2xl:gap-2">
-                                        <span className="text-base 2xl:text-xl font-display font-bold text-brand-secondary tracking-widest uppercase leading-tight">
-                                            {t('about.educationAndPassions.label')}
-                                        </span>
-                                        <span className="text-xs 2xl:text-sm font-sans text-brand-secondary/60 leading-tight">
-                                            {t('about.educationAndPassions.subtitle')}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-base 2xl:text-lg text-text-primary leading-relaxed 2xl:leading-loose whitespace-pre-wrap">
-                                            {t('about.educationAndPassions.content').split(/(CCA|Mizzou)/g).map((part, i) => {
-                                                if (part === 'CCA') return (
-                                                    <a key={i} href="https://www.cca.edu/" target="_blank" rel="noopener noreferrer" className="underline decoration-brand-secondary/40 hover:text-brand-secondary transition-colors">CCA</a>
-                                                );
-                                                if (part === 'Mizzou') return (
-                                                    <a key={i} href="https://missouri.edu" target="_blank" rel="noopener noreferrer" className="underline decoration-brand-secondary/40 hover:text-brand-secondary transition-colors">Mizzou</a>
-                                                );
-                                                return part;
-                                            })}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Mobile-only: character stats as a flat list (desktop shows
-                                    them in the interactive avatar HUD instead) */}
-                                <div className="lg:hidden flex flex-col gap-2">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-1.5 h-5 bg-[var(--color-brand-secondary)] shadow-[0_0_10px_var(--color-brand-secondary)]" />
-                                        <span className="text-xs font-bold font-display text-brand-secondary tracking-[0.2em] uppercase">
-                                            ATTRIBUTES
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-col gap-6">
-                                        {statsData.map((stat, i) => (
-                                            <StatCard
-                                                key={stat.key}
-                                                title={t(`about.stats.${stat.key}.name`)}
-                                                desc={t(`about.stats.${stat.key}.desc`)}
-                                                value={stat.value}
-                                                aligned="left"
-                                                delay={0.2 + i * 0.08}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
+                                <AboutTextSections />
                             </div>
                         </motion.div>
 
-                        {/* RIGHT: HUD Interaction Column (desktop-only stats mode) */}
-                        {!isMobile && (
+                        {/* RIGHT: HUD Interaction Column */}
                         <motion.div
                             className="h-full relative flex-1 min-w-0"
                             layout
@@ -310,7 +352,6 @@ export const AboutMePage = () => {
                                 )}
                             </AnimatePresence>
                         </motion.div>
-                        )}
                     </div>
                 </div>
             </HoloFrame>
