@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { useMusicStore } from './useMusicStore';
 import { useAvatarStore } from './useAvatarStore';
 import { cancelSpeech, unlockAudio } from '../services/speechService';
+import { isMobileViewport } from '../hooks/useDevice';
 
 // ============================================================
 // Agent Message Type (used by the streaming service)
@@ -97,6 +98,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         _savedMusicVol = useMusicStore.getState().volume;
         startMusicFade(0, 600);
 
+        // Mobile: no SignalHijack phase — its 700ms pre-mount window reads as a
+        // frozen home page on phones. Mount the overlay immediately; its
+        // loading veil IS the transition (tap → loader → face).
+        if (isMobileViewport()) {
+            set({ borvisTransitionDir: 'enter', isBorvisTransitioning: false, isBorvisMode: true });
+            return;
+        }
+
         set({ borvisTransitionDir: 'enter', isBorvisTransitioning: true });
         scheduleTransition(() => set({ isBorvisMode: true }), ENTER_MOUNT_AT);
         scheduleTransition(() => set({ isBorvisTransitioning: false }), ENTER_DONE_AT);
@@ -113,6 +122,12 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         cancelSpeech();
         useAvatarStore.getState().setStatus('idle');
         startMusicFade(_savedMusicVol, 800);
+
+        // Mobile mirrors the instant enter: drop straight back to the home page.
+        if (isMobileViewport()) {
+            set({ borvisTransitionDir: 'exit', isBorvisTransitioning: false, isBorvisMode: false });
+            return;
+        }
 
         // Reverse transition: glitch cover in → overlay unmounts beneath it → reveal.
         set({ borvisTransitionDir: 'exit', isBorvisTransitioning: true });

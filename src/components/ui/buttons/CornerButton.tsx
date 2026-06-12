@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../../hooks/useSoundSystem';
 import { ButtonLoadingIndicator } from './ButtonLoadingIndicator';
+import { isCoarsePointer } from '../../../hooks/useDevice';
 
 export interface CornerButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     icon?: React.ReactNode;
@@ -143,8 +144,12 @@ export const CornerButton = ({
             className={mergedClasses}
             {...props}
             onMouseEnter={(e) => {
-                setIsHovered(true);
-                if (!silentHover) playHover();
+                // Touch fires a synthetic mouseenter on tap but never mouseleave,
+                // which would freeze the button in its hover visual.
+                if (!isCoarsePointer()) {
+                    setIsHovered(true);
+                    if (!silentHover) playHover();
+                }
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {

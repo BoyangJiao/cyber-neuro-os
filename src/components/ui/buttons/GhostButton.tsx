@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../../hooks/useSoundSystem';
 import { ButtonLoadingIndicator } from './ButtonLoadingIndicator';
+import { isCoarsePointer } from '../../../hooks/useDevice';
 
 export interface GhostButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     icon?: React.ReactNode;
@@ -50,7 +51,7 @@ export const GhostButton = ({
             className={mergedClasses}
             {...props}
             onMouseEnter={(e) => {
-                if (!silentHover) playHover();
+                if (!silentHover && !isCoarsePointer()) playHover();
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {
