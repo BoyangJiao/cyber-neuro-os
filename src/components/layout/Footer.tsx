@@ -14,10 +14,11 @@ export const Footer = () => {
     const isMobile = useIsMobile();
 
     // Mobile: two-tab bar — Neural Uplink (primary CTA) + nav drawer menu.
-    // Settings & music live in the drawer footer.
+    // Tabs stretch half-width each (mirrors the drawer's footer actions);
+    // settings & music live in the drawer footer.
     if (isMobile) {
         return (
-            <div className="w-full h-auto flex items-center justify-evenly pt-2">
+            <div className="w-full h-auto flex items-stretch gap-3 px-4 pt-2">
                 <CyberButton
                     variant="dot"
                     size="sm"
@@ -25,7 +26,7 @@ export const Footer = () => {
                     silentClick={false}
                     onClick={enterBorvis}
                     aria-label={t('footer.neuralUplink')}
-                    className="flex items-center justify-center min-w-[48px]"
+                    className="flex-1 h-10 flex items-center justify-center"
                 >
                     <i className="ri-chat-ai-4-line text-lg"></i>
                 </CyberButton>
@@ -37,7 +38,7 @@ export const Footer = () => {
                     silentClick={false}
                     onClick={() => setMobileNavOpen(!isMobileNavOpen)}
                     aria-label={isMobileNavOpen ? 'Close navigation' : 'Open navigation'}
-                    className="flex items-center justify-center min-w-[48px]"
+                    className="flex-1 h-10 flex items-center justify-center"
                 >
                     <i className={`${isMobileNavOpen ? 'ri-close-line' : 'ri-menu-4-line'} text-lg`}></i>
                 </CyberButton>
