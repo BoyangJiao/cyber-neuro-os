@@ -23,6 +23,26 @@ function getAudioCtx(): AudioContext {
     return audioCtx;
 }
 
+/**
+ * Unlock audio playback — MUST be called from inside a user-gesture handler
+ * (e.g. the button that enters Borvis). Mobile Safari/Chrome keep an
+ * AudioContext created outside a gesture permanently `suspended`: sources
+ * then start() without error but never play and never fire `onended`,
+ * which is exactly a silent avatar stuck in "speaking".
+ */
+export function unlockAudio() {
+    try {
+        const ctx = getAudioCtx();
+        void ctx.resume();
+        // A one-sample silent buffer "blesses" the context on iOS.
+        const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+    } catch { /* best-effort — speak() still has its own fallbacks */ }
+}
+
 let cancelCurrent: (() => void) | null = null;
 
 /** Procedural speech envelope (browser fallback) — layered sines + syllable gate. */
@@ -65,6 +85,18 @@ async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
     }
 
     const ctx = getAudioCtx();
+    // If the context still isn't running (no unlocking gesture happened yet),
+    // playing would hang silently forever — use the SpeechSynthesis fallback,
+    // which has its own watchdogs. (Function read defeats TS narrowing across
+    // the await — resume() can legitimately flip the state.)
+    const isRunning = () => (ctx.state as AudioContextState) === 'running';
+    if (!isRunning()) {
+        await ctx.resume().catch(() => { /* noop */ });
+        if (!isRunning()) {
+            if (import.meta.env.DEV) console.info('[speech] AudioContext not running (no user gesture yet) → browser TTS fallback');
+            return false;
+        }
+    }
     let audioBuf: AudioBuffer;
     try {
         audioBuf = await ctx.decodeAudioData(buf.slice(0));
@@ -98,6 +130,7 @@ async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
 
     return new Promise<boolean>((resolve) => {
         const finish = () => {
+            clearTimeout(watchdog);
             cancelAnimationFrame(raf);
             avatarSignal.jaw = 0;
             try { src.disconnect(); } catch { /* noop */ }
@@ -106,6 +139,9 @@ async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
         src.onended = finish;
         cancelCurrent = () => { try { src.stop(); } catch { /* noop */ } finish(); };
         src.start();
+        // Safety net: if `onended` never fires (context suspended mid-play on
+        // mobile), settle anyway so the UI can't get stuck in "speaking".
+        const watchdog = setTimeout(finish, (audioBuf.duration + 2) * 1000);
         opts.onStart?.(audioBuf.duration);
         tick();
     });
@@ -126,7 +162,9 @@ function speakBrowser(text: string, opts: SpeakOpts): Promise<void> {
         let raf = 0;
         let boost = 0;
         let alive = true;
+        let watchdog: ReturnType<typeof setTimeout>;
         const t0 = performance.now();
+        const est = Math.max(1, text.length * (isZh ? 0.22 : 0.07));
         const tick = () => {
             const t = (performance.now() - t0) / 1000;
             boost *= 0.85;
@@ -134,17 +172,30 @@ function speakBrowser(text: string, opts: SpeakOpts): Promise<void> {
             if (alive) raf = requestAnimationFrame(tick);
         };
         const finish = () => {
+            if (!alive) return;
             alive = false;
+            clearTimeout(watchdog);
             cancelAnimationFrame(raf);
             avatarSignal.jaw = 0;
             resolve();
         };
 
+        // Mobile browsers may silently never start an utterance queued outside
+        // a user gesture — without a watchdog the promise (and the UI status)
+        // would hang in "speaking" forever. Reveal the transcript regardless.
+        watchdog = setTimeout(() => {
+            opts.onStart?.(est);
+            watchdog = setTimeout(finish, est * 1000);
+        }, 3000);
+
         utter.onboundary = () => { boost = 1; };
         utter.onstart = () => {
+            // Speech actually started: replace the no-start watchdog with an
+            // end-of-speech safety net (estimate + slack).
+            clearTimeout(watchdog);
+            watchdog = setTimeout(finish, (est + 4) * 1000);
             // No real duration from the API → estimate from length so the
             // transcript paces roughly with the spoken audio.
-            const est = Math.max(1, text.length * (isZh ? 0.22 : 0.07));
             opts.onStart?.(est);
         };
         utter.onend = finish;

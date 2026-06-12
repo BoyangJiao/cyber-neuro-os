@@ -7,11 +7,12 @@
  *   • bottom-center: input bar (text + PTT mic)
  *   • exit: top-edge-hover button + ESC key
  */
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import { NeuralHalftoneFace } from '../three/avatar/NeuralHalftoneFace';
+import { ShimmerLoader } from '../ui/loading/ShimmerLoader';
 import { TypewriterTranscript } from './TypewriterTranscript';
 import { AppErrorBoundary } from '../error/AppErrorBoundary';
 import { useShallow } from 'zustand/react/shallow';
@@ -25,6 +26,12 @@ import type { Emotion } from '../../store/useAvatarStore';
 import { useLanguage } from '../../i18n';
 import { useIsMobile, useIsCoarsePointer } from '../../hooks/useDevice';
 
+/** Mounts only once its Suspense boundary resolves (face GLB + shaders ready). */
+const FaceReadyNotifier = ({ onReady }: { onReady: () => void }) => {
+    useEffect(() => { onReady(); }, [onReady]);
+    return null;
+};
+
 export const BorvisOverlay = () => {
     const { language } = useLanguage();
     const isMobile = useIsMobile();
@@ -36,6 +43,8 @@ export const BorvisOverlay = () => {
     const [recording, setRecording] = useState(false);
     const [micLevel, setMicLevel] = useState(0);
     const [showExit, setShowExit] = useState(false);
+    const [faceReady, setFaceReady] = useState(false);
+    const handleFaceReady = useCallback(() => setFaceReady(true), []);
 
     const recRef = useRef<Awaited<ReturnType<typeof startListening>> | null>(null);
     const stopRequestedRef = useRef(false);   // set if the user releases before startListening() resolves
@@ -86,8 +95,12 @@ export const BorvisOverlay = () => {
         useAvatarStore.getState().setStatus('idle');
     }, []);
 
-    // Kai voice greeting, once, after the hijack overlay clears.
+    // Kai voice greeting, once, after the face is live (waiting on faceReady
+    // keeps the voice from playing behind the loading veil on slow devices).
+    const greetedRef = useRef(false);
     useEffect(() => {
+        if (!faceReady || greetedRef.current) return;
+        greetedRef.current = true;
         const greeting = language === 'zh'
             ? '神经链接已建立。我是 Borvis，有什么想问的？'
             : 'Neural link established. I am Borvis — ask me anything.';
@@ -103,10 +116,10 @@ export const BorvisOverlay = () => {
             }).finally(() => {
                 setStatus('idle'); busyRef.current = false; setBusy(false);
             });
-        }, 1200);
+        }, 800);
         return () => clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [faceReady]);
 
     // Top-edge hover → reveal exit button for 3s
     useEffect(() => {
@@ -253,39 +266,74 @@ export const BorvisOverlay = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45 }}
         >
-            {/* ── Three.js Canvas — full screen ── */}
+            {/* ── Three.js Canvas — full screen. Mobile renders at a lower DPR,
+                 without MSAA, and with a slimmer post chain (bloom blurs anyway) ── */}
             <AppErrorBoundary fallback={null}>
                 <Canvas
                     camera={{ position: [0, 0.4, 5.5], fov: 42 }}
-                    gl={{ alpha: false, antialias: true }}
-                    dpr={[1, 1.5]}
+                    gl={{ alpha: false, antialias: !isMobile }}
+                    dpr={isMobile ? [1, 1.25] : [1, 1.5]}
                     style={{ position: 'absolute', inset: 0 }}
                 >
-                    <NeuralHalftoneFace
-                        intensity={1.0}
-                        grid={isMobile ? 120 : 150}
-                        headScale={isMobile ? 0.52 : 0.7}
-                        offsetY={isMobile ? 0.55 : 0}
-                        scanAngle={133}
-                        scanIntensity={0.15}
-                        glitch={glitchLevel}
-                        intro={true}
-                    />
-                    <EffectComposer>
-                        <Bloom
-                            intensity={1.6}
-                            luminanceThreshold={0.0}
-                            luminanceSmoothing={0.9}
-                            mipmapBlur
-                            radius={0.85}
+                    <Suspense fallback={null}>
+                        <NeuralHalftoneFace
+                            intensity={1.0}
+                            grid={isMobile ? 120 : 150}
+                            headScale={isMobile ? 0.52 : 0.7}
+                            offsetY={isMobile ? 0.55 : 0}
+                            scanAngle={133}
+                            scanIntensity={0.15}
+                            glitch={glitchLevel}
+                            intro={true}
                         />
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                        <ChromaticAberration offset={[0.0009, 0.0012] as any} radialModulation={false} modulationOffset={0} />
-                        <Noise opacity={0.035} />
-                        <Vignette offset={0.25} darkness={0.85} />
-                    </EffectComposer>
+                        <FaceReadyNotifier onReady={handleFaceReady} />
+                    </Suspense>
+                    {isMobile ? (
+                        <EffectComposer>
+                            <Bloom
+                                intensity={1.6}
+                                luminanceThreshold={0.0}
+                                luminanceSmoothing={0.9}
+                                mipmapBlur
+                                radius={0.85}
+                            />
+                            <Vignette offset={0.25} darkness={0.85} />
+                        </EffectComposer>
+                    ) : (
+                        <EffectComposer>
+                            <Bloom
+                                intensity={1.6}
+                                luminanceThreshold={0.0}
+                                luminanceSmoothing={0.9}
+                                mipmapBlur
+                                radius={0.85}
+                            />
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <ChromaticAberration offset={[0.0009, 0.0012] as any} radialModulation={false} modulationOffset={0} />
+                            <Noise opacity={0.035} />
+                            <Vignette offset={0.25} darkness={0.85} />
+                        </EffectComposer>
+                    )}
                 </Canvas>
             </AppErrorBoundary>
+
+            {/* ── Loading veil — covers the link until the face is live ── */}
+            <AnimatePresence>
+                {!faceReady && (
+                    <motion.div
+                        className="absolute inset-0 z-20 bg-[#020406] pointer-events-none"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                    >
+                        <ShimmerLoader
+                            show={true}
+                            variant="overlay"
+                            label="[ ESTABLISHING_NEURAL_LINK... ]"
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ── Transcript panel — mobile: above the input bar, full width, on a
                  dark blur panel for readability over the face; lg+: right side ── */}

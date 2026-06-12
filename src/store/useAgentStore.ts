@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useMusicStore } from './useMusicStore';
 import { useAvatarStore } from './useAvatarStore';
-import { cancelSpeech } from '../services/speechService';
+import { cancelSpeech, unlockAudio } from '../services/speechService';
 
 // ============================================================
 // Agent Message Type (used by the streaming service)
@@ -83,6 +83,10 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         // re-capture the music baseline mid-fade or stack duplicate mount timers.
         if (get().isBorvisMode || (get().isBorvisTransitioning && get().borvisTransitionDir === 'enter')) return;
         clearTransitionTimers();
+
+        // Called from a tap/click handler — the one reliable place to unlock
+        // mobile audio so the greeting (fired later, outside any gesture) plays.
+        unlockAudio();
 
         // Clear any stale session state so we don't flash the last reply.
         const av = useAvatarStore.getState();

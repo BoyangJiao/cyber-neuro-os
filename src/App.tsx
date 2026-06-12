@@ -311,11 +311,16 @@ function App() {
           )}
         </AnimatePresence>
 
-        {/* Borvis — fullscreen immersive interface (z-[250]). Black Suspense
-            fallback so a still-loading chunk never reveals the home page. */}
+        {/* Borvis — fullscreen immersive interface (z-[250]). Suspense fallback
+            keeps the home page hidden AND shows progress while the chunk loads
+            (the overlay then has its own veil until the face itself is ready). */}
         <AnimatePresence>
           {isBorvisMode && (
-            <Suspense fallback={<div className="fixed inset-0 z-[250] bg-[#020406]" />}>
+            <Suspense fallback={
+              <div className="fixed inset-0 z-[250] bg-[#020406]">
+                <ShimmerLoader show={true} variant="overlay" label="[ ESTABLISHING_NEURAL_LINK... ]" />
+              </div>
+            }>
               <BorvisOverlay />
             </Suspense>
           )}
