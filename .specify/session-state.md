@@ -7,10 +7,10 @@
 > **Never write here:** API keys, tokens, connection strings, `.env` contents,
 > or any other secret.
 
-> **Last updated**: 2026-06-11 by Claude Code — Mobile responsive Phases 0–4
-> complete on `claude/amazing-carson-xcfl21` (off `dev`), pushed. MobileGate
-> removed; all pages have <lg layouts. Next: Vercel preview + real-device
-> verification, then merge per release flow.
+> **Last updated**: 2026-06-12 by Claude Code — Mobile responsive complete after
+> 5 rounds of device feedback (`claude/amazing-carson-xcfl21`, through 60c1a1b,
+> pushed). Next: staging deploy → full verification → high-effort code review →
+> merge.
 
 <!--
 Reverse-chronological one-liners of what changed + what's next. Trim when stale.
@@ -36,16 +36,11 @@ Reverse-chronological one-liners of what changed + what's next. Trim when stale.
 
 ## Immediate next actions
 
-1. **Verify mobile work on Vercel preview** from real devices (iPhone Safari +
-   Android Chrome): home (profile bar + horizontal feature cards + nav drawer),
-   projects (selector strip + briefing), project detail (no HUD sidebar, padding
-   clamp), music (player-above-list), about (full-width text + flat stats, no
-   WebGL avatar), lab (stacked viewer), games (EmulatorJS virtual gamepad via
-   proxy), Borvis (transcript above input, persistent disconnect).
+1. **Deploy `claude/amazing-carson-xcfl21` to Vercel preview (预发)** and run the
+   full verification pass (desktop regression + mobile real-device).
 2. **Run the China-network checklist** (constitution) on the preview — mobile
    users are the most likely no-VPN cohort.
-3. Polish pass from device findings (BootScreen on small screens is untested;
-   hover-reveal interactions may need `active:` fallbacks in more places).
+3. **High-effort code review** of the whole branch diff before merge.
 4. Merge per release flow: preview verified → `main` → prod.
 5. (Parallel track, unchanged) Avatar: MetaHuman GLB head with ARKit blendshapes
    → `/avatar-lab`; then integrate Borvis Deep-Dive mode into the main site.
