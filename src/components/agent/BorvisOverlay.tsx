@@ -396,7 +396,7 @@ export const BorvisOverlay = () => {
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
                     disabled={busy || recording}
                     placeholder={inputPlaceholder}
-                    className="flex-1 rounded border border-brand-primary/40 bg-black/60 px-4 py-2.5 font-mono text-sm text-brand-primary placeholder:text-text-muted/60 outline-none backdrop-blur focus:border-brand-primary disabled:opacity-50"
+                    className="flex-1 min-w-0 rounded border border-brand-primary/40 bg-black/60 px-4 py-2.5 font-mono text-base lg:text-sm text-brand-primary placeholder:text-text-muted/60 outline-none backdrop-blur focus:border-brand-primary disabled:opacity-50"
                 />
 
                 <button
@@ -410,11 +410,12 @@ export const BorvisOverlay = () => {
 
             {/* ── Exit controls ── */}
 
-            {/* Edge-reveal disconnect button (always visible on touch) */}
+            {/* Edge-reveal disconnect button (always visible on touch) —
+                top-RIGHT to match every other page's close control */}
             <AnimatePresence>
                 {(showExit || isCoarsePointer) && (
                     <motion.button
-                        className="fixed top-4 left-5 z-[260] flex items-center gap-2 px-3 py-1.5 border border-brand-primary/20 rounded-sm text-text-muted/50 hover:text-red-400 hover:border-red-400/30 transition-colors bg-black/60 backdrop-blur-sm font-mono text-[9px] tracking-[0.2em] uppercase"
+                        className="fixed top-4 right-5 z-[260] flex items-center gap-2 px-3 py-1.5 border border-brand-primary/20 rounded-sm text-text-muted/50 hover:text-red-400 hover:border-red-400/30 transition-colors bg-black/60 backdrop-blur-sm font-mono text-[9px] tracking-[0.2em] uppercase"
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
