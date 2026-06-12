@@ -11,6 +11,9 @@ import { NAV_NODES } from './navNodes';
 import { DiamondIcon } from '../ui/DiamondIcon';
 import { CyberLine } from '../ui/CyberLine';
 import { CyberButton } from '../ui/CyberButton';
+import { AudioWaveform } from '../ui/AudioWaveform';
+import { useAppStore } from '../../store/useAppStore';
+import { useMusicStore } from '../../store/useMusicStore';
 import { useTranslation } from '../../i18n';
 
 interface MobileNavDrawerProps {
@@ -23,6 +26,8 @@ interface MobileNavDrawerProps {
 export const MobileNavDrawer = ({ isOpen, onClose, onIntercept }: MobileNavDrawerProps) => {
     const { t } = useTranslation();
     const location = useLocation();
+    const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
+    const { isPlaying, togglePlay } = useMusicStore();
 
     return (
         <AnimatePresence>
@@ -122,9 +127,35 @@ export const MobileNavDrawer = ({ isOpen, onClose, onIntercept }: MobileNavDrawe
                             })}
                         </div>
 
-                        {/* Footer deco */}
+                        {/* Footer: secondary actions (settings / music) + deco */}
                         <div className="px-5 pb-5">
                             <CyberLine variant="surface" className="w-full mb-3" />
+                            <div className="flex items-center gap-3 mb-4">
+                                <CyberButton
+                                    variant="dot"
+                                    size="sm"
+                                    silentClick={false}
+                                    onClick={() => {
+                                        onClose();
+                                        setSettingsOpen(true);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2"
+                                >
+                                    <i className="ri-settings-line text-base"></i>
+                                    <span className="text-[10px] tracking-[0.15em]">{t('footer.system')}</span>
+                                </CyberButton>
+                                <CyberButton
+                                    variant="dot"
+                                    size="sm"
+                                    silentClick={false}
+                                    onClick={togglePlay}
+                                    aria-label="Toggle music"
+                                    className="flex-1 flex items-center justify-center gap-2"
+                                >
+                                    <AudioWaveform isPlaying={isPlaying} className="text-brand-primary" />
+                                    <span className="text-[10px] tracking-[0.15em] uppercase">BGM</span>
+                                </CyberButton>
+                            </div>
                             <div className="flex items-center justify-between text-[9px] font-mono tracking-[0.25em] uppercase">
                                 <span className="text-status-success">{t('header.online')}</span>
                                 <span className="text-[var(--color-text-muted)]">NEURAL_OS</span>

@@ -50,9 +50,11 @@ export const Header = () => {
     const [time, setTime] = useState(new Date());
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
-    const [isNavOpen, setIsNavOpen] = useState(false);
     const setActiveNodeId = useAppStore((s) => s.setActiveNodeId);
     const isDeepDiveMode = useAppStore((s) => s.isDeepDiveMode);
+    // Drawer state lives in the store: the Footer tab bar opens it
+    const isMobileNavOpen = useAppStore((s) => s.isMobileNavOpen);
+    const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -142,16 +144,6 @@ export const Header = () => {
                         </nav>
                     )}
 
-                    {/* Right (mobile): hamburger opens the nav drawer */}
-                    <button
-                        type="button"
-                        aria-label="Open navigation"
-                        className="lg:hidden flex items-center justify-center w-10 h-10 -mr-2 text-brand-primary active:opacity-60 transition-opacity"
-                        onClick={() => setIsNavOpen(true)}
-                    >
-                        <i className="ri-menu-4-line text-xl" />
-                    </button>
-
                     {/* Right: Status Info */}
                     <div className="hidden lg:flex items-center justify-end gap-4 2xl:gap-6 font-display tracking-widest flex-shrink-0">
                         <GhostText
@@ -178,8 +170,8 @@ export const Header = () => {
             </header>
 
             <MobileNavDrawer
-                isOpen={isNavOpen}
-                onClose={() => setIsNavOpen(false)}
+                isOpen={isMobileNavOpen}
+                onClose={() => setMobileNavOpen(false)}
                 onIntercept={handleInterceptClick}
             />
 

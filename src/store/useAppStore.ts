@@ -36,6 +36,9 @@ interface AppState {
     setCharacterStatsOpen: (isOpen: boolean) => void;
     isSettingsOpen: boolean;
     setSettingsOpen: (open: boolean) => void;
+    // Mobile nav drawer — opened from the Footer tab bar, rendered by Header
+    isMobileNavOpen: boolean;
+    setMobileNavOpen: (open: boolean) => void;
     isAvatarScanning: boolean;
     startAvatarScan: () => void;
     // Theme
@@ -80,6 +83,8 @@ export const useAppStore = create<AppState>((set) => ({
     setCharacterStatsOpen: (isOpen) => set({ isCharacterStatsOpen: isOpen }),
     isSettingsOpen: false,
     setSettingsOpen: (open) => set({ isSettingsOpen: open }),
+    isMobileNavOpen: false,
+    setMobileNavOpen: (open) => set({ isMobileNavOpen: open }),
     isAvatarScanning: false,
     startAvatarScan: () => {
         set({ isAvatarScanning: true });

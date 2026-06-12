@@ -6,7 +6,7 @@ import { StatCard } from '../components/about/StatCard';
 import { CornerFrame } from '../components/ui/frames/CornerFrame';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useEffect } from 'react';
 import { SystemInfoBlockAlpha, SystemInfoBlockBeta } from '../components/ui/decos/SystemInfoBlock';
 import { useSoundSystem } from '../hooks/useSoundSystem';
@@ -96,9 +96,11 @@ export const AboutMePage = () => {
     const { setAboutMeOpen, isCharacterStatsOpen, setCharacterStatsOpen } = useAppStore();
     const { playTransition } = useSoundSystem();
     const { t } = useTranslation();
-    // Mobile: no WebGL avatar layer, text takes full width, stats render as a
-    // flat list after the text (the stats-mode interaction is desktop-only)
+    // Mobile: bottom sheet, text only (the avatar/stats HUD is desktop-only)
     const isMobile = useIsMobile();
+    // Sheet swipe-down-to-close: drag starts only from the handle/header zone
+    // so it never fights the text area's scroll gesture
+    const sheetDragControls = useDragControls();
 
     // ESC to close stats
     useEffect(() => {
@@ -146,26 +148,41 @@ export const AboutMePage = () => {
                     animate={{ y: 0 }}
                     exit={{ y: '100%' }}
                     transition={{ type: 'spring', stiffness: 300, damping: 34 }}
+                    drag="y"
+                    dragListener={false}
+                    dragControls={sheetDragControls}
+                    dragConstraints={{ top: 0, bottom: 0 }}
+                    dragElastic={{ top: 0, bottom: 0.6 }}
+                    onDragEnd={(_, info) => {
+                        if (info.offset.y > 100 || info.velocity.y > 600) {
+                            setAboutMeOpen(false);
+                        }
+                    }}
                 >
-                    {/* Grab handle */}
-                    <div className="flex justify-center pt-2.5 pb-1">
-                        <div className="w-10 h-1 bg-brand-primary/30 rounded-full" />
-                    </div>
+                    {/* Grab handle — drag zone for swipe-down dismiss */}
+                    <div
+                        className="touch-none"
+                        onPointerDown={(e) => sheetDragControls.start(e)}
+                    >
+                        <div className="flex justify-center pt-2.5 pb-1">
+                            <div className="w-10 h-1 bg-brand-primary/30 rounded-full" />
+                        </div>
 
-                    {/* Header */}
-                    <div className="shrink-0 flex items-center justify-between px-5 py-2">
-                        <h1 className="text-sm font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
-                            {t('about.title')}
-                        </h1>
-                        <CyberButton
-                            variant="ghost"
-                            size="sm"
-                            iconOnly
-                            onClick={() => setAboutMeOpen(false)}
-                            className="text-brand-primary"
-                        >
-                            <i className="ri-close-line text-xl" />
-                        </CyberButton>
+                        {/* Header */}
+                        <div className="shrink-0 flex items-center justify-between px-5 py-2">
+                            <h1 className="text-sm font-display font-bold text-brand-secondary tracking-[0.3em] uppercase">
+                                {t('about.title')}
+                            </h1>
+                            <CyberButton
+                                variant="ghost"
+                                size="sm"
+                                iconOnly
+                                onClick={() => setAboutMeOpen(false)}
+                                className="text-brand-primary"
+                            >
+                                <i className="ri-close-line text-xl" />
+                            </CyberButton>
+                        </div>
                     </div>
 
                     {/* Text content */}

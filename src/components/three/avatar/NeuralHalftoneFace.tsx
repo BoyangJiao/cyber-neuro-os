@@ -30,6 +30,7 @@ interface Props {
     maxYaw?: number;   // max left/right head turn (radians)
     maxPitch?: number; // max up/down head tilt (radians)
     headScale?: number; // overall head size on screen (1 = fills frame)
+    offsetY?: number;   // vertical shift of the head in scene units (+ = up on screen)
     scanAngle?: number;     // scanline direction (degrees)
     scanIntensity?: number; // 0..1
     glitch?: number;        // 0..1
@@ -135,6 +136,7 @@ export const NeuralHalftoneFace = ({
     maxYaw = 0.45,
     maxPitch = 0.28,
     headScale = 0.8,
+    offsetY = 0,
     scanAngle = 133,
     scanIntensity = 0.18,
     glitch = 0.06,
@@ -297,6 +299,7 @@ export const NeuralHalftoneFace = ({
         pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
         pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);
         pivot.scale.setScalar(headScale);
+        pivot.position.y = offsetY;
         pivot.updateMatrixWorld(true);
 
         const prevTarget = gl.getRenderTarget();

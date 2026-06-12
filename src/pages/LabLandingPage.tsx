@@ -141,8 +141,8 @@ export const LabLandingPage = () => {
                             />
                         </div>
 
-                    </div>                        {/* Bottom Pagination Indicators (Fixed at bottom) */}
-                    <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-[60] pointer-events-none">
+                    </div>                        {/* Bottom Pagination Indicators (desktop only) */}
+                    <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-4 z-[60] pointer-events-none">
                         {labApps.map((_, idx) => (
                             <button
                                 key={idx}

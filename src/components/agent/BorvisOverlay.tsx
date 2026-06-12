@@ -264,7 +264,8 @@ export const BorvisOverlay = () => {
                     <NeuralHalftoneFace
                         intensity={1.0}
                         grid={isMobile ? 120 : 150}
-                        headScale={0.7}
+                        headScale={isMobile ? 0.52 : 0.7}
+                        offsetY={isMobile ? 0.55 : 0}
                         scanAngle={133}
                         scanIntensity={0.15}
                         glitch={glitchLevel}
@@ -286,9 +287,9 @@ export const BorvisOverlay = () => {
                 </Canvas>
             </AppErrorBoundary>
 
-            {/* ── Transcript panel — mobile: above the input bar, full width;
-                 lg+: right side, vertically centered ── */}
-            <div className="absolute left-4 right-4 bottom-24 lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:w-[340px] lg:-translate-y-1/2">
+            {/* ── Transcript panel — mobile: above the input bar, full width, on a
+                 dark blur panel for readability over the face; lg+: right side ── */}
+            <div className="absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:w-[340px] lg:-translate-y-1/2">
                 <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                     TRANSCRIPT ·{' '}
                     <span className="text-brand-primary/70">{status.toUpperCase()}</span>
