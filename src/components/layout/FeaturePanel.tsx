@@ -306,8 +306,17 @@ export const FeaturePanel = () => {
                             return (
                                 <div
                                     key={`mobile-${item.titleKey}`}
-                                    className="feature-card snap-center shrink-0 h-[420px] max-h-[88%] aspect-[4/7] flex flex-col"
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={t(item.titleKey)}
+                                    className="feature-card snap-center shrink-0 h-[420px] max-h-[88%] aspect-[4/7] flex flex-col cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
                                     onClick={() => handleMobileCardTap(item)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleMobileCardTap(item);
+                                        }
+                                    }}
                                 >
                                     <CyberSlotCard
                                         title={t(item.titleKey)}
