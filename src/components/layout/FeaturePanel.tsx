@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { CyberSlotCard } from '../ui/CyberSlotCard';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation, useLanguage } from '../../i18n';
 import { useAppStore } from '../../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -110,6 +110,12 @@ export const FeaturePanel = () => {
         setHasPlayedFeatureIntro: state.setHasPlayedFeatureIntro
     })));
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
+    // Mobile tap-to-activate: which card is playing its scan before navigation
+    const [mobileActivatingKey, setMobileActivatingKey] = useState<string | null>(null);
+    const mobileNavTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => () => {
+        if (mobileNavTimer.current) clearTimeout(mobileNavTimer.current);
+    }, []);
 
     // ─── Intro Animation Orchestration ───
     const [isIntroPlaying, setIsIntroPlaying] = useState(!hasPlayedFeatureIntro);
@@ -191,6 +197,21 @@ export const FeaturePanel = () => {
     const handleInterceptClick = (moduleName: string) => {
         playAlert();
         setInterceptedModule(moduleName);
+    };
+
+    // Mobile: play the card's full scan (400ms sweep + ACCESS GRANTED beat)
+    // before opening the page — a bare tap was cutting the effect short
+    const handleMobileCardTap = (item: FeatureItem) => {
+        if (mobileActivatingKey) return; // one activation at a time
+        if (!item.link) {
+            handleInterceptClick(t(item.titleKey));
+            return;
+        }
+        setMobileActivatingKey(item.titleKey);
+        mobileNavTimer.current = setTimeout(() => {
+            setMobileActivatingKey(null);
+            navigate(item.link!);
+        }, 750);
     };
 
     // ─── Wheel Navigation: scroll through focus with hydraulic damping ───
@@ -275,35 +296,39 @@ export const FeaturePanel = () => {
                 className="col-span-1 lg:col-span-8 flex flex-col h-full relative overflow-hidden px-6 lg:px-0"
                 onMouseMove={(e) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; }}
             >
-                {/* Mobile View: Horizontal Scroll */}
-                <div className="lg:hidden relative z-10 w-full h-full flex items-center justify-start overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                    <div className="flex flex-row gap-4 items-center py-8">
+                {/* Mobile View: fixed-height row, horizontal swipe ONLY —
+                    cards size off the container height so nothing can
+                    overflow vertically and trigger page scroll */}
+                <div className="lg:hidden relative z-10 w-full h-full flex items-center justify-start overflow-x-auto overflow-y-hidden no-scrollbar snap-x snap-mandatory touch-pan-x overscroll-x-contain">
+                    <div className="flex flex-row gap-4 items-center h-full px-2">
                         {features.map((item) => {
-                            const cardContent = (
-                                <CyberSlotCard
-                                    title={t(item.titleKey)}
-                                    subtitle={item.subtitle}
-                                    glitchType={item.glitchType}
-                                    inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
-                                    activeImage={item.activeImage || "/images/features/Lab_active.png"}
-                                    bgSize={item.bgSize}
-                                    isErrorState={item.geometryType === 'video'}
-                                />
-                            );
+                            const isActivating = mobileActivatingKey === item.titleKey;
                             return (
                                 <div
                                     key={`mobile-${item.titleKey}`}
-                                    className="feature-card snap-center shrink-0 w-[60vw] max-w-[240px] aspect-[4/7] flex flex-col"
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={t(item.titleKey)}
+                                    className="feature-card snap-center shrink-0 h-[420px] max-h-[88%] aspect-[4/7] flex flex-col cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
+                                    onClick={() => handleMobileCardTap(item)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleMobileCardTap(item);
+                                        }
+                                    }}
                                 >
-                                    {item.link ? (
-                                        <Link to={item.link} className="block h-full">
-                                            {cardContent}
-                                        </Link>
-                                    ) : (
-                                        <div onClick={() => handleInterceptClick(t(item.titleKey))} className="cursor-pointer h-full text-left">
-                                            {cardContent}
-                                        </div>
-                                    )}
+                                    <CyberSlotCard
+                                        title={t(item.titleKey)}
+                                        subtitle={item.subtitle}
+                                        glitchType={item.glitchType}
+                                        inactiveImage={item.inactiveImage || "/images/features/Lab_inactive.png"}
+                                        activeImage={item.activeImage || "/images/features/Lab_active.png"}
+                                        bgSize={item.bgSize}
+                                        isErrorState={item.geometryType === 'video'}
+                                        isFocused={isActivating}
+                                        scanTrigger={isActivating}
+                                    />
                                 </div>
                             );
                         })}

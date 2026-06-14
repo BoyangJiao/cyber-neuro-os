@@ -19,9 +19,9 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
     };
 
     return (
-        <div className="w-full h-full flex flex-row items-stretch gap-6 lg:gap-10 xl:gap-14">
-            {/* Left Side: Visual Card (3D Card Mode) — shrinks aggressively on narrow viewports */}
-            <div className="shrink w-[200px] lg:w-[260px] xl:w-[320px] min-w-[160px] aspect-[3/4] relative z-20 self-center">
+        <div className="w-full h-full flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-6 lg:gap-10 xl:gap-14">
+            {/* Visual Card (3D Card Mode) — stacks above the info panel on phones */}
+            <div className="shrink w-[170px] sm:w-[200px] lg:w-[260px] xl:w-[320px] sm:min-w-[160px] aspect-[3/4] relative z-20 self-center">
                 <HoloFeatureCard
                     title={""}
                     icon={app.image}
@@ -29,8 +29,8 @@ export const LabAppViewer = ({ app }: LabAppViewerProps) => {
                 />
             </div>
 
-            {/* Right Side: Information Panel — takes priority for content readability */}
-            <div className="flex-1 min-w-[280px] flex flex-col justify-center relative py-2 overflow-hidden">
+            {/* Information Panel — takes priority for content readability */}
+            <div className="flex-1 w-full min-w-0 sm:min-w-[280px] flex flex-col justify-center relative py-2 overflow-hidden">
                 <div className="flex flex-col gap-3 lg:gap-4">
                     {/* Status Line */}
                     <span className="text-[10px] md:text-xs font-mono tracking-widest text-text-secondary uppercase">

@@ -33,7 +33,7 @@ const BorvisSignalHijack = lazy(() => import('./components/effects/BorvisSignalH
 import { ConnectionLine } from './components/about/ConnectionLine'
 import { NeuralParticleField } from './components/three/effects/NeuralParticleField'
 import { AmbientBackground } from './components/ui/effects/AmbientBackground'
-import { MobileGate } from './components/layout/MobileGate'
+import { MobileProfileBar } from './components/layout/MobileProfileBar'
 import { SettingsModal } from './components/ui/SettingsModal'
 import { CyberDebugPanel } from './components/ui/debug'
 import { ShimmerLoader } from './components/ui/loading/ShimmerLoader'
@@ -55,6 +55,7 @@ import { Agentation } from 'agentation'
 import { TacticalCursor } from './components/ui/TacticalCursor'
 import { TimeTunnelTransition } from './components/effects/TimeTunnelTransition'
 import { useSoundSystem } from './hooks/useSoundSystem';
+import { useIsMobile } from './hooks/useDevice';
 
 import { useQuery } from './sanity/client'
 import { PROJECTS_QUERY } from './sanity/queries'
@@ -81,6 +82,15 @@ function App() {
     setProjects: state.setProjects
   })));
   const { initAudio } = useSoundSystem();
+  const isMobile = useIsMobile();
+
+  // Mobile skips the boot sequence entirely: it's desktop-scale WebGL art
+  // (helmet GLB + datastream edges) with no meaningful small-screen layout.
+  useEffect(() => {
+    if (isMobile && isBootSequenceActive) {
+      setBootSequence(false);
+    }
+  }, [isMobile, isBootSequenceActive, setBootSequence]);
 
   // Pre-initialize audio as soon as possible
   useEffect(() => {
@@ -166,21 +176,24 @@ function App() {
         </div>
       )}
 
-      {/* Boot Screen Overlay - Highest Z-Index */}
+      {/* Boot Screen Overlay - Highest Z-Index (desktop only) */}
       <AnimatePresence mode="wait">
-        {isBootSequenceActive && (
+        {isBootSequenceActive && !isMobile && (
           <BootScreen onComplete={() => setBootSequence(false)} />
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
+      <div className="min-h-dvh w-full overflow-hidden text-brand-primary font-sans selection:bg-brand-primary/30">
         {/* Layer 0: Background — conditional on DeepDive mode. Paused while Borvis
             is open (it fully covers the screen) to free the GPU / avoid two heavy
             WebGL scenes running at once. */}
         {!isBootSequenceActive && !isBorvisMode && (isDeepDiveMode ? <NeuralParticleField /> : <AmbientBackground />)}
         <MainLayout footer={<Footer />}>
           {/* Dashboard Container - Flexible Layout (Fixed Sides, Fluid Center) */}
-          <div className="flex h-full w-full relative overflow-hidden gap-4 lg:gap-6 2xl:gap-8">
+          <div className="flex flex-col lg:flex-row h-full w-full relative overflow-hidden gap-3 lg:gap-6 2xl:gap-8">
+
+            {/* Mobile profile strip — home route only (sidebars are lg-only) */}
+            {!isFullWidth && location.pathname === '/' && <MobileProfileBar />}
 
             {/* Bottom Deco (Lowest Z-Index Layer) */}
             {!isFullWidth && (
@@ -208,7 +221,7 @@ function App() {
             )}
 
             {/* CENTER MAIN CONTENT (Fluid width, takes remaining space) */}
-            <main className={`flex-1 h-full relative min-w-0 flex flex-col z-10 transition-all duration-300 ${isFullWidth ? 'w-full' : ''}`}>
+            <main className={`flex-1 min-h-0 lg:h-full relative min-w-0 flex flex-col z-10 transition-all duration-300 ${isFullWidth ? 'w-full' : ''}`}>
               <div className="w-full h-full relative overflow-hidden py-3 lg:py-4 max-w-[1600px] mx-auto">
                 {/* Routes without key - prevents unnecessary re-mounting */}
                 <Routes location={location}>
@@ -270,8 +283,8 @@ function App() {
 
           </div>
 
-          {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪 */}
-          <ConnectionLine />
+          {/* Connection Line - 最顶层渲染，确保线条不被容器裁剪（依赖桌面侧栏锚点） */}
+          {!isMobile && <ConnectionLine />}
         </MainLayout>
 
 
@@ -298,11 +311,16 @@ function App() {
           )}
         </AnimatePresence>
 
-        {/* Borvis — fullscreen immersive interface (z-[250]). Black Suspense
-            fallback so a still-loading chunk never reveals the home page. */}
+        {/* Borvis — fullscreen immersive interface (z-[250]). Suspense fallback
+            keeps the home page hidden AND shows progress while the chunk loads
+            (the overlay then has its own veil until the face itself is ready). */}
         <AnimatePresence>
           {isBorvisMode && (
-            <Suspense fallback={<div className="fixed inset-0 z-[250] bg-[#020406]" />}>
+            <Suspense fallback={
+              <div className="fixed inset-0 z-[250] bg-[#020406]">
+                <ShimmerLoader show={true} variant="overlay" label="[ ESTABLISHING_NEURAL_LINK... ]" />
+              </div>
+            }>
               <BorvisOverlay />
             </Suspense>
           )}
@@ -336,9 +354,6 @@ function App() {
 
       {/* Tactical HUD Cursor - Topmost Layer */}
       <TacticalCursor />
-
-      {/* Mobile viewport gate - blocks access on narrow screens */}
-      <MobileGate />
     </LanguageProvider>
   )
 }

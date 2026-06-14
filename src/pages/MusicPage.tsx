@@ -53,19 +53,19 @@ export const MusicPage = () => {
 
                     {/* === MAIN CONTENT === */}
                     <div className="flex-1 w-full min-h-0 px-4 2xl:px-6 pb-4 2xl:pb-6 relative z-10">
-                        {/* Content Grid */}
-                        <div className="flex flex-col lg:flex-row gap-6 w-full h-full overflow-hidden">
+                        {/* Content Grid — mobile: player on top, station list scrolls below */}
+                        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 w-full h-full overflow-hidden">
 
-                            {/* Left Column: Playlist */}
-                            <div className="w-full lg:w-1/3 h-full flex flex-col overflow-hidden border-r border-brand-primary/20 pr-4">
+                            {/* Playlist */}
+                            <div className="order-2 lg:order-1 flex-1 min-h-0 w-full lg:w-1/3 lg:flex-none lg:h-full flex flex-col overflow-hidden lg:border-r border-brand-primary/20 lg:pr-4">
                                 <div className="h-full">
                                     <StationList />
                                 </div>
                             </div>
 
-                            {/* Right Column: Player Interface */}
-                            <div className="flex-1 h-full relative flex flex-col overflow-hidden">
-                                <div className="h-full w-full p-0 lg:pr-8">
+                            {/* Player Interface */}
+                            <div className="order-1 lg:order-2 shrink-0 lg:flex-1 lg:h-full relative flex flex-col overflow-hidden">
+                                <div className="w-full lg:h-full p-0 lg:pr-8">
                                     <MusicPlayer />
                                 </div>
                             </div>

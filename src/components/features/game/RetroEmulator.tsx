@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { ChamferFrame } from '../../ui/frames/ChamferFrame';
 import { ShimmerLoader } from '../../ui/loading/ShimmerLoader';
 import { twMerge } from 'tailwind-merge';
+import { useIsCoarsePointer } from '../../../hooks/useDevice';
 interface RetroEmulatorProps {
     gameUrl: string;
     gameName?: string;
@@ -22,6 +23,7 @@ export const RetroEmulator = ({
 }: RetroEmulatorProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const isCoarsePointer = useIsCoarsePointer();
 
     // Build the iframe URL
     const emulatorUrl = new URL(
@@ -63,16 +65,25 @@ export const RetroEmulator = ({
                         onLoad={() => setIsLoading(false)}
                     />
 
-                    {/* Operational Overlay / Control Guide */}
+                    {/* Operational Overlay / Control Guide — keyboard hints are
+                        meaningless on touch (EmulatorJS shows its virtual gamepad) */}
                     {!isLoading && (
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 text-[10px] md:text-xs text-text-primary px-4 py-2 rounded border border-border-default z-[20] pointer-events-none opacity-50 flex items-center gap-4 md:gap-6 whitespace-nowrap shadow-md">
-                            <span className="text-status-error font-bold tracking-widest flex items-center gap-1 animate-pulse">
-                                <i className="ri-mouse-line"></i> CLICK GAME TO COMMLINK
-                            </span>
-                            <span className="text-text-secondary">|</span>
-                            <span className="tracking-widest"><span className="text-brand-primary">ENTER:</span> START</span>
-                            <span className="tracking-widest"><span className="text-brand-primary">Z/X:</span> B/A</span>
-                            <span className="tracking-widest"><span className="text-brand-primary">ARROWS:</span> D-PAD</span>
+                            {isCoarsePointer ? (
+                                <span className="text-status-error font-bold tracking-widest flex items-center gap-1 animate-pulse">
+                                    <i className="ri-gamepad-line"></i> TAP GAME TO COMMLINK // TOUCH PAD ON SCREEN
+                                </span>
+                            ) : (
+                                <>
+                                    <span className="text-status-error font-bold tracking-widest flex items-center gap-1 animate-pulse">
+                                        <i className="ri-mouse-line"></i> CLICK GAME TO COMMLINK
+                                    </span>
+                                    <span className="text-text-secondary">|</span>
+                                    <span className="tracking-widest"><span className="text-brand-primary">ENTER:</span> START</span>
+                                    <span className="tracking-widest"><span className="text-brand-primary">Z/X:</span> B/A</span>
+                                    <span className="tracking-widest"><span className="text-brand-primary">ARROWS:</span> D-PAD</span>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>

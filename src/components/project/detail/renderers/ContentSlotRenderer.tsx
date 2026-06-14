@@ -18,21 +18,21 @@ const RichTextRenderer = ({ block }: { block: RichTextBlock }) => {
     const components = {
         block: {
             normal: ({ children }: any) => (
-                <p className="text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose w-full">
+                <p className="text-base lg:text-lg 2xl:text-xl text-text-primary leading-relaxed 2xl:leading-loose w-full">
                     {children}
                 </p>
             ),
             h1: ({ children }: any) => (
-                <h1 className="text-4xl 2xl:text-5xl font-display font-bold text-text-accent mb-6 2xl:mb-8">{children}</h1>
+                <h1 className="text-3xl lg:text-4xl 2xl:text-5xl font-display font-bold text-text-accent mb-6 2xl:mb-8">{children}</h1>
             ),
             h2: ({ children }: any) => (
-                <h2 className="text-3xl 2xl:text-4xl font-display font-bold text-text-accent mb-5 2xl:mb-6">{children}</h2>
+                <h2 className="text-2xl lg:text-3xl 2xl:text-4xl font-display font-bold text-text-accent mb-5 2xl:mb-6">{children}</h2>
             ),
             h3: ({ children }: any) => (
-                <h3 className="text-2xl 2xl:text-3xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h3>
+                <h3 className="text-xl lg:text-2xl 2xl:text-3xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h3>
             ),
             h4: ({ children }: any) => (
-                <h4 className="text-xl 2xl:text-2xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h4>
+                <h4 className="text-lg lg:text-xl 2xl:text-2xl font-display text-text-accent mb-4 2xl:mb-5">{children}</h4>
             ),
             blockquote: ({ children }: any) => (
                 <blockquote className="border-l-4 border-brand-primary pl-4 italic text-text-secondary">

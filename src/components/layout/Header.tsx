@@ -7,22 +7,8 @@ import { useTranslation } from '../../i18n';
 import { useSoundSystem } from '../../hooks/useSoundSystem';
 import { InterceptModal } from '../ui/modals/InterceptModal';
 import { useAppStore } from '../../store/useAppStore';
-
-// ─── Navigation Node Data ──────────────────────────────────
-interface NavNodeData {
-    id: string;
-    titleKey: string;
-    link?: string;
-}
-
-const NAV_NODES: NavNodeData[] = [
-    { id: 'project', titleKey: 'features.project', link: '/projects' },
-    { id: 'game', titleKey: 'features.game', link: '/games' },
-    { id: 'music', titleKey: 'features.music', link: '/music' },
-    { id: 'lab', titleKey: 'features.lab', link: '/lab' },
-    { id: 'sound', titleKey: 'features.sound', link: '/synthesis' },
-    { id: 'video', titleKey: 'features.video' },
-];
+import { NAV_NODES } from './navNodes';
+import { MobileNavDrawer } from './MobileNavDrawer';
 
 // ─── Diamond Icon ──────────────────────────────────────────
 const DiamondIcon = ({ active }: { active: boolean }) => (
@@ -66,6 +52,9 @@ export const Header = () => {
     const [interceptedModule, setInterceptedModule] = useState<string | null>(null);
     const setActiveNodeId = useAppStore((s) => s.setActiveNodeId);
     const isDeepDiveMode = useAppStore((s) => s.isDeepDiveMode);
+    // Drawer state lives in the store: the Footer tab bar opens it
+    const isMobileNavOpen = useAppStore((s) => s.isMobileNavOpen);
+    const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -96,7 +85,7 @@ export const Header = () => {
                         className="flex items-center gap-2 2xl:gap-3 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
                         onClick={() => navigate('/')}
                     >
-                        <NeuralLogo size={28} className="hidden sm:inline-flex 2xl:!w-[34px] 2xl:!h-[34px]" />
+                        <NeuralLogo size={28} className="inline-flex 2xl:!w-[34px] 2xl:!h-[34px]" />
                         <h1 className="relative text-[16px] 2xl:text-[22px] font-display font-bold tracking-[0.2em]">
                             <span className="relative z-10 text-brand-primary">
                                 {t('header.brand')}<span className="text-brand-primary">{t('header.brandHighlight')}</span>
@@ -179,6 +168,12 @@ export const Header = () => {
                     <CyberLine variant="surface" className="w-full" />
                 </div>
             </header>
+
+            <MobileNavDrawer
+                isOpen={isMobileNavOpen}
+                onClose={() => setMobileNavOpen(false)}
+                onIntercept={handleInterceptClick}
+            />
 
             <InterceptModal
                 isOpen={!!interceptedModule}

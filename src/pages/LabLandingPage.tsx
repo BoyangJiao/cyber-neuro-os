@@ -141,8 +141,8 @@ export const LabLandingPage = () => {
                             />
                         </div>
 
-                    </div>                        {/* Bottom Pagination Indicators (Fixed at bottom) */}
-                    <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-[60] pointer-events-none">
+                    </div>                        {/* Bottom Pagination Indicators (desktop only) */}
+                    <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-4 z-[60] pointer-events-none">
                         {labApps.map((_, idx) => (
                             <button
                                 key={idx}
@@ -150,12 +150,16 @@ export const LabLandingPage = () => {
                                     setDirection(idx > currentIndex ? 1 : -1);
                                     setCurrentIndex(idx);
                                 }}
-                                className={`h-1 transition-all pointer-events-auto duration-300 ${idx === currentIndex
-                                    ? 'w-8 bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary)]'
-                                    : 'w-4 bg-border-subtle hover:bg-text-muted'
-                                    }`}
+                                className="py-2 pointer-events-auto"
                                 aria-label={`View app ${idx + 1}`}
-                            />
+                            >
+                                <span
+                                    className={`block h-1 transition-all duration-300 ${idx === currentIndex
+                                        ? 'w-8 bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary)]'
+                                        : 'w-4 bg-border-subtle hover:bg-text-muted'
+                                        }`}
+                                />
+                            </button>
                         ))}
                     </div>
                 </div>

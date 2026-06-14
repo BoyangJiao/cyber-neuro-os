@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge';
 import { useSoundSystem } from '../../../hooks/useSoundSystem';
 import { ButtonLoadingIndicator } from './ButtonLoadingIndicator';
 import { getButtonSizeStyles, buttonBaseStyles, buttonDisabledStyles } from './buttonStyles';
+import { isCoarsePointer } from '../../../hooks/useDevice';
 
 export interface ChamferButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     icon?: React.ReactNode;
@@ -121,8 +122,12 @@ export const ChamferButton = ({
             style={{ clipPath }}
             {...props}
             onMouseEnter={(e) => {
-                setIsHovered(true);
-                if (!silentHover) playHover();
+                // Touch fires a synthetic mouseenter on tap but never mouseleave,
+                // which would freeze the button in its hover visual.
+                if (!isCoarsePointer()) {
+                    setIsHovered(true);
+                    if (!silentHover) playHover();
+                }
                 props.onMouseEnter?.(e);
             }}
             onMouseLeave={(e) => {

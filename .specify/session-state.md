@@ -7,10 +7,10 @@
 > **Never write here:** API keys, tokens, connection strings, `.env` contents,
 > or any other secret.
 
-> **Last updated**: 2026-06-04 by Claude Code (Opus 4.8) — Borvis avatar Phases
-> 0–3 complete on `feat/spatial-avatar` (halftone face + emotion + Kai voice +
-> push-to-talk). Boot head swapped to Boyang's Avaturn face. Next: MetaHuman GLB
-> head for detail. Not yet integrated into the main site, not pushed.
+> **Last updated**: 2026-06-12 by Claude Code — Mobile responsive complete after
+> 5 rounds of device feedback (`claude/amazing-carson-xcfl21`, through 60c1a1b,
+> pushed). Next: staging deploy → full verification → high-effort code review →
+> merge.
 
 <!--
 Reverse-chronological one-liners of what changed + what's next. Trim when stale.
@@ -26,29 +26,39 @@ Reverse-chronological one-liners of what changed + what's next. Trim when stale.
 
 | Field | Value |
 | :--- | :--- |
-| **Active milestone/stage** | Avatar **Phases 0–3 done** in the dev lab (`/avatar-lab`). Next: better face model (MetaHuman) + main-site integration. |
-| **Active branch** | `feat/spatial-avatar` (off `refactor/arch-security-perf` HEAD @ 0147cf0); ~31 commits, **unpushed** |
-| **Last commits captured** | through `c8c6dad` (boot head + shoulders) |
-| **In flight** | Borvis works end-to-end in the lab; awaiting a MetaHuman GLB head to upgrade the face |
+| **Active milestone/stage** | **Mobile responsive Phases 0–4 done** (foundation + layout shell + all pages + Borvis/WebGL tiers + MobileGate removed). Next: preview verification on real devices. |
+| **Active branch** | `claude/amazing-carson-xcfl21` (off `dev` HEAD @ a16c804); **pushed** |
+| **Last commits captured** | through `7a78ec6` (Borvis mobile + quality tiers + MobileGate removal) |
+| **In flight** | Mobile work awaits Vercel preview / real-device testing; user merges only after full verification. Parallel track: avatar branch `feat/spatial-avatar` (~31 commits, unpushed) awaits MetaHuman GLB head. |
 | **Context bundle** | none |
 
 ---
 
 ## Immediate next actions
 
-1. **Export a MetaHuman GLB head with ARKit blendshapes** → drop in `public/models/`
-   → tell the agent the filename → it inspects morph names (must be ARKit) and
-   adapts `NeuralHalftoneFace` (the model loads via `/avatar-lab?model=<file>.glb`).
-   What to look for in a candidate: ~52 morph targets named ARKit-style
-   (`jawOpen`, `mouthSmileLeft`…), glTF/GLB format, head isolatable.
-2. **Integrate Borvis into the main site** — Deep-Dive / 精神链接 mode: fade the
-   dashboard UI, center-stage the halftone head, replace/augment the text chat window.
-3. (Parallel) deploy `refactor/arch-security-perf` to Vercel preview → verify → merge.
+1. **Deploy `claude/amazing-carson-xcfl21` to Vercel preview (预发)** and run the
+   full verification pass (desktop regression + mobile real-device).
+2. **Run the China-network checklist** (constitution) on the preview — mobile
+   users are the most likely no-VPN cohort.
+3. **High-effort code review** of the whole branch diff before merge.
+4. Merge per release flow: preview verified → `main` → prod.
+5. (Parallel track, unchanged) Avatar: MetaHuman GLB head with ARKit blendshapes
+   → `/avatar-lab`; then integrate Borvis Deep-Dive mode into the main site.
 
 ---
 
 ## Recent decisions
 
+- **Mobile strategy = desktop-first + <lg adaptation layer**, not a mobile-first
+  rewrite. `lg` (1024px) is the single mobile/desktop split; `useDevice` hook
+  (`src/hooks/useDevice.ts`) is the only JS source for it (matchMedia +
+  useSyncExternalStore; `useIsCoarsePointer` is separate — iPad landscape is
+  desktop layout + touch). Mobile = content-first: WebGL showcases (About
+  avatar, stats HUD) are hidden/replaced on mobile, not shrunk.
+- **MobileGate deleted** (component + i18n keys) — every page now has a mobile
+  layout; the branch merges only after full preview verification.
+- **CMS module padding is desktop-authored** (1440px baseline, up to 240px):
+  clamped to 64px on mobile via shared `useModulePadding`.
 - **Avatar = "Borvis"**, rendered as a Lusion-style **screen-space halftone** of an
   off-screen 3D head (`NeuralHalftoneFace`): bloom/scanline/glitch post, entrance
   ramp, cursor-follow head turn, emotion blendshapes, amplitude lip-sync.
@@ -111,6 +121,13 @@ Reverse-chronological one-liners of what changed + what's next. Trim when stale.
 - **GLB binaries aren't auto-tracked**: `facecap-clean.glb` + `Borvis.glb` are the
   in-use models and ARE committed; `Facecap.glb`, `Borvist2.glb`, `Borvist2.1.glb`
   are unused (deletable).
+- **Viewport height uses `dvh`, not `100vh`/`h-screen`** (MainLayout, App, body,
+  #root) — iOS Safari's collapsing address bar otherwise pushes the footer below
+  the fold. Don't reintroduce `h-screen` in layout shells.
+- **`ComparisonSlider` already had full touch support** (and TacticalCursor
+  already self-disables on touch) — old audit notes claiming otherwise are wrong.
+- **Tailwind v4 `hover:` only fires on hover-capable devices** — touch UIs need
+  explicit `active:` feedback; new mobile components set it, older ones may not.
 
 ---
 

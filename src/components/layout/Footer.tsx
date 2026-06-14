@@ -4,12 +4,47 @@ import { useAgentStore } from '../../store/useAgentStore';
 import { useTranslation } from '../../i18n';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AudioWaveform } from '../ui/AudioWaveform';
+import { useIsMobile } from '../../hooks/useDevice';
 
 export const Footer = () => {
-    const { setSettingsOpen } = useAppStore();
+    const { setSettingsOpen, isMobileNavOpen, setMobileNavOpen } = useAppStore();
     const { enterBorvis } = useAgentStore();
     const { isPlaying, togglePlay } = useMusicStore();
     const { t } = useTranslation();
+    const isMobile = useIsMobile();
+
+    // Mobile: two-tab bar — Neural Uplink (primary CTA) + nav drawer menu.
+    // Tabs stretch half-width each (mirrors the drawer's footer actions);
+    // settings & music live in the drawer footer.
+    if (isMobile) {
+        return (
+            <div className="w-full h-auto flex items-stretch gap-3 px-4 pt-2">
+                <CyberButton
+                    variant="dot"
+                    size="sm"
+                    iconOnly
+                    silentClick={false}
+                    onClick={enterBorvis}
+                    aria-label={t('footer.neuralUplink')}
+                    className="flex-1 h-10 flex items-center justify-center"
+                >
+                    <i className="ri-chat-ai-4-line text-lg"></i>
+                </CyberButton>
+
+                <CyberButton
+                    variant="dot"
+                    size="sm"
+                    iconOnly
+                    silentClick={false}
+                    onClick={() => setMobileNavOpen(!isMobileNavOpen)}
+                    aria-label={isMobileNavOpen ? 'Close navigation' : 'Open navigation'}
+                    className="flex-1 h-10 flex items-center justify-center"
+                >
+                    <i className={`${isMobileNavOpen ? 'ri-close-line' : 'ri-menu-4-line'} text-lg`}></i>
+                </CyberButton>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-auto flex items-center justify-between pt-2 2xl:pt-3">

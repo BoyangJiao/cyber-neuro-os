@@ -68,7 +68,7 @@ export const MusicPlayer = () => {
 
                 {/* Meta Right */}
                 <div className="flex flex-col justify-center h-full min-w-0 pr-2">
-                    <h2 className="text-2xl lg:text-3xl font-display font-bold text-white uppercase tracking-tight leading-tight shadow-brand-glow whitespace-pre-wrap break-words">
+                    <h2 className="text-xl lg:text-3xl font-display font-bold text-white uppercase tracking-tight leading-tight shadow-brand-glow whitespace-pre-wrap break-words">
                         {currentTrack.title}
                     </h2>
                 </div>
@@ -111,8 +111,8 @@ export const MusicPlayer = () => {
                         </button>
                     </div>
 
-                    {/* Volume Control */}
-                    <div className="flex items-center gap-3 min-w-[140px]">
+                    {/* Volume Control — hidden on small screens (mobile OSes own media volume) */}
+                    <div className="hidden md:flex items-center gap-3 min-w-[140px]">
                         <i className="ri-volume-down-line text-brand-secondary/60 text-lg"></i>
                         <input
                             type="range"

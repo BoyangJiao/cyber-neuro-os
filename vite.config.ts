@@ -3,7 +3,15 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import type { PluginOption } from 'vite'
 import { fetch as undiciFetch, ProxyAgent } from 'undici'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
+
+// Single source of truth for the displayed app version: package.json `version`,
+// read at config time and injected via `define` (below) as __APP_VERSION__.
+const APP_VERSION = JSON.parse(
+  readFileSync(resolve(process.cwd(), 'package.json'), 'utf-8'),
+).version as string
 
 /**
  * Local API proxy plugin
@@ -265,6 +273,10 @@ export default defineConfig(({ mode }: { mode: string }) => {
 
   return {
     plugins: [react(), tailwindcss(), apiProxy(env)],
+    // Expose package.json version to client code (UI version labels).
+    define: {
+      __APP_VERSION__: JSON.stringify(APP_VERSION),
+    },
     optimizeDeps: {
       include: ['@sanity/visual-editing/react', 'styled-components']
     },

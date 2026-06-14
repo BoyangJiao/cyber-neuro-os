@@ -151,7 +151,7 @@ export const SettingsModal = () => {
                                             BOYANG NEURO.OS
                                         </p>
                                         <p className="text-[11px] font-mono text-[var(--color-text-subtle)] tracking-widest mt-1">
-                                            v1.0.0
+                                            v{__APP_VERSION__}
                                         </p>
                                     </div>
 
@@ -437,7 +437,7 @@ export const SettingsModal = () => {
                                         className="inline-block text-[9px] font-mono text-[var(--color-text-subtle)] tracking-widest uppercase"
                                         style={{ animation: 'marquee 18s linear infinite' }}
                                     >
-                                        {t('settings.marquee')}
+                                        {t('settings.marquee').replace('{version}', __APP_VERSION__)}
                                     </span>
                                 </div>
                                 <span

@@ -104,7 +104,7 @@ export const translations = {
                 music: 'MUSIC BROADCAST',
                 sfx: 'SYSTEM EFFECTS'
             },
-            marquee: 'SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v1.0.0 · neural_sync OK · memory_pool stable · render_pipeline nominal',
+            marquee: 'SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v{version} · neural_sync OK · memory_pool stable · render_pipeline nominal',
             close: 'CLOSE',
         },
 
@@ -142,14 +142,6 @@ export const translations = {
             active: 'ACTIVE',
             windDown: 'WIND_DOWN',
             jitter: '△ JITTER',
-        },
-
-        // Mobile Gate
-        mobile: {
-            title: 'DESKTOP VIEWPORT REQUIRED',
-            description: 'NeuralOS is architected for wide-screen interfaces. The current viewport cannot render the neural dashboard correctly.',
-            instruction: 'Please switch to a desktop browser or increase your window width to continue.',
-            dismiss: 'FORCE ENTRY',
         },
 
         // Project Detail
@@ -354,7 +346,7 @@ export const translations = {
                 music: '背景音乐',
                 sfx: '系统音效'
             },
-            marquee: '系统更新进行中：内核循环活跃 · v1.0.0 版本 · 神经同步正常 · 内存池稳定 · 渲染管线标称',
+            marquee: '系统更新进行中：内核循环活跃 · v{version} 版本 · 神经同步正常 · 内存池稳定 · 渲染管线标称',
             close: '关闭',
         },
 
@@ -392,14 +384,6 @@ export const translations = {
             active: '活跃状态',
             windDown: '系统降温',
             jitter: '△ 波动异常',
-        },
-
-        // Mobile Gate
-        mobile: {
-            title: '需要桌面端视口',
-            description: 'NeuralOS 为宽屏界面设计，当前视口无法正确渲染神经仪表盘。',
-            instruction: '请切换到桌面浏览器，或增大窗口宽度以继续使用。',
-            dismiss: '强制进入',
         },
 
         // Project Detail

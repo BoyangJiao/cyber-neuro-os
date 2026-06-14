@@ -17,6 +17,8 @@ export interface CyberSlotCardProps {
     isRevealed?: boolean;
     isErrorState?: boolean;
     isIntroPlaying?: boolean;
+    /** Imperatively plays the hover scan (touch flows have no real hover). */
+    scanTrigger?: boolean;
 }
 
 // ─── Dynamic Binary Ticker Line ───────────────────────────────────────
@@ -74,6 +76,7 @@ export const CyberSlotCard = memo(({
     isRevealed = false,
     isErrorState = false,
     isIntroPlaying = false,
+    scanTrigger = false,
 }: CyberSlotCardProps) => {
     const [scanProgress, setScanProgress] = useState(0);
     const animationRef = useRef<number | null>(null);
@@ -103,7 +106,13 @@ export const CyberSlotCard = memo(({
         startScan();
     };
 
+    // Touch activation: parent sets scanTrigger to play the scan before navigating
+    useEffect(() => {
+        if (scanTrigger) startScan();
+    }, [scanTrigger, startScan]);
+
     const handleMouseLeave = () => {
+        if (scanTrigger) return; // don't let synthetic touch mouseleave cancel a triggered scan
         if (animationRef.current) {
             cancelAnimationFrame(animationRef.current);
             animationRef.current = null;
