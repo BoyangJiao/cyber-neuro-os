@@ -104,7 +104,7 @@ export const translations = {
                 music: 'MUSIC BROADCAST',
                 sfx: 'SYSTEM EFFECTS'
             },
-            marquee: 'SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v1.0.0 · neural_sync OK · memory_pool stable · render_pipeline nominal',
+            marquee: 'SYSTEM_UPDATE_IN_PROGRESS: Iteration loop active · kernel v{version} · neural_sync OK · memory_pool stable · render_pipeline nominal',
             close: 'CLOSE',
         },
 
@@ -346,7 +346,7 @@ export const translations = {
                 music: '背景音乐',
                 sfx: '系统音效'
             },
-            marquee: '系统更新进行中：内核循环活跃 · v1.0.0 版本 · 神经同步正常 · 内存池稳定 · 渲染管线标称',
+            marquee: '系统更新进行中：内核循环活跃 · v{version} 版本 · 神经同步正常 · 内存池稳定 · 渲染管线标称',
             close: '关闭',
         },
 

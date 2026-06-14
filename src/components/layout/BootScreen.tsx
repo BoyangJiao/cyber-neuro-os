@@ -270,7 +270,7 @@ export const BootScreen = ({ onComplete }: { onComplete: () => void }) => {
                                     NEURO.OS
                                 </MotionH1>
                                 <p className="text-xs text-brand-secondary tracking-[0.5em] mt-2 opacity-60">
-                                    BOYANG JIAO v1.0.0 // NEURAL TERMINAL
+                                    BOYANG JIAO v{__APP_VERSION__} // NEURAL TERMINAL
                                 </p>
                             </div>
 
