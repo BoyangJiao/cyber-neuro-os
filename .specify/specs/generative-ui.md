@@ -1,6 +1,8 @@
 # Spec — Generative UI for Borvis ("作品实时渲染")
 
-> Status: **Phase 0 (foundation) in progress** on `claude/vercel-json-render-borvis-scrw9q`.
+> Status: **Phases 0–2 landed** on `claude/vercel-json-render-borvis-scrw9q`
+> (foundation + agent wiring + Borvis surface). Gated off by default
+> (`GENUI_ENABLED`); awaiting preview verification with a real DashScope key.
 > Owner: Boyang. Routing: high-capability (architecture + agent + design-system).
 
 ## Goal
@@ -50,14 +52,16 @@ in `catalog.ts` (`describeCatalog()`) so prompt and validator can't drift far.
   catalog description + `render_works` tool descriptor, `WorkCard`, the
   `GenerativeUI` dispatch renderer, and a dev-only `/genui-lab` proving ground.
   Adds **no** dependency; touches **no** production path. Gate: `tsc -b` + build green.
-- **Phase 1 — agent wiring.** Add the `render_works` function-call tool to
-  `/api/chat`, inject `describeCatalog()` + the live project-id list into the
-  system prompt, return the spec on a side channel alongside the spoken reply.
-- **Phase 2 — Borvis surface.** Render the spec inside `BorvisOverlay` as a
-  materializing data panel (two-channel UX: Borvis keeps speaking tersely; the
-  card surfaces in/under the transcript). Loading via `ShimmerLoader`.
-- **Phase 3 — polish.** Progressive/streamed rendering, i18n, persist rendered
-  blocks in the agent store for replay.
+- **Phase 1 — agent wiring (DONE).** `render_works` function-call tool added to
+  `/api/chat` (+ vite dev proxy), flag-gated by `GENUI_ENABLED`. Client sends a
+  compact {id,title} project list, accumulates tool-call deltas, validates via
+  `parseUISpec`, surfaces the spec through `streamChat`'s `onSpec`.
+- **Phase 2 — Borvis surface (DONE).** `BorvisOverlay` sends the project list,
+  captures `onSpec`, and renders the spec in a "RENDER" panel under the transcript
+  (two-channel: Borvis still speaks tersely). Cards open the project page on click.
+- **Phase 3 — polish (next).** Progressive/streamed rendering, i18n of card chrome,
+  persist rendered blocks in the agent store for replay, refine panel placement
+  for the immersive layout. Verify on preview with `GENUI_ENABLED=1` + real key.
 
 ## Open questions (defer until Phase 1/2)
 
