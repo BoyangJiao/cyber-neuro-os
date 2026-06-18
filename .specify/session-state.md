@@ -7,13 +7,23 @@
 > **Never write here:** API keys, tokens, connection strings, `.env` contents,
 > or any other secret.
 
-> **Last updated**: 2026-06-12 by Claude Code — Mobile responsive complete after
-> 5 rounds of device feedback (`claude/amazing-carson-xcfl21`, through 60c1a1b,
-> pushed). Next: staging deploy → full verification → high-effort code review →
-> merge.
+> **Last updated**: 2026-06-18 by Claude Code — Generative UI for Borvis ("show
+> your work") Phases 0–2 landed on `claude/vercel-json-render-borvis-scrw9q`
+> (through c4a9942, pushed). Flag-gated off (`GENUI_ENABLED`); next: preview
+> verification with a real DashScope key, then Phase 3 polish. (Mobile branch
+> `claude/amazing-carson-xcfl21` unchanged, still awaiting its own staging verify.)
 
 <!--
 Reverse-chronological one-liners of what changed + what's next. Trim when stale.
+- 2026-06-18: Generative UI for Borvis. Vercel json-render *mental model* (closed
+  catalog → constrained spec → validate-before-render) reimplemented on our own
+  switch(_type) dispatch with ZERO new deps. src/agent/generativeUI/ (spec, parse,
+  catalog, WorkCard, GenerativeUI). render_works function-call tool wired into
+  /api/chat + vite proxy, gated by GENUI_ENABLED; agentService accumulates tool
+  deltas → onSpec; BorvisOverlay renders a "RENDER" panel under the transcript.
+  Data is never fabricated: model emits projectId references, cards fill from the
+  store. Dev proving ground at /genui-lab (dev-only, dead-stripped). Spec:
+  .specify/specs/generative-ui.md.
 - 2026-06-03: refactor/arch-security-perf branch — security (api guards, sanitizer,
   .env ignore), arch (single projects source, streamChat fallback, persist), perf
   (manualChunks, drop unused `motion`, particle color cache, video prefetch cap).
