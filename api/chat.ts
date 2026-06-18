@@ -11,11 +11,15 @@ export const config = {
 
 import { SYSTEM_PROMPT } from '../src/data/agentSystemPrompt';
 import { isOriginAllowed, validateChatMessages, stripSystemMessages, type ChatMsg } from './_shared';
+import { RENDER_WORKS_TOOL } from '../src/agent/generativeUI/catalog';
+import { buildGenUISystemSuffix, sanitizeProjectContext } from '../src/agent/generativeUI/serverPrompt';
 
 declare const process: any;
 
 interface RequestBody {
     messages: ChatMsg[];
+    /** Optional compact list of real projects, used only when generative UI is enabled. */
+    genui?: { projects?: unknown };
 }
 
 export default async function handler(req: Request) {
@@ -42,7 +46,7 @@ export default async function handler(req: Request) {
     }
 
     try {
-        const { messages } = (await req.json()) as RequestBody;
+        const { messages, genui } = (await req.json()) as RequestBody;
 
         // Validate shape + enforce size caps to prevent token-budget abuse.
         const invalid = validateChatMessages(messages);
@@ -53,10 +57,19 @@ export default async function handler(req: Request) {
             });
         }
 
+        // Generative UI is opt-in via env flag (GENUI_ENABLED=1). When off, the
+        // request below is byte-for-byte the original text-only chat.
+        const genuiEnabled = (process.env.GENUI_ENABLED || '').trim() === '1';
+        const genuiProjects = genuiEnabled ? sanitizeProjectContext(genui?.projects) : [];
+        const useGenui = genuiProjects.length > 0;
+
         // Prep messages for OpenAI-compatible format. The system prompt is always
         // injected server-side; any client-supplied 'system' role is dropped.
+        const systemContent = useGenui
+            ? `${SYSTEM_PROMPT}\n\n${buildGenUISystemSuffix(genuiProjects)}`
+            : SYSTEM_PROMPT;
         const formattedMessages = [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemContent },
             ...stripSystemMessages(messages),
         ];
 
@@ -80,6 +93,9 @@ export default async function handler(req: Request) {
                 temperature: 0.5,
                 max_tokens: 1500,
                 enable_thinking: false, // SKIP slow reasoning
+                // Only attach the render_works tool when generative UI is active;
+                // tool_call deltas then ride the same forwarded SSE stream.
+                ...(useGenui ? { tools: [RENDER_WORKS_TOOL], parallel_tool_calls: false } : {}),
             }),
         });
 
