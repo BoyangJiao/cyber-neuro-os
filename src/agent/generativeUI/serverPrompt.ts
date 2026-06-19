@@ -48,7 +48,7 @@ export function buildGenUISystemSuffix(projects: ProjectRef[]): string {
         '',
         'WHEN to call render_works:',
         "- The visitor asks about Boyang's work, a specific project, \"show me\", \"what has",
-        '  he built\", his portfolio, or anything you would answer by pointing at a project.',
+        '  he built", his portfolio, or anything you would answer by pointing at a project.',
         '- In that case you MUST call render_works AND speak your usual in-character line.',
         'WHEN NOT to: greetings, "who are you", or off-topic chit-chat — just speak.',
         '',
