@@ -31,6 +31,7 @@ interface Props {
     maxPitch?: number; // max up/down head tilt (radians)
     headScale?: number; // overall head size on screen (1 = fills frame)
     offsetY?: number;   // vertical shift of the head in scene units (+ = up on screen)
+    offsetX?: number;   // horizontal shift of the head in scene units (- = left on screen)
     scanAngle?: number;     // scanline direction (degrees)
     scanIntensity?: number; // 0..1
     glitch?: number;        // 0..1
@@ -137,6 +138,7 @@ export const NeuralHalftoneFace = ({
     maxPitch = 0.28,
     headScale = 0.8,
     offsetY = 0,
+    offsetX = 0,
     scanAngle = 133,
     scanIntensity = 0.18,
     glitch = 0.06,
@@ -147,6 +149,11 @@ export const NeuralHalftoneFace = ({
     const jawRef = useRef(0);
     const introT = useRef(intro ? 0 : 1);
     const expr = useRef<Record<string, number>>({}); // smoothed blendshape weights
+    // Smoothed head placement so stage transitions (offset/scale changes) glide
+    // instead of snapping — and without ever resizing the WebGL canvas.
+    const curScale = useRef(headScale);
+    const curOffX = useRef(offsetX);
+    const curOffY = useRef(offsetY);
 
     const built = useMemo(() => {
         scene.updateMatrixWorld(true);
@@ -298,8 +305,14 @@ export const NeuralHalftoneFace = ({
         const pivot = built.pivot;
         pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
         pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);
-        pivot.scale.setScalar(headScale);
-        pivot.position.y = offsetY;
+        // Glide toward the target placement (≈0.2s time constant) so opening/closing
+        // the content stage moves the face smoothly rather than snapping.
+        const place = Math.min(1, delta * 5);
+        curScale.current += (headScale - curScale.current) * place;
+        curOffX.current += (offsetX - curOffX.current) * place;
+        curOffY.current += (offsetY - curOffY.current) * place;
+        pivot.scale.setScalar(curScale.current);
+        pivot.position.set(curOffX.current, curOffY.current, 0);
         pivot.updateMatrixWorld(true);
 
         const prevTarget = gl.getRenderTarget();

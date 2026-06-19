@@ -307,29 +307,24 @@ export const BorvisOverlay = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45 }}
         >
-            {/* ── Three.js Canvas. In a generative-UI session the canvas becomes a
-                 LEFT PANE (its width animates) rather than being transform-scaled —
-                 so the halftone shader + vignette recompute for the pane and the face
-                 stays naturally centred with no boxed border. Mobile stays full-width. */}
-            <motion.div
-                className="absolute inset-y-0 left-0"
-                initial={false}
-                animate={{ width: stageOpen ? '56%' : '100%' }}
-                transition={{ type: 'spring', stiffness: 140, damping: 26 }}
-            >
-                <AppErrorBoundary fallback={null}>
-                    <Canvas
-                        camera={{ position: [0, 0.4, 5.5], fov: 42 }}
-                        gl={{ alpha: false, antialias: !isMobile }}
-                        dpr={isMobile ? [1, 1.25] : [1, 1.5]}
-                        style={{ position: 'absolute', inset: 0 }}
-                    >
+            {/* ── Three.js Canvas — full screen & FIXED size. When a content stage
+                 opens, the FACE glides left in 3D (cheap, no canvas resize) so the
+                 glow keeps filling the whole viewport and the right content floats
+                 over it — one unified backdrop, not a hard split. Mobile unchanged. */}
+            <AppErrorBoundary fallback={null}>
+                <Canvas
+                    camera={{ position: [0, 0.4, 5.5], fov: 42 }}
+                    gl={{ alpha: false, antialias: !isMobile }}
+                    dpr={isMobile ? [1, 1.25] : [1, 1.5]}
+                    style={{ position: 'absolute', inset: 0 }}
+                >
                     <Suspense fallback={null}>
                         <NeuralHalftoneFace
                             intensity={1.0}
                             grid={isMobile ? 120 : 150}
-                            headScale={isMobile ? 0.52 : 0.7}
+                            headScale={isMobile ? 0.52 : stageOpen ? 0.6 : 0.7}
                             offsetY={isMobile ? 0.55 : 0}
+                            offsetX={stageOpen ? -1.7 : 0}
                             scanAngle={133}
                             scanIntensity={0.15}
                             glitch={glitchLevel}
@@ -363,9 +358,8 @@ export const BorvisOverlay = () => {
                             <Vignette offset={0.25} darkness={0.85} />
                         </EffectComposer>
                     )}
-                    </Canvas>
-                </AppErrorBoundary>
-            </motion.div>
+                </Canvas>
+            </AppErrorBoundary>
 
             {/* ── Loading veil — covers the link until the face is live ── */}
             <AnimatePresence>
