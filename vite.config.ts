@@ -8,6 +8,7 @@ import { resolve } from 'node:path'
 import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
 import { RENDER_WORKS_TOOL } from './src/agent/generativeUI/catalog'
 import { buildGenUISystemSuffix, sanitizeProjectContext } from './src/agent/generativeUI/serverPrompt'
+import { routeChat } from './src/agent/modelRouting'
 
 // Single source of truth for the displayed app version: package.json `version`,
 // read at config time and injected via `define` (below) as __APP_VERSION__.
@@ -108,15 +109,15 @@ function apiProxy(env: Record<string, string>): PluginOption {
             // the prod guard in api/chat.ts. When off, the request is unchanged.
             const genuiEnabled = (env.GENUI_ENABLED || '').trim() === '1'
             const genuiProjects = genuiEnabled ? sanitizeProjectContext(parsedBody.genui?.projects) : []
-            const useGenui = genuiProjects.length > 0
 
-            // [genui-debug] TEMP diagnostic — remove once render channel is verified.
-            console.log('[genui-debug] flag=%s clientProjects=%d sanitized=%d useGenui=%s',
-              genuiEnabled, Array.isArray(parsedBody.genui?.projects) ? parsedBody.genui.projects.length : 0,
-              genuiProjects.length, useGenui)
+            // Model routing — mirror of api/chat.ts. Casual chat → fast model; work or
+            // complex turn → strong model; render_works attached only for work turns.
+            const latestUserText = [...messages].reverse().find((m: { role: string }) => m.role === 'user')?.content || ''
+            const route = routeChat({ text: latestUserText, projectTitles: genuiProjects.map((p) => p.title) })
+            const useTools = genuiProjects.length > 0 && route.isWorkRelated
 
             // System prompt is server-injected; drop any client-supplied 'system' role.
-            const systemContent = useGenui
+            const systemContent = useTools
               ? `${SYSTEM_PROMPT}\n\n${buildGenUISystemSuffix(genuiProjects)}`
               : SYSTEM_PROMPT
             const formattedMessages = [
@@ -128,7 +129,13 @@ function apiProxy(env: Record<string, string>): PluginOption {
 
             // Endpoint + model env-configurable (defaults = Coding Plan endpoint).
             const apiUrl = (env.CHAT_API_URL || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions').trim()
-            const chatModel = (env.CHAT_MODEL || 'qwen3.5-plus').trim()
+            const baseModel = (env.CHAT_MODEL || 'qwen3.5-plus').trim()
+            const strongModel = (env.CHAT_MODEL_STRONG || '').trim() || baseModel
+            const chatModel = route.needsStrong ? strongModel : baseModel
+
+            // [genui-debug] TEMP diagnostic — remove once render channel is verified.
+            console.log('[genui-debug] flag=%s sanitized=%d work=%s complex=%s → model=%s useTools=%s',
+              genuiEnabled, genuiProjects.length, route.isWorkRelated, route.isComplex, chatModel, useTools)
 
             const dsRes: any = await undiciFetch(apiUrl, {
               method: 'POST',
@@ -143,7 +150,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 temperature: 0.5,
                 max_tokens: 2048,
                 enable_thinking: false, // SKIP slow reasoning
-                ...(useGenui ? { tools: [RENDER_WORKS_TOOL], parallel_tool_calls: false } : {}),
+                ...(useTools ? { tools: [RENDER_WORKS_TOOL], parallel_tool_calls: false } : {}),
               }),
               ...(dispatcher ? { dispatcher } : {}),
             })
@@ -172,7 +179,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
             // [genui-debug] TEMP — tee the upstream SSE so we can report whether the
             // model actually emitted tool_calls. Remove once verified.
             let sniff = ''
-            const tee = (s: string) => { if (useGenui && sniff.length < 200000) sniff += s }
+            const tee = (s: string) => { if (useTools && sniff.length < 200000) sniff += s }
             // Robust streaming for different stream types (Web Stream or Node Readable)
             const streamBody = dsRes.body as any
             if (typeof streamBody.getReader === 'function') {
@@ -191,7 +198,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
               }
             }
             res.end()
-            if (useGenui) {
+            if (useTools) {
               const hasToolCalls = sniff.includes('tool_calls')
               const hasRenderWorks = sniff.includes('render_works')
               console.log('[genui-debug] upstream tool_calls=%s render_works=%s (model=%s, endpoint=%s)',
