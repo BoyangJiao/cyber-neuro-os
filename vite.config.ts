@@ -141,7 +141,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.5,
-                max_tokens: 1536,
+                max_tokens: 2048,
                 enable_thinking: false, // SKIP slow reasoning
                 ...(useGenui ? { tools: [RENDER_WORKS_TOOL], parallel_tool_calls: false } : {}),
               }),

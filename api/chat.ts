@@ -91,7 +91,7 @@ export default async function handler(req: Request) {
                 messages: formattedMessages,
                 stream: true,
                 temperature: 0.5,
-                max_tokens: 1500,
+                max_tokens: 2048,
                 enable_thinking: false, // SKIP slow reasoning
                 // Only attach the render_works tool when generative UI is active;
                 // tool_call deltas then ride the same forwarded SSE stream.

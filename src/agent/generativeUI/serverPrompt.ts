@@ -40,13 +40,25 @@ export function sanitizeProjectContext(raw: unknown): ProjectRef[] {
 export function buildGenUISystemSuffix(projects: ProjectRef[]): string {
     const list = projects.map((p) => `- ${p.id} — ${p.title}`).join('\n');
     return [
-        '## Generative UI',
+        '## Showing the work (your visual channel — USE IT)',
+        'Besides speaking, you have a SECOND channel: the render_works tool. Calling it',
+        "paints real UI — cards and grids of Boyang's actual projects — right beside your",
+        'spoken reply. It is rendered, not spoken, so it never conflicts with the',
+        'plain-speech rule. Showing beats telling.',
+        '',
+        'WHEN to call render_works:',
+        "- The visitor asks about Boyang's work, a specific project, \"show me\", \"what has",
+        '  he built\", his portfolio, or anything you would answer by pointing at a project.',
+        '- In that case you MUST call render_works AND speak your usual in-character line.',
+        'WHEN NOT to: greetings, "who are you", or off-topic chit-chat — just speak.',
+        '',
         describeCatalog(),
         '',
         'Available projects (id — title):',
         list,
         '',
-        'Always speak your normal short reply as usual; a UI spec via the render_works',
-        'tool is IN ADDITION to speaking, never a replacement for it.',
+        'Two channels, one reply: speak your in-character line as always, and — whenever',
+        'work is the topic — ALSO call render_works to show it. The tool is in addition to',
+        'speaking, never a replacement; never describe a card in words instead of rendering it.',
     ].join('\n');
 }
