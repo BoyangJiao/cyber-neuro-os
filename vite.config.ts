@@ -110,6 +110,11 @@ function apiProxy(env: Record<string, string>): PluginOption {
             const genuiProjects = genuiEnabled ? sanitizeProjectContext(parsedBody.genui?.projects) : []
             const useGenui = genuiProjects.length > 0
 
+            // [genui-debug] TEMP diagnostic — remove once render channel is verified.
+            console.log('[genui-debug] flag=%s clientProjects=%d sanitized=%d useGenui=%s',
+              genuiEnabled, Array.isArray(parsedBody.genui?.projects) ? parsedBody.genui.projects.length : 0,
+              genuiProjects.length, useGenui)
+
             // System prompt is server-injected; drop any client-supplied 'system' role.
             const systemContent = useGenui
               ? `${SYSTEM_PROMPT}\n\n${buildGenUISystemSuffix(genuiProjects)}`
@@ -164,6 +169,10 @@ function apiProxy(env: Record<string, string>): PluginOption {
             if (!dsRes.body) { res.end(); return }
 
             const decoder = new TextDecoder()
+            // [genui-debug] TEMP — tee the upstream SSE so we can report whether the
+            // model actually emitted tool_calls. Remove once verified.
+            let sniff = ''
+            const tee = (s: string) => { if (useGenui && sniff.length < 200000) sniff += s }
             // Robust streaming for different stream types (Web Stream or Node Readable)
             const streamBody = dsRes.body as any
             if (typeof streamBody.getReader === 'function') {
@@ -171,15 +180,24 @@ function apiProxy(env: Record<string, string>): PluginOption {
               while (true) {
                 const { done, value } = await reader.read()
                 if (done) break
-                res.write(decoder.decode(value, { stream: true }))
+                const s = decoder.decode(value, { stream: true })
+                tee(s); res.write(s)
               }
             } else {
               // Node.js Readable / undici stream
               for await (const chunk of streamBody) {
-                res.write(decoder.decode(chunk, { stream: true }))
+                const s = decoder.decode(chunk, { stream: true })
+                tee(s); res.write(s)
               }
             }
             res.end()
+            if (useGenui) {
+              const hasToolCalls = sniff.includes('tool_calls')
+              const hasRenderWorks = sniff.includes('render_works')
+              console.log('[genui-debug] upstream tool_calls=%s render_works=%s (model=%s, endpoint=%s)',
+                hasToolCalls, hasRenderWorks, chatModel, apiUrl)
+              if (!hasToolCalls) console.log('[genui-debug] → 模型未发出任何 tool_calls：多半是该端点/模型不支持 function calling，或被提示词压制。')
+            }
           } catch (err) {
             console.error('[dashscope-proxy] Error:', err)
             if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' })
