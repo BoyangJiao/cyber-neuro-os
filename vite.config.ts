@@ -196,7 +196,10 @@ function apiProxy(env: Record<string, string>): PluginOption {
               const hasRenderWorks = sniff.includes('render_works')
               console.log('[genui-debug] upstream tool_calls=%s render_works=%s (model=%s, endpoint=%s)',
                 hasToolCalls, hasRenderWorks, chatModel, apiUrl)
-              if (!hasToolCalls) console.log('[genui-debug] → 模型未发出任何 tool_calls：多半是该端点/模型不支持 function calling，或被提示词压制。')
+              if (!hasToolCalls) {
+                console.log('[genui-debug] → 模型未发出任何 tool_calls。原始上游片段（前 800 字符）：')
+                console.log(sniff.slice(0, 800).replace(/\n/g, ' '))
+              }
             }
           } catch (err) {
             console.error('[dashscope-proxy] Error:', err)
