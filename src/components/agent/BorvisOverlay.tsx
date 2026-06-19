@@ -156,9 +156,19 @@ export const BorvisOverlay = () => {
         let detected: string | null = null;
         let nextSpec: UISpec | null = null;
 
-        // Real projects the model may reference. Sent only as {id,title}; the cards
-        // are filled from the store by id, so the model can't fabricate work data.
-        const genuiProjects = useProjectStore.getState().projects.map((p) => ({ id: p.id, title: p.title }));
+        // Real projects the model may reference (id + light facts, for grounded
+        // narration). Hard data (metrics/media/content) is still filled by the
+        // renderer from the store/CMS by id, so facts can't be fabricated.
+        const genuiProjects = useProjectStore.getState().projects.map((p) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            techStack: p.techStack,
+            timeline: p.timeline,
+            status: p.status,
+            liveUrl: p.liveUrl,
+            projectType: p.projectType,
+        }));
 
         await new Promise<void>((resolve) => {
             streamChat({

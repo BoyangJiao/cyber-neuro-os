@@ -1,10 +1,11 @@
 /**
- * GenerativeUI — dispatch renderer for a validated UISpec.
+ * GenerativeUI — recursive dispatch renderer for a validated UISpec tree.
  *
- * Same `switch(type)` shape as ContentSlotRenderer. Data-bound blocks resolve
- * their `projectId`(s) against the live project store; a reference that doesn't
- * resolve is skipped (never fabricated). `prose` renders as a markdown subset with
- * no raw HTML.
+ * Containers (stack/row/grid/section/card) compose layout; leaves render either
+ * model-authored text (heading/text/callout/badge) or reference-bound real data
+ * (media/metrics/techStack/link/content/workCard/workGrid). A reference that
+ * doesn't resolve is skipped, never fabricated. Same `switch(type)` spirit as
+ * ContentSlotRenderer, extended to a tree.
  */
 
 import { useMemo } from 'react';
@@ -17,13 +18,16 @@ import { ContentSlotRenderer } from '../../components/project/detail/renderers/C
 import type { Project } from '../../data/projects';
 import type { ProjectDetailData } from '../../data/projectDetails';
 import type {
-    ProjectContentBlock,
-    ProjectHeaderBlock,
-    ProseBlock,
-    UIBlock,
+    CalloutNode,
+    ContentNode,
+    HeadingNode,
+    LinkNode,
+    RowRatio,
+    TextNode,
+    UINode,
     UISpec,
-    WorkCardBlock,
-    WorkGridBlock,
+    WorkCardNode,
+    WorkGridNode,
 } from './spec';
 import { WorkCard } from './components/WorkCard';
 import { selectContentBlocks } from './detail';
@@ -31,10 +35,31 @@ import { useProjectDetails } from './useProjectDetails';
 
 interface GenerativeUIProps {
     spec: UISpec;
-    /** Open a project detail; wired by the host (lab navigates, Borvis exits + navigates). */
     onOpenProject?: (project: Project) => void;
     className?: string;
 }
+
+interface RenderCtx {
+    byId: Map<string, Project>;
+    detailById: Map<string, ProjectDetailData>;
+    loading: boolean;
+    language: 'en' | 'zh';
+    onOpenProject?: (p: Project) => void;
+}
+
+const GAP: Record<string, string> = { sm: 'gap-2', md: 'gap-4', lg: 'gap-6' };
+const ROW_COLS: Record<RowRatio, string> = {
+    '50-50': 'lg:grid-cols-2',
+    '40-60': 'lg:grid-cols-[2fr_3fr]',
+    '60-40': 'lg:grid-cols-[3fr_2fr]',
+    '33-67': 'lg:grid-cols-[1fr_2fr]',
+    '67-33': 'lg:grid-cols-[2fr_1fr]',
+};
+const CALLOUT_TONE: Record<string, string> = {
+    info: 'border-brand-primary/40 bg-brand-primary/5',
+    success: 'border-status-success/40 bg-status-success/5',
+    warn: 'border-status-warning/40 bg-status-warning/5',
+};
 
 const PROSE_COMPONENTS = {
     p: ({ children }: { children?: React.ReactNode }) => (
@@ -67,127 +92,41 @@ const PROSE_COMPONENTS = {
     },
 };
 
-const ProseRenderer = ({ block }: { block: ProseBlock }) => (
-    <div className="space-y-2">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={PROSE_COMPONENTS}>
-            {block.text}
-        </ReactMarkdown>
-    </div>
-);
-
-const WorkCardRenderer = ({
-    block,
-    byId,
-    language,
-    onOpenProject,
-}: {
-    block: WorkCardBlock;
-    byId: Map<string, Project>;
-    language: 'en' | 'zh';
-    onOpenProject?: (p: Project) => void;
-}) => {
-    const project = byId.get(block.projectId);
-    if (!project) return null;
-    return (
-        <WorkCard
-            project={project}
-            emphasis={block.emphasis}
-            language={language}
-            onOpen={onOpenProject}
-        />
-    );
-};
-
-const WorkGridRenderer = ({
-    block,
-    byId,
-    language,
-    onOpenProject,
-}: {
-    block: WorkGridBlock;
-    byId: Map<string, Project>;
-    language: 'en' | 'zh';
-    onOpenProject?: (p: Project) => void;
-}) => {
-    const resolved = block.projectIds
-        .map((id) => byId.get(id))
-        .filter((p): p is Project => p !== undefined);
-    if (!resolved.length) return null;
-
-    const cols = block.columns === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2';
-    return (
-        <div className={clsx('grid grid-cols-1 gap-3', cols)}>
-            {resolved.map((project) => (
-                <WorkCard
-                    key={project.id}
-                    project={project}
-                    language={language}
-                    onOpen={onOpenProject}
-                />
-            ))}
-        </div>
-    );
-};
-
 const DetailPlaceholder = () => (
     <div className="h-28 w-full animate-pulse rounded-lg border border-brand-primary/15 bg-brand-primary/5" />
 );
 
-const ProjectHeaderRenderer = ({
-    block,
-    byId,
-    language,
-}: {
-    block: ProjectHeaderBlock;
-    byId: Map<string, Project>;
-    language: 'en' | 'zh';
-}) => {
-    const project = byId.get(block.projectId);
-    if (!project) return null;
+// ── Free-form leaves ────────────────────────────────────────────────────────
+const TextLeaf = ({ node }: { node: TextNode }) => (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={PROSE_COMPONENTS}>
+        {node.text}
+    </ReactMarkdown>
+);
 
-    const types = Array.isArray(project.projectType)
-        ? project.projectType
-        : project.projectType
-            ? [project.projectType]
-            : [];
-
-    return (
-        <div className="flex flex-col gap-2 border-l-2 border-brand-primary/40 pl-3">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h3 className="font-display text-lg font-bold text-text-accent">{project.title}</h3>
-                {project.timeline && (
-                    <span className="font-mono text-xs text-text-secondary">{project.timeline}</span>
-                )}
-            </div>
-            {(types.length > 0 || project.techStack.length > 0) && (
-                <div className="flex flex-wrap gap-1.5">
-                    {types.map((t) => (
-                        <span key={t} className="rounded bg-brand-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-brand-primary">
-                            {t}
-                        </span>
-                    ))}
-                    {project.techStack.slice(0, 6).map((tech) => (
-                        <span key={tech} className="rounded border border-text-muted/20 px-2 py-0.5 text-[10px] text-text-secondary">
-                            {tech}
-                        </span>
-                    ))}
-                </div>
-            )}
-            {project.liveUrl && (
-                <a
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="w-fit text-xs text-brand-primary underline decoration-brand-primary/40 underline-offset-2 hover:decoration-brand-primary"
-                >
-                    {language === 'zh' ? '访问 ↗' : 'Visit ↗'}
-                </a>
-            )}
-        </div>
-    );
+const HeadingLeaf = ({ node }: { node: HeadingNode }) => {
+    const cls =
+        node.level === 1
+            ? 'font-display text-xl font-bold text-text-accent'
+            : node.level === 3
+                ? 'font-display text-sm font-semibold uppercase tracking-wider text-brand-primary/80'
+                : 'font-display text-base font-bold text-text-accent';
+    return <div className={cls}>{node.text}</div>;
 };
 
-const ProjectMediaRenderer = ({ detail }: { detail?: ProjectDetailData }) => {
+const CalloutLeaf = ({ node }: { node: CalloutNode }) => (
+    <div className={clsx('rounded-md border-l-2 px-3 py-2 text-sm text-text-primary', CALLOUT_TONE[node.tone || 'info'])}>
+        {node.text}
+    </div>
+);
+
+const BadgeLeaf = ({ text }: { text: string }) => (
+    <span className="inline-flex w-fit rounded bg-brand-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-brand-primary">
+        {text}
+    </span>
+);
+
+// ── Reference-bound leaves ──────────────────────────────────────────────────
+const MediaLeaf = ({ detail }: { detail?: ProjectDetailData }) => {
     if (!detail) return null;
     const videoUrl = detail.heroVideoUrl || detail.heroVideoFile;
     if (videoUrl) {
@@ -208,7 +147,7 @@ const ProjectMediaRenderer = ({ detail }: { detail?: ProjectDetailData }) => {
     return null;
 };
 
-const ProjectMetricsRenderer = ({ detail }: { detail?: ProjectDetailData }) => {
+const MetricsLeaf = ({ detail }: { detail?: ProjectDetailData }) => {
     const metrics = detail?.coreMetrics || [];
     if (!metrics.length) return null;
     return (
@@ -226,86 +165,169 @@ const ProjectMetricsRenderer = ({ detail }: { detail?: ProjectDetailData }) => {
     );
 };
 
-const ProjectContentRenderer = ({
-    block,
-    detail,
-}: {
-    block: ProjectContentBlock;
-    detail?: ProjectDetailData;
-}) => {
-    const blocks = selectContentBlocks(detail, { kinds: block.kinds, limit: block.limit });
+const TechStackLeaf = ({ project }: { project?: Project }) => {
+    if (!project?.techStack.length) return null;
+    return (
+        <div className="flex flex-wrap gap-1.5">
+            {project.techStack.map((tech) => (
+                <span key={tech} className="rounded border border-text-muted/20 px-2 py-0.5 text-[10px] text-text-secondary">
+                    {tech}
+                </span>
+            ))}
+        </div>
+    );
+};
+
+const LinkLeaf = ({ node, project, language }: { node: LinkNode; project?: Project; language: 'en' | 'zh' }) => {
+    if (!project?.liveUrl) return null;
+    const label = node.label || (language === 'zh' ? '访问 ↗' : 'Visit ↗');
+    return (
+        <a
+            href={project.liveUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex w-fit items-center rounded border border-brand-primary/40 px-3 py-1 text-xs text-brand-primary transition-colors hover:bg-brand-primary/10"
+        >
+            {label}
+        </a>
+    );
+};
+
+const ContentLeaf = ({ node, detail }: { node: ContentNode; detail?: ProjectDetailData }) => {
+    const blocks = selectContentBlocks(detail, { kinds: node.kinds, limit: node.limit });
     if (!blocks.length) return null;
     return <ContentSlotRenderer blocks={blocks} />;
 };
+
+const WorkCardLeaf = ({ node, ctx }: { node: WorkCardNode; ctx: RenderCtx }) => {
+    const project = ctx.byId.get(node.projectId);
+    if (!project) return null;
+    return <WorkCard project={project} emphasis={node.emphasis} language={ctx.language} onOpen={ctx.onOpenProject} />;
+};
+
+const WorkGridLeaf = ({ node, ctx }: { node: WorkGridNode; ctx: RenderCtx }) => {
+    const resolved = node.projectIds
+        .map((id) => ctx.byId.get(id))
+        .filter((p): p is Project => p !== undefined);
+    if (!resolved.length) return null;
+    const cols = node.columns === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2';
+    return (
+        <div className={clsx('grid grid-cols-1 gap-3', cols)}>
+            {resolved.map((p) => (
+                <WorkCard key={p.id} project={p} language={ctx.language} onOpen={ctx.onOpenProject} />
+            ))}
+        </div>
+    );
+};
+
+// ── Recursive node dispatch ─────────────────────────────────────────────────
+function renderNode(node: UINode, key: React.Key, ctx: RenderCtx): React.ReactNode {
+    switch (node.type) {
+        case 'stack':
+            return (
+                <div key={key} className={clsx('flex flex-col', GAP[node.gap || 'md'])}>
+                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                </div>
+            );
+        case 'row':
+            return (
+                <div key={key} className={clsx('grid grid-cols-1 items-start', ROW_COLS[node.ratio || '50-50'], GAP.md)}>
+                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                </div>
+            );
+        case 'grid':
+            return (
+                <div
+                    key={key}
+                    className={clsx('grid grid-cols-1', node.columns === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2', GAP.md)}
+                >
+                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                </div>
+            );
+        case 'section':
+            return (
+                <div key={key} className="flex flex-col gap-3 border-t border-brand-primary/15 pt-3">
+                    {node.title && (
+                        <div className="text-[11px] uppercase tracking-[0.25em] text-brand-primary/50">{node.title}</div>
+                    )}
+                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                </div>
+            );
+        case 'card':
+            return (
+                <div
+                    key={key}
+                    className={clsx(
+                        'flex flex-col gap-3 rounded-lg border p-4',
+                        node.accent ? 'border-brand-primary/40 bg-brand-primary/5' : 'border-white/10 bg-black/20',
+                    )}
+                >
+                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                </div>
+            );
+
+        case 'text':
+            return <TextLeaf key={key} node={node} />;
+        case 'heading':
+            return <HeadingLeaf key={key} node={node} />;
+        case 'callout':
+            return <CalloutLeaf key={key} node={node} />;
+        case 'badge':
+            return <BadgeLeaf key={key} text={node.text} />;
+
+        case 'media': {
+            const detail = ctx.detailById.get(node.projectId);
+            if (!detail) return ctx.loading ? <DetailPlaceholder key={key} /> : null;
+            return <MediaLeaf key={key} detail={detail} />;
+        }
+        case 'metrics': {
+            const detail = ctx.detailById.get(node.projectId);
+            if (!detail) return ctx.loading ? <DetailPlaceholder key={key} /> : null;
+            return <MetricsLeaf key={key} detail={detail} />;
+        }
+        case 'techStack':
+            return <TechStackLeaf key={key} project={ctx.byId.get(node.projectId)} />;
+        case 'link':
+            return <LinkLeaf key={key} node={node} project={ctx.byId.get(node.projectId)} language={ctx.language} />;
+        case 'content': {
+            const detail = ctx.detailById.get(node.projectId);
+            if (!detail) return ctx.loading ? <DetailPlaceholder key={key} /> : null;
+            return <ContentLeaf key={key} node={node} detail={detail} />;
+        }
+        case 'workCard':
+            return <WorkCardLeaf key={key} node={node} ctx={ctx} />;
+        case 'workGrid':
+            return <WorkGridLeaf key={key} node={node} ctx={ctx} />;
+
+        default:
+            return null;
+    }
+}
+
+function collectDetailIds(nodes: UINode[], acc: Set<string>): void {
+    for (const n of nodes) {
+        if (n.type === 'media' || n.type === 'metrics' || n.type === 'content') acc.add(n.projectId);
+        if ('children' in n && Array.isArray(n.children)) collectDetailIds(n.children, acc);
+    }
+}
 
 export function GenerativeUI({ spec, onOpenProject, className }: GenerativeUIProps) {
     const projects = useProjectStore((s) => s.projects);
     const language = useProjectStore((s) => s.language);
     const byId = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
 
-    // Blocks that bind to a project's rich CMS content need its detail fetched.
     const detailIds = useMemo(() => {
         const ids = new Set<string>();
-        for (const block of spec.blocks) {
-            if (
-                block.type === 'projectMedia' ||
-                block.type === 'projectMetrics' ||
-                block.type === 'projectContent'
-            ) {
-                ids.add(block.projectId);
-            }
-        }
+        collectDetailIds(spec.blocks, ids);
         return Array.from(ids);
     }, [spec]);
     const { detailById, loading } = useProjectDetails(detailIds, language);
 
+    const ctx: RenderCtx = { byId, detailById, loading, language, onOpenProject };
+
     return (
         <div className={clsx('flex flex-col gap-4', className)}>
-            {spec.blocks.map((block: UIBlock, i) => {
-                switch (block.type) {
-                    case 'prose':
-                        return <ProseRenderer key={i} block={block} />;
-                    case 'workCard':
-                        return (
-                            <WorkCardRenderer
-                                key={i}
-                                block={block}
-                                byId={byId}
-                                language={language}
-                                onOpenProject={onOpenProject}
-                            />
-                        );
-                    case 'workGrid':
-                        return (
-                            <WorkGridRenderer
-                                key={i}
-                                block={block}
-                                byId={byId}
-                                language={language}
-                                onOpenProject={onOpenProject}
-                            />
-                        );
-                    case 'projectHeader':
-                        return <ProjectHeaderRenderer key={i} block={block} byId={byId} language={language} />;
-                    case 'projectMedia': {
-                        const detail = detailById.get(block.projectId);
-                        if (!detail) return loading ? <DetailPlaceholder key={i} /> : null;
-                        return <ProjectMediaRenderer key={i} detail={detail} />;
-                    }
-                    case 'projectMetrics': {
-                        const detail = detailById.get(block.projectId);
-                        if (!detail) return loading ? <DetailPlaceholder key={i} /> : null;
-                        return <ProjectMetricsRenderer key={i} detail={detail} />;
-                    }
-                    case 'projectContent': {
-                        const detail = detailById.get(block.projectId);
-                        if (!detail) return loading ? <DetailPlaceholder key={i} /> : null;
-                        return <ProjectContentRenderer key={i} block={block} detail={detail} />;
-                    }
-                    default:
-                        return null;
-                }
-            })}
+            {spec.blocks.map((block, i) => renderNode(block, i, ctx))}
         </div>
     );
 }

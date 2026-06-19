@@ -1,8 +1,9 @@
 # Spec — Generative UI for Borvis ("作品实时渲染")
 
-> Status: **Phases 0–2 landed** on `claude/vercel-json-render-borvis-scrw9q`
-> (foundation + agent wiring + Borvis surface). Gated off by default
-> (`GENUI_ENABLED`); awaiting preview verification with a real DashScope key.
+> Status: **v3 compositional catalog landed** on `claude/vercel-json-render-borvis-scrw9q`
+> (foundation → agent wiring → Borvis surface → reference-bound rich content →
+> **free compositional node tree**). Auto model routing (turbo↔plus) verified end to
+> end. Gated off by default (`GENUI_ENABLED`). **Next: streaming/progressive render.**
 > Owner: Boyang. Routing: high-capability (architecture + agent + design-system).
 
 ## Goal
@@ -16,12 +17,16 @@ dependencies**.
 
 ## Non-negotiable design decisions
 
-1. **No hallucinated portfolio data.** For data-bound blocks the model emits only
-   *references* (a `projectId`) and *intent* (which fields to emphasize). The
-   renderer resolves the real values from `useProjectStore`. The model never
-   supplies titles, links, tech stacks, or metrics as free text.
-   - The single exception is `prose` — the agent's own framing words — rendered as
-     markdown **without raw HTML** (react-markdown default).
+1. **Free composition + narration, but hard facts are bound.** (Decision updated
+   2026-06-19, owner's call: the core goal is to demo a striking *declarative UI*,
+   so the model composes layout AND writes its own narration freely.) The boundary:
+   the model may author framing text (`text`/`heading`/`callout`/`badge`), but
+   **hard facts — metrics, dates, links, tech names, real screenshots/content —
+   come from reference-bound nodes** (`metrics`/`link`/`techStack`/`media`/`content`)
+   that the renderer fills from `useProjectStore` + the CMS. So a live portfolio
+   never shows fabricated numbers/links, while every layout still feels generated.
+   The model is given real light facts per project (desc/tech/timeline/status/url)
+   to ground its narration.
 2. **Validate before render.** Every spec (untrusted model output) passes through
    `parseUISpec`, which whitelists block types, type-checks fields, caps array
    sizes, and drops anything malformed. Unknown blocks are discarded, not trusted.

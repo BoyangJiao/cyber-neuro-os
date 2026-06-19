@@ -1,116 +1,119 @@
 /**
- * Catalog — the LLM-facing half of the contract.
+ * Catalog — the LLM-facing half of the contract (v3, compositional).
  *
  * `describeCatalog()` is injected into Borvis's system prompt so the model knows
- * exactly which blocks it may emit and their shapes. The hard rule — reference
- * real project ids, never invent data — lives next to the spec so prompt and
- * validator can't drift far apart. `RENDER_WORKS_TOOL` is the OpenAI/DashScope
- * function-calling descriptor the model calls to attach a spec (wired in Phase 1).
+ * which nodes it may compose and the hard-fact boundary. `RENDER_WORKS_TOOL` is the
+ * DashScope/OpenAI function-calling descriptor. The tool schema is deliberately
+ * LOOSE about nesting (children: array of objects) — recursive JSON-schema is
+ * unreliable across providers — while `parseUISpec` does the strict recursive
+ * validation. The prose here is what actually teaches the model how to nest.
  */
 
-import { CONTENT_KINDS, WORK_FIELDS } from './spec';
+import { CONTENT_KINDS, ROW_RATIOS, WORK_FIELDS } from './spec';
 
 const FIELD_ENUM = WORK_FIELDS.map((f) => `"${f}"`).join(', ');
 const KIND_ENUM = CONTENT_KINDS.map((k) => `"${k}"`).join(', ');
+const RATIO_ENUM = ROW_RATIOS.map((r) => `"${r}"`).join(', ');
 
 /** Human/LLM-readable description of the generative-UI catalog. */
 export function describeCatalog(): string {
     return [
-        "You can attach a UI spec to your reply to SHOW (not just tell) the visitor the author's work.",
-        'A spec is JSON: { "version": 1, "blocks": UIBlock[] }. Blocks render top-to-bottom,',
-        'so ORDER them to match how you narrate. Allowed blocks:',
+        "You can attach a generative UI to your reply to SHOW the author's work, not just",
+        'describe it. The UI is a TREE you compose from nodes: { "version": 1, "blocks": Node[] }.',
+        'Design a BESPOKE layout for each answer — vary structure, use columns and grids,',
+        'mix narration with real data. Avoid always emitting the same shape.',
         '',
-        '1. prose          — { "type": "prose", "text": string }',
-        '   Your own framing words (1-2 short sentences). Markdown allowed, no HTML.',
-        '2. projectHeader  — { "type": "projectHeader", "projectId": string, "emphasis"?: Field[] }',
-        '   Compact inline title + meta for one project (NOT a clickable card). Good to',
-        `   open a walkthrough. Field is one of [${FIELD_ENUM}].`,
-        '3. projectMedia   — { "type": "projectMedia", "projectId": string }',
-        "   The project's real hero image/video, inline.",
-        '4. projectMetrics — { "type": "projectMetrics", "projectId": string }',
-        "   The project's real core metrics as stat cards, inline.",
-        '5. projectContent — { "type": "projectContent", "projectId": string, "kinds"?: Kind[], "limit"?: number }',
-        "   The project's REAL content sections rendered inline (rich text, media,",
-        `   before/after compare, tabs, stats). Kind is one of [${KIND_ENUM}]; omit "kinds"`,
-        '   for any kind. "limit" caps how many sections (default 3, max 6).',
-        '6. workCard       — { "type": "workCard", "projectId": string, "emphasis"?: Field[] }',
-        '   One project as an ENTRY card (a link the visitor clicks). Use for "browse" intents.',
-        '7. workGrid       — { "type": "workGrid", "projectIds": string[], "columns"?: 2 | 3 }',
-        '   Several projects as a grid of entry cards.',
+        'CONTAINERS (compose layout freely; they hold a "children" array of nodes):',
+        '- stack   — { "type":"stack", "gap"?:"sm"|"md"|"lg", "children":Node[] }   vertical flow',
+        `- row     — { "type":"row", "ratio"?:${RATIO_ENUM}, "children":Node[] }   side-by-side columns`,
+        '- grid    — { "type":"grid", "columns"?:2|3, "children":Node[] }   equal cells',
+        '- section — { "type":"section", "title"?:string, "children":Node[] }   titled block',
+        '- card    — { "type":"card", "accent"?:boolean, "children":Node[] }   framed panel',
         '',
-        'HOW TO COMPOSE (prefer showing the actual content over a bare link):',
-        '- To walk through ONE project, build a small sequence, e.g. projectHeader →',
-        '  projectMedia → projectMetrics → projectContent. Show the real thing inline so',
-        '  the visitor does not have to click away.',
-        '- Use workCard / workGrid only when the intent is to BROWSE or pick among projects.',
+        'FREE-FORM LEAVES (your OWN words — narrate richly and frame the visuals):',
+        '- text    — { "type":"text", "text":string }       a paragraph (markdown, no HTML)',
+        '- heading — { "type":"heading", "text":string, "level"?:1|2|3 }',
+        '- callout — { "type":"callout", "text":string, "tone"?:"info"|"success"|"warn" }',
+        '- badge   — { "type":"badge", "text":string }      a short pill label',
         '',
-        'HARD RULES:',
-        '- NEVER invent titles, links, tech stacks, metrics, images, or copy. All block',
-        '  content is filled from real data by id; you only choose WHICH project, WHICH',
-        '  sections, and the ORDER. Your only free text is the `prose` block.',
-        '- Only reference projectIds that appear in the provided list.',
-        '- Skip the spec entirely when no project is relevant — a normal spoken reply',
-        '  is the default, the UI is the exception.',
+        'REFERENCE-BOUND LEAVES (HARD FACTS — filled from REAL data, never written by you):',
+        '- media     — { "type":"media", "projectId":string }      real hero image/video',
+        '- metrics   — { "type":"metrics", "projectId":string }    real core metrics',
+        '- techStack — { "type":"techStack", "projectId":string }  real tech tags',
+        '- link      — { "type":"link", "projectId":string, "label"?:string }  real live URL',
+        '- content   — { "type":"content", "projectId":string, "kinds"?:Kind[], "limit"?:number }',
+        `              real CMS sections (Kind ∈ [${KIND_ENUM}]; limit 1-6, default 3)`,
+        '- workCard  — { "type":"workCard", "projectId":string, "emphasis"?:Field[] }  entry card',
+        `              (Field ∈ [${FIELD_ENUM}])`,
+        '- workGrid  — { "type":"workGrid", "projectIds":string[], "columns"?:2|3 }  grid of entry cards',
+        '',
+        'HOW TO COMPOSE (make it feel designed, not templated):',
+        '- A good walkthrough nests: e.g. a section → a row [ media | stack[heading, text, techStack] ]',
+        '  → a grid of metrics → a content block → a closing callout. Reorder per the question.',
+        '- Narrate generously in text/heading/callout so your spoken reply and the UI match.',
+        '- Use media/metrics/content to show the REAL thing inline instead of a bare link.',
+        '',
+        'HARD RULES (the one line you must not cross):',
+        '- You may write framing/description freely, BUT never state a fabricated FACT:',
+        '  specific metrics, dates, links, exact tech names, or screenshots come from the',
+        '  bound nodes (metrics/link/techStack/media/content), NOT from your text. If you',
+        '  want to show a number, a logo-stack, a link or a screenshot, use the bound node.',
+        '- Only reference projectIds from the provided list.',
+        '- Skip the UI entirely when no project is relevant — speaking is the default.',
     ].join('\n');
 }
 
 /**
- * OpenAI/DashScope-compatible function-calling descriptor for the render channel.
- * Parameters intentionally mirror the raw spec shape so the tool arguments can be
- * handed straight to `parseUISpec` for validation before rendering.
+ * DashScope/OpenAI-compatible function-calling descriptor. The item schema lists
+ * every field a node may carry and keeps `children` loose (array of objects) so the
+ * model can nest; `parseUISpec` enforces the real shapes, caps and the fact boundary.
  */
 export const RENDER_WORKS_TOOL = {
     type: 'function',
     function: {
         name: 'render_works',
         description:
-            "Attach a generative UI spec to the reply when the visitor asks about the author's " +
-            'work. Prefer SHOWING real content inline (projectHeader/projectMedia/projectMetrics/' +
-            'projectContent) over a bare entry card. Reference real project ids only; never ' +
-            'invent data. Omit the call when no project is relevant.',
+            "Attach a composed generative UI (a tree of layout containers, your own narration, " +
+            "and real-data nodes) to your reply when the visitor asks about the author's work. " +
+            'Design a bespoke layout. Facts (metrics/links/tech/media/content) come from real ' +
+            'data via the bound nodes — never invent them. Omit the call when no project is relevant.',
         parameters: {
             type: 'object',
             properties: {
                 blocks: {
                     type: 'array',
-                    description: 'Ordered UI blocks to render, top-to-bottom.',
+                    description: 'Top-level UI nodes, rendered in order. Containers nest via "children".',
                     items: {
                         type: 'object',
                         properties: {
                             type: {
                                 type: 'string',
                                 enum: [
-                                    'prose',
-                                    'projectHeader',
-                                    'projectMedia',
-                                    'projectMetrics',
-                                    'projectContent',
-                                    'workCard',
-                                    'workGrid',
+                                    'stack', 'row', 'grid', 'section', 'card',
+                                    'text', 'heading', 'callout', 'badge',
+                                    'media', 'metrics', 'techStack', 'link', 'content',
+                                    'workCard', 'workGrid',
                                 ],
                             },
-                            text: { type: 'string', description: 'prose only: framing text' },
-                            projectId: {
-                                type: 'string',
-                                description: 'a real project id (projectHeader/Media/Metrics/Content/workCard)',
-                            },
-                            projectIds: {
+                            children: {
                                 type: 'array',
-                                items: { type: 'string' },
-                                description: 'workGrid only: real project ids',
+                                description: 'containers only: nested nodes (same shape)',
+                                items: { type: 'object' },
                             },
-                            emphasis: {
-                                type: 'array',
-                                items: { type: 'string', enum: [...WORK_FIELDS] },
-                                description: 'projectHeader/workCard only: fields to emphasize',
-                            },
-                            kinds: {
-                                type: 'array',
-                                items: { type: 'string', enum: [...CONTENT_KINDS] },
-                                description: 'projectContent only: which content kinds to include',
-                            },
-                            limit: { type: 'number', description: 'projectContent only: max sections (1-6)' },
-                            columns: { type: 'number', enum: [2, 3], description: 'workGrid only' },
+                            text: { type: 'string', description: 'text/heading/callout/badge' },
+                            level: { type: 'number', enum: [1, 2, 3], description: 'heading only' },
+                            tone: { type: 'string', enum: ['info', 'success', 'warn'], description: 'callout only' },
+                            title: { type: 'string', description: 'section only' },
+                            gap: { type: 'string', enum: ['sm', 'md', 'lg'], description: 'stack only' },
+                            ratio: { type: 'string', enum: [...ROW_RATIOS], description: 'row only' },
+                            columns: { type: 'number', enum: [2, 3], description: 'grid/workGrid only' },
+                            accent: { type: 'boolean', description: 'card only' },
+                            projectId: { type: 'string', description: 'real project id (bound leaves)' },
+                            projectIds: { type: 'array', items: { type: 'string' }, description: 'workGrid only' },
+                            label: { type: 'string', description: 'link only' },
+                            emphasis: { type: 'array', items: { type: 'string', enum: [...WORK_FIELDS] }, description: 'workCard only' },
+                            kinds: { type: 'array', items: { type: 'string', enum: [...CONTENT_KINDS] }, description: 'content only' },
+                            limit: { type: 'number', description: 'content only: 1-6' },
                         },
                         required: ['type'],
                     },

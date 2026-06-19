@@ -17,15 +17,37 @@ const sampleSpec = (ids: string[]): string => {
     const spec = {
         version: 1,
         blocks: [
-            { type: 'prose', text: 'Let me walk you through it:' },
-            a && { type: 'projectHeader', projectId: a, emphasis: ['techStack', 'timeline'] },
-            a && { type: 'projectMedia', projectId: a },
-            a && { type: 'projectMetrics', projectId: a },
-            a && { type: 'projectContent', projectId: a, kinds: ['text', 'media', 'compare'], limit: 3 },
+            a && {
+                type: 'section',
+                title: 'WALKTHROUGH',
+                children: [
+                    { type: 'text', text: "Let me show you one of the author's projects:" },
+                    {
+                        type: 'row',
+                        ratio: '40-60',
+                        children: [
+                            { type: 'media', projectId: a },
+                            {
+                                type: 'stack',
+                                gap: 'sm',
+                                children: [
+                                    { type: 'heading', text: 'Overview', level: 2 },
+                                    { type: 'text', text: 'A quick framing paragraph the model writes itself.' },
+                                    { type: 'techStack', projectId: a },
+                                    { type: 'link', projectId: a },
+                                ],
+                            },
+                        ],
+                    },
+                    { type: 'metrics', projectId: a },
+                    { type: 'content', projectId: a, kinds: ['text', 'media', 'compare'], limit: 2 },
+                    { type: 'callout', text: 'A closing note in the author’s voice.', tone: 'info' },
+                ],
+            },
             (b || c) && {
-                type: 'workGrid',
-                projectIds: [b, c].filter(Boolean),
-                columns: 2,
+                type: 'section',
+                title: 'MORE',
+                children: [{ type: 'workGrid', projectIds: [b, c].filter(Boolean), columns: 2 }],
             },
         ].filter(Boolean),
     };

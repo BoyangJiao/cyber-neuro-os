@@ -22,8 +22,17 @@ interface StreamChatOptions {
      * flag GENUI_ENABLED=1; otherwise never fires.
      */
     onSpec?: (spec: UISpec) => void;
-    /** Compact {id,title} list of real projects the model may reference (genui). */
-    genuiProjects?: { id: string; title: string }[];
+    /** Compact list of real projects (id + light facts) the model may reference (genui). */
+    genuiProjects?: {
+        id: string;
+        title: string;
+        description?: string;
+        techStack?: string[];
+        timeline?: string;
+        status?: string;
+        liveUrl?: string;
+        projectType?: string | string[];
+    }[];
 }
 
 /**
