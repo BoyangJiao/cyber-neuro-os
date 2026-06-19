@@ -294,9 +294,10 @@ export const BorvisOverlay = () => {
             : (language === 'zh' ? '打字，或按住麦克风 / 空格说话…' : 'Type, or hold mic / Space to speak…');
 
     // When the model attaches a UI (intent = "show the work"), desktop steps the
-    // face aside and opens a wide content stage; mobile keeps the stacked layout.
+    // face aside (canvas shrinks to a left pane) and opens a right content stage;
+    // mobile keeps the stacked layout.
     const stageOpen = !!spec && !isMobile;
-    const stageWidth = Math.min(640, Math.round((typeof window !== 'undefined' ? window.innerWidth : 1280) * 0.46));
+    const stageWidth = Math.min(600, Math.round((typeof window !== 'undefined' ? window.innerWidth : 1280) * 0.4));
 
     return (
         <motion.div
@@ -306,13 +307,15 @@ export const BorvisOverlay = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45 }}
         >
-            {/* ── Three.js Canvas — full screen. On desktop it smoothly shrinks +
-                 shifts left when a content stage opens (transform = GPU, no reflow). */}
+            {/* ── Three.js Canvas. In a generative-UI session the canvas becomes a
+                 LEFT PANE (its width animates) rather than being transform-scaled —
+                 so the halftone shader + vignette recompute for the pane and the face
+                 stays naturally centred with no boxed border. Mobile stays full-width. */}
             <motion.div
-                className="absolute inset-0"
-                style={{ transformOrigin: 'center center' }}
-                animate={{ scale: stageOpen ? 0.6 : 1, x: stageOpen ? '-24%' : '0%' }}
-                transition={{ type: 'spring', stiffness: 120, damping: 22 }}
+                className="absolute inset-y-0 left-0"
+                initial={false}
+                animate={{ width: stageOpen ? '56%' : '100%' }}
+                transition={{ type: 'spring', stiffness: 140, damping: 26 }}
             >
                 <AppErrorBoundary fallback={null}>
                     <Canvas

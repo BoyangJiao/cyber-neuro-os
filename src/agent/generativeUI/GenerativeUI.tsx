@@ -48,12 +48,14 @@ interface RenderCtx {
 }
 
 const GAP: Record<string, string> = { sm: 'gap-2', md: 'gap-4', lg: 'gap-6' };
+// Container-query splits: a row only becomes columns once ITS OWN width allows it,
+// so nested/narrow contexts stack instead of cramming (the genui-lab vs panel gap).
 const ROW_COLS: Record<RowRatio, string> = {
-    '50-50': 'lg:grid-cols-2',
-    '40-60': 'lg:grid-cols-[2fr_3fr]',
-    '60-40': 'lg:grid-cols-[3fr_2fr]',
-    '33-67': 'lg:grid-cols-[1fr_2fr]',
-    '67-33': 'lg:grid-cols-[2fr_1fr]',
+    '50-50': '@[460px]:grid-cols-2',
+    '40-60': '@[460px]:grid-cols-[2fr_3fr]',
+    '60-40': '@[460px]:grid-cols-[3fr_2fr]',
+    '33-67': '@[460px]:grid-cols-[1fr_2fr]',
+    '67-33': '@[460px]:grid-cols-[2fr_1fr]',
 };
 const CALLOUT_TONE: Record<string, string> = {
     info: 'border-brand-primary/40 bg-brand-primary/5',
@@ -151,7 +153,7 @@ const MetricsLeaf = ({ detail }: { detail?: ProjectDetailData }) => {
     const metrics = detail?.coreMetrics || [];
     if (!metrics.length) return null;
     return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 @[200px]:grid-cols-2 @[440px]:grid-cols-3">
             {metrics.map((m, i) => (
                 <div key={i} className="rounded-lg border border-brand-primary/30 bg-black/30 p-3">
                     <div className="font-mono text-2xl font-bold text-brand-primary">
@@ -210,7 +212,9 @@ const WorkGridLeaf = ({ node, ctx }: { node: WorkGridNode; ctx: RenderCtx }) => 
         .map((id) => ctx.byId.get(id))
         .filter((p): p is Project => p !== undefined);
     if (!resolved.length) return null;
-    const cols = node.columns === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2';
+    const cols = node.columns === 3
+        ? '@[360px]:grid-cols-2 @[560px]:grid-cols-3'
+        : '@[360px]:grid-cols-2';
     return (
         <div className={clsx('grid grid-cols-1 gap-3', cols)}>
             {resolved.map((p) => (
@@ -225,28 +229,32 @@ function renderNode(node: UINode, key: React.Key, ctx: RenderCtx): React.ReactNo
     switch (node.type) {
         case 'stack':
             return (
-                <div key={key} className={clsx('flex flex-col', GAP[node.gap || 'md'])}>
+                <div key={key} className={clsx('@container flex flex-col', GAP[node.gap || 'md'])}>
                     {node.children.map((c, i) => renderNode(c, i, ctx))}
                 </div>
             );
         case 'row':
             return (
                 <div key={key} className={clsx('grid grid-cols-1 items-start', ROW_COLS[node.ratio || '50-50'], GAP.md)}>
-                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                    {node.children.map((c, i) => (
+                        <div key={i} className="@container min-w-0">{renderNode(c, 'c', ctx)}</div>
+                    ))}
                 </div>
             );
         case 'grid':
             return (
                 <div
                     key={key}
-                    className={clsx('grid grid-cols-1', node.columns === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2', GAP.md)}
+                    className={clsx('grid grid-cols-1', node.columns === 3 ? '@[360px]:grid-cols-2 @[560px]:grid-cols-3' : '@[360px]:grid-cols-2', GAP.md)}
                 >
-                    {node.children.map((c, i) => renderNode(c, i, ctx))}
+                    {node.children.map((c, i) => (
+                        <div key={i} className="@container min-w-0">{renderNode(c, 'c', ctx)}</div>
+                    ))}
                 </div>
             );
         case 'section':
             return (
-                <div key={key} className="flex flex-col gap-3 border-t border-brand-primary/15 pt-3">
+                <div key={key} className="@container flex flex-col gap-3 border-t border-brand-primary/15 pt-3">
                     {node.title && (
                         <div className="text-[11px] uppercase tracking-[0.25em] text-brand-primary/50">{node.title}</div>
                     )}
@@ -258,7 +266,7 @@ function renderNode(node: UINode, key: React.Key, ctx: RenderCtx): React.ReactNo
                 <div
                     key={key}
                     className={clsx(
-                        'flex flex-col gap-3 rounded-lg border p-4',
+                        '@container flex flex-col gap-3 rounded-lg border p-4',
                         node.accent ? 'border-brand-primary/40 bg-brand-primary/5' : 'border-white/10 bg-black/20',
                     )}
                 >
@@ -326,7 +334,7 @@ export function GenerativeUI({ spec, onOpenProject, className }: GenerativeUIPro
     const ctx: RenderCtx = { byId, detailById, loading, language, onOpenProject };
 
     return (
-        <div className={clsx('flex flex-col gap-4', className)}>
+        <div className={clsx('@container flex flex-col gap-4', className)}>
             {spec.blocks.map((block, i) => renderNode(block, i, ctx))}
         </div>
     );
