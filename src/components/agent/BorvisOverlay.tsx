@@ -25,6 +25,11 @@ import { classifyEmotion } from '../three/avatar/expressions';
 import type { Emotion } from '../../store/useAvatarStore';
 import { useLanguage } from '../../i18n';
 import { useIsMobile, useIsCoarsePointer } from '../../hooks/useDevice';
+import { useNavigate } from 'react-router-dom';
+import { useProjectStore } from '../../store/useProjectStore';
+import { GenerativeUI } from '../../agent/generativeUI';
+import type { UISpec } from '../../agent/generativeUI/spec';
+import type { Project } from '../../data/projects';
 
 /** Mounts only once its Suspense boundary resolves (face GLB + shaders ready). */
 const FaceReadyNotifier = ({ onReady }: { onReady: () => void }) => {
@@ -45,6 +50,9 @@ export const BorvisOverlay = () => {
     const [showExit, setShowExit] = useState(false);
     const [faceReady, setFaceReady] = useState(false);
     const handleFaceReady = useCallback(() => setFaceReady(true), []);
+    // Generative UI spec attached to the latest reply (null = text-only reply).
+    const [spec, setSpec] = useState<UISpec | null>(null);
+    const navigate = useNavigate();
 
     const recRef = useRef<Awaited<ReturnType<typeof startListening>> | null>(null);
     const stopRequestedRef = useRef(false);   // set if the user releases before startListening() resolves
@@ -142,15 +150,23 @@ export const BorvisOverlay = () => {
         setBusy(true);
         setStatus('thinking');
         setTranscript('');
+        setSpec(null);
 
         let reply = '';
         let detected: string | null = null;
+        let nextSpec: UISpec | null = null;
+
+        // Real projects the model may reference. Sent only as {id,title}; the cards
+        // are filled from the store by id, so the model can't fabricate work data.
+        const genuiProjects = useProjectStore.getState().projects.map((p) => ({ id: p.id, title: p.title }));
 
         await new Promise<void>((resolve) => {
             streamChat({
                 messages: [{ id: 'u', role: 'user', content: msg, timestamp: Date.now() }],
+                genuiProjects,
                 onToken: (t) => { reply += t; },
                 onEmotion: (e) => { detected = e; },
+                onSpec: (s) => { nextSpec = s; },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });
@@ -162,6 +178,7 @@ export const BorvisOverlay = () => {
         reply = reply.trim() || '……';
         setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));
         setStatus('speaking');
+        setSpec(nextSpec);
 
         await speak(reply, {
             onStart: (dur) => {
@@ -182,6 +199,12 @@ export const BorvisOverlay = () => {
         setInput('');
         void respond(msg);
     }, [input, respond]);
+
+    // Opening a rendered card leaves the immersive overlay for the project page.
+    const onOpenProject = useCallback((p: Project) => {
+        exitBorvis();
+        navigate(`/projects/${p.id}`);
+    }, [exitBorvis, navigate]);
 
     // ── Push-to-talk ───────────────────────────────────────────────
     const stopPTT = useCallback(async () => {
@@ -365,6 +388,17 @@ export const BorvisOverlay = () => {
                         />
                     )}
                 </div>
+
+                {/* Generative UI — cards/grids the model attached to this reply.
+                    Only renders when GENUI_ENABLED server-side produced a spec. */}
+                {spec && (
+                    <div className="mt-3 border-t border-brand-primary/15 pt-3">
+                        <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">RENDER</div>
+                        <div className="pointer-events-auto max-h-[40dvh] overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]">
+                            <GenerativeUI spec={spec} onOpenProject={onOpenProject} />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* ── Input bar (bottom center) ── */}

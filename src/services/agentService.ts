@@ -6,6 +6,8 @@
  */
 
 import type { AgentMessage } from '../store/useAgentStore';
+import { parseUISpec } from '../agent/generativeUI/parseSpec';
+import type { UISpec } from '../agent/generativeUI/spec';
 
 interface StreamChatOptions {
     messages: AgentMessage[];
@@ -14,6 +16,14 @@ interface StreamChatOptions {
     onError: (error: string) => void;
     /** Fired once if the reply opens with a [[emo:X]] tag (stripped from onToken). */
     onEmotion?: (emotion: string) => void;
+    /**
+     * Fired once at end-of-stream if the model attached a valid render_works UI
+     * spec (generative UI). Requires `genuiProjects` to be sent and the server
+     * flag GENUI_ENABLED=1; otherwise never fires.
+     */
+    onSpec?: (spec: UISpec) => void;
+    /** Compact {id,title} list of real projects the model may reference (genui). */
+    genuiProjects?: { id: string; title: string }[];
 }
 
 /**
@@ -52,7 +62,7 @@ function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: strin
  */
 type RealResult = 'ok' | 'unavailable';
 
-const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }: StreamChatOptions): Promise<RealResult> => {
+const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, onSpec, genuiProjects }: StreamChatOptions): Promise<RealResult> => {
     const emo = makeEmotionStripper(onToken, onEmotion);
     let response: Response;
     try {
@@ -64,6 +74,9 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
                     role: m.role,
                     content: m.content,
                 })),
+                // Only sent when the caller opted into generative UI. The server
+                // ignores it unless GENUI_ENABLED=1.
+                ...(genuiProjects?.length ? { genui: { projects: genuiProjects } } : {}),
             }),
         });
     } catch {
@@ -90,6 +103,10 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
 
         const decoder = new TextDecoder();
         let buffer = '';
+        // Accumulate render_works tool-call argument deltas (generative UI). Stays
+        // empty for plain text-only replies, so the spec path is purely additive.
+        let toolName = '';
+        let toolArgs = '';
 
         while (true) {
             const { done, value } = await reader.read();
@@ -108,10 +125,17 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
 
                     try {
                         const parsed = JSON.parse(data);
+                        const delta = parsed?.choices?.[0]?.delta;
                         // Extract text from Standard OpenAI/DashScope SSE response
-                        const text = parsed?.choices?.[0]?.delta?.content;
+                        const text = delta?.content;
                         if (text) {
                             emo.feed(text);
+                        }
+                        // Tool-call arguments arrive as deltas across chunks.
+                        const tc = delta?.tool_calls?.[0];
+                        if (tc) {
+                            if (tc.function?.name) toolName = tc.function.name;
+                            if (tc.function?.arguments) toolArgs += tc.function.arguments;
                         }
                     } catch {
                         // Skip unparseable chunks
@@ -121,6 +145,17 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
         }
 
         emo.flush();
+
+        // If the model attached a render_works spec, validate it before surfacing.
+        if (onSpec && toolName === 'render_works' && toolArgs.trim()) {
+            try {
+                const result = parseUISpec(JSON.parse(toolArgs));
+                if (result.ok) onSpec(result.spec);
+            } catch {
+                // Malformed tool args → no spec; the spoken reply still stands.
+            }
+        }
+
         onDone();
         return 'ok';
     } catch (error) {

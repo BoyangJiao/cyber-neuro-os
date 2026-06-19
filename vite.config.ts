@@ -6,6 +6,8 @@ import { fetch as undiciFetch, ProxyAgent } from 'undici'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
+import { RENDER_WORKS_TOOL } from './src/agent/generativeUI/catalog'
+import { buildGenUISystemSuffix, sanitizeProjectContext } from './src/agent/generativeUI/serverPrompt'
 
 // Single source of truth for the displayed app version: package.json `version`,
 // read at config time and injected via `define` (below) as __APP_VERSION__.
@@ -102,9 +104,18 @@ function apiProxy(env: Record<string, string>): PluginOption {
               return
             }
 
+            // Generative UI is opt-in via env flag (GENUI_ENABLED=1) — mirror of
+            // the prod guard in api/chat.ts. When off, the request is unchanged.
+            const genuiEnabled = (env.GENUI_ENABLED || '').trim() === '1'
+            const genuiProjects = genuiEnabled ? sanitizeProjectContext(parsedBody.genui?.projects) : []
+            const useGenui = genuiProjects.length > 0
+
             // System prompt is server-injected; drop any client-supplied 'system' role.
+            const systemContent = useGenui
+              ? `${SYSTEM_PROMPT}\n\n${buildGenUISystemSuffix(genuiProjects)}`
+              : SYSTEM_PROMPT
             const formattedMessages = [
-              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'system', content: systemContent },
               ...messages
                 .filter((m: { role: string }) => m.role !== 'system')
                 .map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
@@ -127,6 +138,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 temperature: 0.5,
                 max_tokens: 1536,
                 enable_thinking: false, // SKIP slow reasoning
+                ...(useGenui ? { tools: [RENDER_WORKS_TOOL], parallel_tool_calls: false } : {}),
               }),
               ...(dispatcher ? { dispatcher } : {}),
             })
