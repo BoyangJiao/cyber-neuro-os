@@ -293,6 +293,11 @@ export const BorvisOverlay = () => {
             ? `[ ${status}... ]`
             : (language === 'zh' ? '打字，或按住麦克风 / 空格说话…' : 'Type, or hold mic / Space to speak…');
 
+    // When the model attaches a UI (intent = "show the work"), desktop steps the
+    // face aside and opens a wide content stage; mobile keeps the stacked layout.
+    const stageOpen = !!spec && !isMobile;
+    const stageWidth = Math.min(640, Math.round((typeof window !== 'undefined' ? window.innerWidth : 1280) * 0.46));
+
     return (
         <motion.div
             className="fixed inset-0 z-[250] bg-[#020406]"
@@ -301,15 +306,21 @@ export const BorvisOverlay = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45 }}
         >
-            {/* ── Three.js Canvas — full screen. Mobile renders at a lower DPR,
-                 without MSAA, and with a slimmer post chain (bloom blurs anyway) ── */}
-            <AppErrorBoundary fallback={null}>
-                <Canvas
-                    camera={{ position: [0, 0.4, 5.5], fov: 42 }}
-                    gl={{ alpha: false, antialias: !isMobile }}
-                    dpr={isMobile ? [1, 1.25] : [1, 1.5]}
-                    style={{ position: 'absolute', inset: 0 }}
-                >
+            {/* ── Three.js Canvas — full screen. On desktop it smoothly shrinks +
+                 shifts left when a content stage opens (transform = GPU, no reflow). */}
+            <motion.div
+                className="absolute inset-0"
+                style={{ transformOrigin: 'center center' }}
+                animate={{ scale: stageOpen ? 0.6 : 1, x: stageOpen ? '-24%' : '0%' }}
+                transition={{ type: 'spring', stiffness: 120, damping: 22 }}
+            >
+                <AppErrorBoundary fallback={null}>
+                    <Canvas
+                        camera={{ position: [0, 0.4, 5.5], fov: 42 }}
+                        gl={{ alpha: false, antialias: !isMobile }}
+                        dpr={isMobile ? [1, 1.25] : [1, 1.5]}
+                        style={{ position: 'absolute', inset: 0 }}
+                    >
                     <Suspense fallback={null}>
                         <NeuralHalftoneFace
                             intensity={1.0}
@@ -349,8 +360,9 @@ export const BorvisOverlay = () => {
                             <Vignette offset={0.25} darkness={0.85} />
                         </EffectComposer>
                     )}
-                </Canvas>
-            </AppErrorBoundary>
+                    </Canvas>
+                </AppErrorBoundary>
+            </motion.div>
 
             {/* ── Loading veil — covers the link until the face is live ── */}
             <AnimatePresence>
@@ -371,8 +383,13 @@ export const BorvisOverlay = () => {
             </AnimatePresence>
 
             {/* ── Transcript panel — mobile: above the input bar, full width, on a
-                 dark blur panel for readability over the face; lg+: right side ── */}
-            <div className="absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:w-[340px] lg:-translate-y-1/2">
+                 dark blur panel for readability over the face; lg+: right side, and
+                 it widens into a content stage while a generative UI is attached ── */}
+            <motion.div
+                className="absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2"
+                animate={isMobile ? {} : { width: stageOpen ? stageWidth : 340 }}
+                transition={{ type: 'spring', stiffness: 130, damping: 24 }}
+            >
                 <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                     TRANSCRIPT ·{' '}
                     <span className="text-brand-primary/70">{status.toUpperCase()}</span>
@@ -401,17 +418,17 @@ export const BorvisOverlay = () => {
                     )}
                 </div>
 
-                {/* Generative UI — cards/grids the model attached to this reply.
-                    Only renders when GENUI_ENABLED server-side produced a spec. */}
+                {/* Generative UI — the composed node tree the model attached. On
+                    desktop the panel above has widened into a stage, so it has room. */}
                 {spec && (
                     <div className="mt-3 border-t border-brand-primary/15 pt-3">
                         <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">RENDER</div>
-                        <div className="pointer-events-auto max-h-[40dvh] overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]">
+                        <div className={`pointer-events-auto overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent] ${stageOpen ? 'max-h-[68dvh]' : 'max-h-[40dvh]'}`}>
                             <GenerativeUI spec={spec} onOpenProject={onOpenProject} />
                         </div>
                     </div>
                 )}
-            </div>
+            </motion.div>
 
             {/* ── Input bar (bottom center) ── */}
             <div className="absolute bottom-[max(2rem,env(safe-area-inset-bottom))] left-1/2 flex w-[min(600px,92vw)] lg:w-[min(600px,82vw)] -translate-x-1/2 items-center gap-2">
