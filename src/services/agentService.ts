@@ -7,6 +7,7 @@
 
 import type { AgentMessage } from '../store/useAgentStore';
 import { parseUISpec } from '../agent/generativeUI/parseSpec';
+import { closePartialJson } from '../agent/generativeUI/streamParse';
 import type { UISpec } from '../agent/generativeUI/spec';
 
 interface StreamChatOptions {
@@ -116,6 +117,20 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
         // empty for plain text-only replies, so the spec path is purely additive.
         let toolName = '';
         let toolArgs = '';
+        let lastSpecJson = ''; // de-dupes progressive onSpec emissions
+
+        // Progressive render: close the partial tool args and surface whatever tree
+        // is valid so far, so nodes appear as Borvis streams. Best-effort; the final
+        // parse after the loop is authoritative.
+        const emitPartialSpec = () => {
+            if (!onSpec || toolName !== 'render_works' || !toolArgs.includes('"blocks"')) return;
+            const result = parseUISpec(closePartialJson(toolArgs));
+            if (!result.ok) return;
+            const json = JSON.stringify(result.spec);
+            if (json === lastSpecJson) return;
+            lastSpecJson = json;
+            onSpec(result.spec);
+        };
 
         while (true) {
             const { done, value } = await reader.read();
@@ -144,7 +159,10 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
                         const tc = delta?.tool_calls?.[0];
                         if (tc) {
                             if (tc.function?.name) toolName = tc.function.name;
-                            if (tc.function?.arguments) toolArgs += tc.function.arguments;
+                            if (tc.function?.arguments) {
+                                toolArgs += tc.function.arguments;
+                                emitPartialSpec();
+                            }
                         }
                     } catch {
                         // Skip unparseable chunks
@@ -155,13 +173,15 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
 
         emo.flush();
 
-        // If the model attached a render_works spec, validate it before surfacing.
+        // Authoritative final spec: prefer the complete args, fall back to the
+        // tolerant closer if the stream ended mid-token. Supersedes any partial.
         if (onSpec && toolName === 'render_works' && toolArgs.trim()) {
-            try {
-                const result = parseUISpec(JSON.parse(toolArgs));
-                if (result.ok) onSpec(result.spec);
-            } catch {
-                // Malformed tool args → no spec; the spoken reply still stands.
+            const result = parseUISpec(toolArgs).ok
+                ? parseUISpec(toolArgs)
+                : parseUISpec(closePartialJson(toolArgs));
+            if (result.ok) {
+                const json = JSON.stringify(result.spec);
+                if (json !== lastSpecJson) onSpec(result.spec);
             }
         }
 

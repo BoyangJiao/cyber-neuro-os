@@ -176,7 +176,9 @@ export const BorvisOverlay = () => {
                 genuiProjects,
                 onToken: (t) => { reply += t; },
                 onEmotion: (e) => { detected = e; },
-                onSpec: (s) => { nextSpec = s; },
+                // Surface the spec live so the UI assembles node-by-node as the
+                // model streams; the final emission (post-loop) is authoritative.
+                onSpec: (s) => { nextSpec = s; setSpec(s); },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });

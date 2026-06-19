@@ -1,9 +1,9 @@
 # Spec — Generative UI for Borvis ("作品实时渲染")
 
-> Status: **v3 compositional catalog landed** on `claude/vercel-json-render-borvis-scrw9q`
-> (foundation → agent wiring → Borvis surface → reference-bound rich content →
-> **free compositional node tree**). Auto model routing (turbo↔plus) verified end to
-> end. Gated off by default (`GENUI_ENABLED`). **Next: streaming/progressive render.**
+> Status: **v3 compositional + streaming landed** on `claude/vercel-json-render-borvis-scrw9q`
+> (foundation → agent wiring → Borvis surface → reference-bound content → **free
+> compositional node tree** → **progressive/streamed render**). Auto model routing
+> (turbo↔plus) verified end to end. Gated off by default (`GENUI_ENABLED`).
 > Owner: Boyang. Routing: high-capability (architecture + agent + design-system).
 
 ## Goal
