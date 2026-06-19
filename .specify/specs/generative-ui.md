@@ -31,17 +31,32 @@ dependencies**.
    `api/sanity.ts`/`api/emulator.ts`, or vite proxy. The render channel rides the
    existing `/api/chat` path only (Phase 1).
 
-## The contract (v1 catalog)
+## The contract (v2 catalog — flat, reference-bound)
 
-`UISpec = { version: 1, blocks: UIBlock[] }`
+`UISpec = { version: 1, blocks: UIBlock[] }` — blocks render top-to-bottom; the model
+orders them to match its narration. Composition is by SELECTION + ORDER of rich blocks
+(a flat list), not a recursive component tree — far more reliable with current
+tool-calling models, and enough to render real content inline.
 
 | Block | Shape | Renders |
 | :-- | :-- | :-- |
-| `prose` | `{ type, text }` | Agent framing (markdown, no HTML) |
-| `workCard` | `{ type, projectId, emphasis? }` | One real project as a card |
-| `workGrid` | `{ type, projectIds[], columns? }` | Several real projects as a grid |
+| `prose` | `{ type, text }` | Agent framing (markdown, no HTML) — the only model-authored text |
+| `projectHeader` | `{ type, projectId, emphasis? }` | Compact inline title + meta (NOT a clickable card) |
+| `projectMedia` | `{ type, projectId }` | The project's real hero image/video, inline |
+| `projectMetrics` | `{ type, projectId }` | The project's real core metrics as stat cards |
+| `projectContent` | `{ type, projectId, kinds?, limit? }` | The project's REAL CMS content sections inline |
+| `workCard` | `{ type, projectId, emphasis? }` | One project as an entry card (a link to click) |
+| `workGrid` | `{ type, projectIds[], columns? }` | Several projects as a grid of entry cards |
 
 `emphasis ∈ ['techStack','timeline','status','liveUrl']`. `columns ∈ [2,3]`.
+`kinds ⊆ ['text','media','stats','compare','tabs']`. `limit ∈ [1,6]` (default 3).
+
+The rich blocks bind to a project's separate CMS detail (`ProjectDetailData`):
+`projectContent` reuses the detail page's leaf renderer `ContentSlotRenderer` over the
+project's real `contentModules` (flattened + filtered in `detail.ts`). Detail is fetched
+on demand and cached by `useProjectDetails` via the shared Sanity client (China-proxied).
+**Zero hallucination holds:** the model only picks project + kinds + order; every byte of
+displayed content comes from real data.
 
 Source of truth: `src/agent/generativeUI/spec.ts`. The LLM-facing description lives
 in `catalog.ts` (`describeCatalog()`) so prompt and validator can't drift far.

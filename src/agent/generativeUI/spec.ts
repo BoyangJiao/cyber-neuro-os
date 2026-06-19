@@ -20,13 +20,18 @@ export type WorkField = 'techStack' | 'timeline' | 'status' | 'liveUrl';
 
 export const WORK_FIELDS: readonly WorkField[] = ['techStack', 'timeline', 'status', 'liveUrl'];
 
+/** Kinds of real project content a `projectContent` block may pull in. */
+export type ContentKind = 'text' | 'media' | 'stats' | 'compare' | 'tabs';
+
+export const CONTENT_KINDS: readonly ContentKind[] = ['text', 'media', 'stats', 'compare', 'tabs'];
+
 /** Agent-authored framing text. Markdown subset, rendered without raw HTML. */
 export interface ProseBlock {
     type: 'prose';
     text: string;
 }
 
-/** One real project rendered as a card. `projectId` references `Project.id`. */
+/** One real project rendered as a card (an entry/link). `projectId` references `Project.id`. */
 export interface WorkCardBlock {
     type: 'workCard';
     projectId: string;
@@ -40,7 +45,45 @@ export interface WorkGridBlock {
     columns?: 2 | 3;
 }
 
-export type UIBlock = ProseBlock | WorkCardBlock | WorkGridBlock;
+/** Compact inline header for a project (title + meta), not a clickable entry card. */
+export interface ProjectHeaderBlock {
+    type: 'projectHeader';
+    projectId: string;
+    emphasis?: WorkField[];
+}
+
+/** A project's real hero media (image/video) rendered inline. */
+export interface ProjectMediaBlock {
+    type: 'projectMedia';
+    projectId: string;
+}
+
+/** A project's real core metrics rendered inline as stat cards. */
+export interface ProjectMetricsBlock {
+    type: 'projectMetrics';
+    projectId: string;
+}
+
+/**
+ * A project's real content sections rendered inline (rich text, media, stats,
+ * compare, tabs). The model only references the project and which kinds/how many;
+ * the actual blocks come from the project's CMS content, never from the model.
+ */
+export interface ProjectContentBlock {
+    type: 'projectContent';
+    projectId: string;
+    kinds?: ContentKind[];
+    limit?: number;
+}
+
+export type UIBlock =
+    | ProseBlock
+    | WorkCardBlock
+    | WorkGridBlock
+    | ProjectHeaderBlock
+    | ProjectMediaBlock
+    | ProjectMetricsBlock
+    | ProjectContentBlock;
 export type UIBlockType = UIBlock['type'];
 
 export interface UISpec {

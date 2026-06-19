@@ -17,8 +17,11 @@ const sampleSpec = (ids: string[]): string => {
     const spec = {
         version: 1,
         blocks: [
-            { type: 'prose', text: "Here's a slice of the author's work you might like:" },
-            a && { type: 'workCard', projectId: a, emphasis: ['techStack', 'liveUrl'] },
+            { type: 'prose', text: 'Let me walk you through it:' },
+            a && { type: 'projectHeader', projectId: a, emphasis: ['techStack', 'timeline'] },
+            a && { type: 'projectMedia', projectId: a },
+            a && { type: 'projectMetrics', projectId: a },
+            a && { type: 'projectContent', projectId: a, kinds: ['text', 'media', 'compare'], limit: 3 },
             (b || c) && {
                 type: 'workGrid',
                 projectIds: [b, c].filter(Boolean),

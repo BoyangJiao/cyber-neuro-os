@@ -12,11 +12,17 @@ export { describeCatalog, RENDER_WORKS_TOOL } from './catalog';
 export {
     GENERATIVE_UI_SPEC_VERSION,
     WORK_FIELDS,
+    CONTENT_KINDS,
     type UISpec,
     type UIBlock,
     type UIBlockType,
     type WorkField,
+    type ContentKind,
     type ProseBlock,
     type WorkCardBlock,
     type WorkGridBlock,
+    type ProjectHeaderBlock,
+    type ProjectMediaBlock,
+    type ProjectMetricsBlock,
+    type ProjectContentBlock,
 } from './spec';

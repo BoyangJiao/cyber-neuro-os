@@ -8,8 +8,10 @@
  */
 
 import {
+    CONTENT_KINDS,
     GENERATIVE_UI_SPEC_VERSION,
     WORK_FIELDS,
+    type ContentKind,
     type UIBlock,
     type UISpec,
     type WorkField,
@@ -20,6 +22,7 @@ const MAX_BLOCKS = 12;
 const MAX_GRID_ITEMS = 12;
 const MAX_PROSE_CHARS = 1200;
 const MAX_ID_CHARS = 200;
+const MAX_CONTENT_ITEMS = 6;
 
 export type ParseResult =
     | { ok: true; spec: UISpec }
@@ -39,6 +42,19 @@ const cleanEmphasis = (v: unknown): WorkField[] | undefined => {
     if (!Array.isArray(v)) return undefined;
     const out = v.filter((f): f is WorkField => WORK_FIELDS.includes(f as WorkField));
     return out.length ? Array.from(new Set(out)) : undefined;
+};
+
+const cleanKinds = (v: unknown): ContentKind[] | undefined => {
+    if (!Array.isArray(v)) return undefined;
+    const out = v.filter((k): k is ContentKind => CONTENT_KINDS.includes(k as ContentKind));
+    return out.length ? Array.from(new Set(out)) : undefined;
+};
+
+const cleanLimit = (v: unknown): number | undefined => {
+    if (typeof v !== 'number' || !Number.isFinite(v)) return undefined;
+    const n = Math.floor(v);
+    if (n < 1) return 1;
+    return n > MAX_CONTENT_ITEMS ? MAX_CONTENT_ITEMS : n;
 };
 
 function parseBlock(raw: unknown): UIBlock | null {
@@ -68,6 +84,34 @@ function parseBlock(raw: unknown): UIBlock | null {
             if (!projectIds.length) return null;
             const columns: 2 | 3 = raw.columns === 3 ? 3 : 2;
             return { type: 'workGrid', projectIds, columns };
+        }
+        case 'projectHeader': {
+            const projectId = cleanId(raw.projectId);
+            if (!projectId) return null;
+            const emphasis = cleanEmphasis(raw.emphasis);
+            return emphasis
+                ? { type: 'projectHeader', projectId, emphasis }
+                : { type: 'projectHeader', projectId };
+        }
+        case 'projectMedia': {
+            const projectId = cleanId(raw.projectId);
+            if (!projectId) return null;
+            return { type: 'projectMedia', projectId };
+        }
+        case 'projectMetrics': {
+            const projectId = cleanId(raw.projectId);
+            if (!projectId) return null;
+            return { type: 'projectMetrics', projectId };
+        }
+        case 'projectContent': {
+            const projectId = cleanId(raw.projectId);
+            if (!projectId) return null;
+            const kinds = cleanKinds(raw.kinds);
+            const limit = cleanLimit(raw.limit);
+            const block: UIBlock = { type: 'projectContent', projectId };
+            if (kinds) block.kinds = kinds;
+            if (limit !== undefined) block.limit = limit;
+            return block;
         }
         default:
             return null;
