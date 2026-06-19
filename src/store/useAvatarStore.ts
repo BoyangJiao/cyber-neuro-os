@@ -14,8 +14,10 @@ export type AgentStatus = 'idle' | 'listening' | 'thinking' | 'speaking';
 export type Emotion = 'neutral' | 'happy' | 'sad' | 'surprised' | 'angry' | 'curious';
 
 /** Per-frame signals read in useFrame (never trigger React):
- *  jaw = Borvis's mouth-open while speaking; mic = user's input loudness while listening. */
-export const avatarSignal = { jaw: 0, mic: 0 };
+ *  jaw = Borvis's mouth-open while speaking; mic = user's input loudness while listening;
+ *  pointerX/Y = cursor in NDC (-1..1, y up) tracked at the WINDOW level so the head can
+ *  follow the cursor even over overlay panels that capture canvas pointer events. */
+export const avatarSignal = { jaw: 0, mic: 0, pointerX: 0, pointerY: 0 };
 
 interface AvatarState {
     status: AgentStatus;

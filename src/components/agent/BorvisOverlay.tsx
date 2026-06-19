@@ -129,10 +129,14 @@ export const BorvisOverlay = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [faceReady]);
 
-    // Top-edge hover → reveal exit button for 3s
+    // Top-edge hover → reveal exit button; also feed the window-level cursor into
+    // avatarSignal (NDC) so the head tracks it even over the content panel (which
+    // captures the canvas's own pointer events).
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         const handler = (e: MouseEvent) => {
+            avatarSignal.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+            avatarSignal.pointerY = -((e.clientY / window.innerHeight) * 2 - 1);
             if (e.clientY < 60) {
                 setShowExit(true);
                 clearTimeout(timer);

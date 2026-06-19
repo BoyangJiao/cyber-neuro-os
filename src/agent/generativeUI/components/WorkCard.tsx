@@ -94,14 +94,14 @@ export function WorkCard({ project, emphasis = [], onOpen, language = 'en', clas
 
             {/* Body */}
             <div className="flex flex-1 flex-col gap-2 p-4">
-                <div className="flex items-baseline justify-between gap-2">
-                    <h3 className="font-display text-lg font-bold leading-tight text-text-accent">
+                <div className="flex flex-col gap-0.5">
+                    <h3 className="font-display text-lg font-bold leading-tight text-text-accent break-words">
                         {project.title}
                     </h3>
                     {project.timeline && (
                         <span
                             className={clsx(
-                                'shrink-0 font-mono text-xs',
+                                'font-mono text-xs',
                                 has('timeline') ? 'text-brand-primary' : 'text-text-secondary',
                             )}
                         >

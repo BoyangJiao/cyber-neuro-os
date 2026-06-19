@@ -144,7 +144,7 @@ export const NeuralHalftoneFace = ({
     glitch = 0.06,
     intro = true,
 }: Props) => {
-    const { gl, size, pointer } = useThree();
+    const { gl, size } = useThree();
     const { scene } = useGLTF(modelUrl);
     const jawRef = useRef(0);
     const introT = useRef(intro ? 0 : 1);
@@ -300,8 +300,16 @@ export const NeuralHalftoneFace = ({
         // Limited head rotation: follow the cursor within ±maxYaw/±maxPitch + idle
         // drift; while speaking add a subtle nod/sway scaled by the current jaw.
         const sway = speaking ? jaw * 0.06 : 0;
-        const tYaw = pointer.x * maxYaw + Math.sin(t * 0.25) * 0.05 + Math.sin(t * 2.3) * sway;
-        const tPitch = -pointer.y * maxPitch + Math.sin(t * 0.21) * 0.03 + Math.sin(t * 3.1) * sway;
+        // Track the WINDOW cursor (avatarSignal, set at window level so it works over
+        // overlay panels), mapped relative to the head's CURRENT screen position so the
+        // gaze stays accurate when the head is offset into a left pane.
+        const halfW = 2.066 * (size.height > 0 ? size.width / size.height : 1); // tan(19°)*6 * aspect
+        const faceNormX = halfW > 0 ? curOffX.current / halfW : 0;
+        const faceNormY = curOffY.current / 2.066;
+        const yawF = Math.max(-1, Math.min(1, avatarSignal.pointerX - faceNormX));
+        const pitchF = Math.max(-1, Math.min(1, avatarSignal.pointerY - faceNormY));
+        const tYaw = yawF * maxYaw + Math.sin(t * 0.25) * 0.05 + Math.sin(t * 2.3) * sway;
+        const tPitch = -pitchF * maxPitch + Math.sin(t * 0.21) * 0.03 + Math.sin(t * 3.1) * sway;
         const pivot = built.pivot;
         pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
         pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);
