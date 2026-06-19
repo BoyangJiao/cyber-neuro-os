@@ -114,20 +114,22 @@ export function GenUILabPage() {
                     </div>
 
                     {/* Right: live render */}
-                    <div className="rounded-md border border-brand-primary/20 bg-black/20 p-4">
-                        <div className="mb-3 font-mono text-xs uppercase tracking-widest text-text-secondary">
+                    <div className="flex max-h-[82dvh] flex-col rounded-md border border-brand-primary/20 bg-black/20 p-4 lg:sticky lg:top-6">
+                        <div className="mb-3 shrink-0 font-mono text-xs uppercase tracking-widest text-text-secondary">
                             Live render
                         </div>
-                        {result && result.ok ? (
-                            <GenerativeUI
-                                spec={result.spec}
-                                onOpenProject={(p) => navigate(`/projects/${p.id}`)}
-                            />
-                        ) : (
-                            <div className="font-mono text-xs text-text-secondary">
-                                {result ? 'Fix the spec to render.' : 'Waiting for a spec…'}
-                            </div>
-                        )}
+                        <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent] [scrollbar-width:thin]">
+                            {result && result.ok ? (
+                                <GenerativeUI
+                                    spec={result.spec}
+                                    onOpenProject={(p) => navigate(`/projects/${p.id}`)}
+                                />
+                            ) : (
+                                <div className="font-mono text-xs text-text-secondary">
+                                    {result ? 'Fix the spec to render.' : 'Waiting for a spec…'}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
