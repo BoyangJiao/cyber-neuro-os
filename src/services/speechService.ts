@@ -59,7 +59,9 @@ interface SpeakOpts {
     onStart?: (durationSec: number) => void;
 }
 
-async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
+/** Fetch + DECODE a TTS clip without playing it — so the next sentence can be
+ *  synthesised while the current one is still speaking (no dead air between). */
+async function prepareTts(text: string): Promise<AudioBuffer | null> {
     let res: Response;
     try {
         res = await fetch('/api/tts', {
@@ -68,44 +70,40 @@ async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
             body: JSON.stringify({ text }),
         });
     } catch {
-        return false; // endpoint unreachable → fall back
+        return null; // endpoint unreachable → caller uses browser fallback
     }
     if (!res.ok) {
         if (import.meta.env.DEV) {
             const detail = await res.text().catch(() => '');
             console.info('[speech] /api/tts not ok (', res.status, ') → browser TTS fallback. upstream:', detail);
         }
-        return false;
+        return null;
     }
-
     const buf = await res.arrayBuffer();
     if (buf.byteLength < 256) {
         if (import.meta.env.DEV) console.info('[speech] /api/tts returned no audio → browser TTS fallback');
-        return false;
+        return null;
     }
-
-    const ctx = getAudioCtx();
-    // If the context still isn't running (no unlocking gesture happened yet),
-    // playing would hang silently forever — use the SpeechSynthesis fallback,
-    // which has its own watchdogs. (Function read defeats TS narrowing across
-    // the await — resume() can legitimately flip the state.)
-    const isRunning = () => (ctx.state as AudioContextState) === 'running';
-    if (!isRunning()) {
-        await ctx.resume().catch(() => { /* noop */ });
-        if (!isRunning()) {
-            if (import.meta.env.DEV) console.info('[speech] AudioContext not running (no user gesture yet) → browser TTS fallback');
-            return false;
-        }
-    }
-    let audioBuf: AudioBuffer;
     try {
-        audioBuf = await ctx.decodeAudioData(buf.slice(0));
+        return await getAudioCtx().decodeAudioData(buf.slice(0)); // decode works on a suspended ctx
     } catch {
         if (import.meta.env.DEV) console.info('[speech] /api/tts payload not decodable audio → browser TTS fallback');
-        return false; // not decodable audio → fall back
+        return null;
     }
-    if (import.meta.env.DEV) console.info('[speech] DashScope TTS ok — amplitude lip-sync');
+}
 
+/** Ensure the AudioContext is actually running (needs a prior user gesture). */
+async function ensureRunning(): Promise<boolean> {
+    const ctx = getAudioCtx();
+    const isRunning = () => (ctx.state as AudioContextState) === 'running';
+    if (isRunning()) return true;
+    await ctx.resume().catch(() => { /* noop */ });
+    return isRunning();
+}
+
+/** Play a decoded clip, driving the jaw lip-sync signal; resolves when it ends. */
+function playBuffer(audioBuf: AudioBuffer, opts: SpeakOpts): Promise<void> {
+    const ctx = getAudioCtx();
     const src = ctx.createBufferSource();
     src.buffer = audioBuf;
     const analyser = ctx.createAnalyser();
@@ -128,13 +126,13 @@ async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
         raf = requestAnimationFrame(tick);
     };
 
-    return new Promise<boolean>((resolve) => {
+    return new Promise<void>((resolve) => {
         const finish = () => {
             clearTimeout(watchdog);
             cancelAnimationFrame(raf);
             avatarSignal.jaw = 0;
             try { src.disconnect(); } catch { /* noop */ }
-            resolve(true);
+            resolve();
         };
         src.onended = finish;
         cancelCurrent = () => { try { src.stop(); } catch { /* noop */ } finish(); };
@@ -211,16 +209,33 @@ function speakBrowser(text: string, opts: SpeakOpts): Promise<void> {
 // Sentences are enqueued as the model streams; they play strictly in order so
 // Borvis can speak WHILE the UI renders. `speakGen` invalidates queued/in-flight
 // items on cancel (barge-in / new query).
+// Natural pause at a sentence boundary (a "period" beat) — the only gap we keep,
+// now that synthesis no longer stalls between clips.
+const SENTENCE_GAP_MS = 180;
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 let speakGen = 0;
-const speakQueue: Array<() => Promise<void>> = [];
+interface QueueItem { gen: number; text: string; bufP: Promise<AudioBuffer | null>; opts: SpeakOpts; resolve: () => void; }
+const speakQueue: QueueItem[] = [];
 let pumping = false;
+let firstOfRun = true; // no leading gap before the first sentence of a reply
 
 async function pumpQueue() {
     if (pumping) return;
     pumping = true;
     while (speakQueue.length) {
-        const job = speakQueue.shift()!;
-        await job();
+        const item = speakQueue.shift()!;
+        if (item.gen !== speakGen) { item.resolve(); continue; }
+        // The clip is already being synthesised (prefetched at enqueue time), so this
+        // usually resolves immediately — the next sentence is ready before this ends.
+        const buffer = await item.bufP;
+        if (item.gen !== speakGen) { item.resolve(); continue; }
+        if (!firstOfRun) await delay(SENTENCE_GAP_MS);
+        if (item.gen !== speakGen) { item.resolve(); continue; }
+        firstOfRun = false;
+        if (buffer && (await ensureRunning())) await playBuffer(buffer, item.opts);
+        else await speakBrowser(item.text, item.opts); // synth failed / audio not unlocked
+        item.resolve();
     }
     pumping = false;
 }
@@ -229,22 +244,23 @@ async function pumpQueue() {
 export function cancelSpeech() {
     speakGen++;
     speakQueue.length = 0;
+    firstOfRun = true;
     cancelCurrent?.();
     cancelCurrent = null;
     avatarSignal.jaw = 0;
 }
 
-/** Enqueue one chunk to be spoken in order. Resolves when it finishes/skips. */
+/**
+ * Enqueue one sentence to be spoken in order. Synthesis STARTS immediately (in
+ * parallel) so it's ready by the time prior sentences finish — continuous speech
+ * with only the natural sentence pause. Resolves when this clip finishes/skips.
+ */
 export function speakEnqueue(text: string, opts: SpeakOpts = {}): Promise<void> {
     if (!text.trim()) return Promise.resolve();
-    const myGen = speakGen;
+    const gen = speakGen;
+    const bufP = prepareTts(text); // kick off synthesis NOW (prefetch)
     return new Promise<void>((resolve) => {
-        speakQueue.push(async () => {
-            if (myGen !== speakGen) { resolve(); return; } // cancelled before its turn
-            const ok = await speakDashScope(text, opts);
-            if (myGen === speakGen && !ok) await speakBrowser(text, opts);
-            resolve();
-        });
+        speakQueue.push({ gen, text, bufP, opts, resolve });
         void pumpQueue();
     });
 }
@@ -253,6 +269,7 @@ export function speakEnqueue(text: string, opts: SpeakOpts = {}): Promise<void> 
 export async function speak(text: string, opts: SpeakOpts = {}): Promise<void> {
     cancelSpeech();
     if (!text.trim()) return;
-    const ok = await speakDashScope(text, opts);
-    if (!ok) await speakBrowser(text, opts);
+    const buffer = await prepareTts(text);
+    if (buffer && (await ensureRunning())) await playBuffer(buffer, opts);
+    else await speakBrowser(text, opts);
 }
