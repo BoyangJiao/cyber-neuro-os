@@ -416,30 +416,25 @@ export const BorvisOverlay = () => {
                 )}
             </AnimatePresence>
 
-            {/* ── Transcript panel — mobile: above the input bar, full width, on a
-                 dark blur panel; lg+: a bounded right column (top-6 → above the input
-                 bar) that splits into transcript (top) + render (bottom), each
-                 scrolling internally so nothing spills past the viewport or the input. */}
+            {/* ── Transcript panel — mobile: above the input bar, full width. lg+: a
+                 CENTRED floating column that grows from the middle with content; the
+                 transcript and render are each capped + scroll internally, so a long
+                 reply fills then scrolls instead of spilling past the top / the input. */}
             <div
                 className={clsx(
                     'absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm',
-                    'lg:left-auto lg:right-10 lg:top-6 lg:bottom-28 lg:flex lg:flex-col lg:gap-4 lg:transition-[width] lg:duration-500 lg:ease-out',
-                    !stageOpen && 'lg:justify-center',
+                    'lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2 lg:transition-[width] lg:duration-500 lg:ease-out',
                 )}
                 style={isMobile ? undefined : { width: stageOpen ? stageWidth : 340 }}
             >
-                <div className={clsx('flex flex-col', stageOpen && 'lg:min-h-0 lg:flex-1')}>
-                    <div className="mb-2 shrink-0 text-[10px] tracking-[0.3em] text-brand-primary/40">
-                        TRANSCRIPT ·{' '}
-                        <span className="text-brand-primary/70">{status.toUpperCase()}</span>
-                    </div>
-                    <div
-                        ref={scrollRef}
-                        className={clsx(
-                            'pointer-events-auto overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]',
-                            stageOpen ? 'max-h-[28dvh] lg:max-h-none lg:min-h-0 lg:flex-1' : 'max-h-[28dvh] lg:max-h-[50vh]',
-                        )}
-                    >
+                <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
+                    TRANSCRIPT ·{' '}
+                    <span className="text-brand-primary/70">{status.toUpperCase()}</span>
+                </div>
+                <div
+                    ref={scrollRef}
+                    className="pointer-events-auto max-h-[28dvh] lg:max-h-[32vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]"
+                >
                     {busy && !transcript ? (
                         <div className="flex items-center gap-2 font-mono text-sm text-brand-primary/80">
                             {thinkingLabel}
@@ -458,21 +453,14 @@ export const BorvisOverlay = () => {
                             className="text-sm leading-relaxed"
                         />
                     )}
-                    </div>
                 </div>
 
-                {/* Generative UI — the composed node tree. On desktop it's the bottom
-                    half of the bounded column and scrolls within its own bounds. */}
+                {/* Generative UI — the composed node tree, capped + scrolling so the
+                    whole panel stays centred and clear of the input bar. */}
                 {spec && (
-                    <div className={clsx(
-                        'mt-3 border-t border-brand-primary/15 pt-3',
-                        stageOpen && 'lg:mt-0 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col',
-                    )}>
-                        <div className="mb-2 shrink-0 text-[10px] tracking-[0.3em] text-brand-primary/40">RENDER</div>
-                        <div className={clsx(
-                            'pointer-events-auto overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]',
-                            stageOpen ? 'max-h-[40dvh] lg:max-h-none lg:min-h-0 lg:flex-1' : 'max-h-[34dvh] lg:max-h-[40dvh]',
-                        )}>
+                    <div className="mt-3 border-t border-brand-primary/15 pt-3">
+                        <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">RENDER</div>
+                        <div className="pointer-events-auto max-h-[34dvh] lg:max-h-[42vh] overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]">
                             <GenerativeUI spec={spec} onOpenProject={onOpenProject} />
                         </div>
                     </div>
