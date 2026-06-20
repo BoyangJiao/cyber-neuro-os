@@ -386,10 +386,9 @@ export const BorvisOverlay = () => {
             {/* ── Transcript panel — mobile: above the input bar, full width, on a
                  dark blur panel for readability over the face; lg+: right side, and
                  it widens into a content stage while a generative UI is attached ── */}
-            <motion.div
-                className="absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2"
-                animate={isMobile ? {} : { width: stageOpen ? stageWidth : 340 }}
-                transition={{ type: 'spring', stiffness: 130, damping: 24 }}
+            <div
+                className="absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2 lg:transition-[width] lg:duration-500 lg:ease-out"
+                style={isMobile ? undefined : { width: stageOpen ? stageWidth : 340 }}
             >
                 <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                     TRANSCRIPT ·{' '}
@@ -424,12 +423,12 @@ export const BorvisOverlay = () => {
                 {spec && (
                     <div className="mt-3 border-t border-brand-primary/15 pt-3">
                         <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">RENDER</div>
-                        <div className={`pointer-events-auto overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent] ${stageOpen ? 'max-h-[68dvh]' : 'max-h-[40dvh]'}`}>
+                        <div className={`pointer-events-auto overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent] ${stageOpen ? 'max-h-[68dvh]' : 'max-h-[34dvh] lg:max-h-[40dvh]'}`}>
                             <GenerativeUI spec={spec} onOpenProject={onOpenProject} />
                         </div>
                     </div>
                 )}
-            </motion.div>
+            </div>
 
             {/* ── Input bar (bottom center) ── */}
             <div className="absolute bottom-[max(2rem,env(safe-area-inset-bottom))] left-1/2 flex w-[min(600px,92vw)] lg:w-[min(600px,82vw)] -translate-x-1/2 items-center gap-2">
