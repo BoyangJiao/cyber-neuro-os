@@ -19,7 +19,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStore } from '../../store/useAgentStore';
 import { useAvatarStore, avatarSignal } from '../../store/useAvatarStore';
 import { streamChat } from '../../services/agentService';
-import { speak, cancelSpeech } from '../../services/speechService';
+import { speak, speakEnqueue, cancelSpeech } from '../../services/speechService';
 import { startListening } from '../../services/asrService';
 import { classifyEmotion } from '../three/avatar/expressions';
 import type { Emotion } from '../../store/useAvatarStore';
@@ -45,6 +45,7 @@ export const BorvisOverlay = () => {
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
     const [typeSpeed, setTypeSpeed] = useState(45);
+    const [replyId, setReplyId] = useState(0);
     const [recording, setRecording] = useState(false);
     const [micLevel, setMicLevel] = useState(0);
     const [showExit, setShowExit] = useState(false);
@@ -156,9 +157,22 @@ export const BorvisOverlay = () => {
         setTranscript('');
         setSpec(null);
 
+        cancelSpeech(); // stop any prior queued/in-flight speech (barge-in / re-ask)
+        setReplyId((n) => n + 1); // stable transcript identity for this reply
+
         let reply = '';
         let detected: string | null = null;
         let nextSpec: UISpec | null = null;
+        let started = false;
+        let spoken = '';
+        const plays: Promise<void>[] = [];
+
+        const beginSpeaking = () => {
+            if (started) return;
+            started = true;
+            setEmotion(detected ? (detected as Emotion) : 'neutral');
+            setStatus('speaking');
+        };
 
         // Real projects the model may reference (id + light facts, for grounded
         // narration). Hard data (metrics/media/content) is still filled by the
@@ -180,29 +194,47 @@ export const BorvisOverlay = () => {
                 genuiProjects,
                 onToken: (t) => { reply += t; },
                 onEmotion: (e) => { detected = e; },
-                // Surface the spec live so the UI assembles node-by-node as the
-                // model streams; the final emission (post-loop) is authoritative.
+                // Speak each sentence the moment it's ready — Borvis talks WHILE the
+                // rest streams and the UI assembles. Transcript reveals in lock-step
+                // with each sentence's audio (onStart fires when it begins playing).
+                onSentence: (s) => {
+                    if (!aliveRef.current) return;
+                    beginSpeaking();
+                    plays.push(speakEnqueue(s, {
+                        onStart: (dur) => {
+                            spoken += s;
+                            setTranscript(spoken);
+                            setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, s.length))));
+                        },
+                    }));
+                },
                 onSpec: (s) => { nextSpec = s; setSpec(s); },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });
         });
 
-        // Exited (e.g. ESC) while still thinking? Don't speak on the home page.
-        if (!aliveRef.current) { busyRef.current = false; return; }
+        // Exited (e.g. ESC) while streaming? Stop speech and bail.
+        if (!aliveRef.current) { cancelSpeech(); busyRef.current = false; return; }
 
-        reply = reply.trim() || '……';
-        setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));
-        setStatus('speaking');
         setSpec(nextSpec);
 
-        await speak(reply, {
-            onStart: (dur) => {
-                setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, reply.length))));
-                setTranscript(reply);
-            },
-        });
+        if (!started) {
+            // Nothing was spoken (empty reply or mock path) → one-shot fallback.
+            reply = reply.trim() || '……';
+            setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));
+            setStatus('speaking');
+            await speak(reply, {
+                onStart: (dur) => {
+                    setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, reply.length))));
+                    setTranscript(reply);
+                },
+            });
+        } else {
+            await Promise.all(plays); // let the queued sentences finish playing
+        }
 
+        if (!aliveRef.current) { busyRef.current = false; return; }
         setStatus('idle');
         setEmotion('neutral');
         busyRef.current = false;
@@ -409,7 +441,7 @@ export const BorvisOverlay = () => {
                         </div>
                     ) : (
                         <TypewriterTranscript
-                            key={transcript || 'idle'}
+                            key={replyId}
                             text={transcript || undefined}
                             speed={typeSpeed}
                             onUpdate={onTranscriptUpdate}

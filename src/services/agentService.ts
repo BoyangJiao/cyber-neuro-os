@@ -23,6 +23,9 @@ interface StreamChatOptions {
      * flag GENUI_ENABLED=1; otherwise never fires.
      */
     onSpec?: (spec: UISpec) => void;
+    /** Fires per spoken SENTENCE of the cleaned reply (sentence-streaming TTS), so
+     *  the host can speak while the rest streams + the UI renders. */
+    onSentence?: (sentence: string) => void;
     /** Compact list of real projects (id + light facts) the model may reference (genui). */
     genuiProjects?: {
         id: string;
@@ -60,6 +63,49 @@ function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: strin
     };
 }
 
+/**
+ * makeSentencer — split the clean (spoken) text stream into sentences for TTS.
+ * Splits on CJK/!/?/newline enders (NOT '.', to avoid decimals/abbreviations), and
+ * merges fragments until a minimum length so playback isn't choppy. Whitespace is
+ * preserved across emits so concatenated sentences reconstruct the reply verbatim.
+ */
+function makeSentencer(onSentence?: (s: string) => void) {
+    const ENDERS = '。！？!?？\n…';
+    const MIN = 8;
+    let buf = '';
+    let sawContent = false;
+
+    const drain = () => {
+        if (!onSentence) { buf = ''; return; }
+        while (true) {
+            let cut = -1;
+            for (let i = 0; i < buf.length; i++) {
+                if (ENDERS.includes(buf[i])) {
+                    let j = i;
+                    while (j + 1 < buf.length && ENDERS.includes(buf[j + 1])) j++;
+                    if (buf.slice(0, j + 1).trim().length >= MIN) { cut = j + 1; break; }
+                }
+            }
+            if (cut === -1) break;
+            let seg = buf.slice(0, cut);
+            buf = buf.slice(cut);
+            if (!sawContent) seg = seg.replace(/^\s+/, '');
+            if (seg.trim()) { sawContent = true; onSentence(seg); }
+        }
+    };
+
+    return {
+        push: (chunk: string) => { buf += chunk; drain(); },
+        flush: () => {
+            if (!onSentence) { buf = ''; return; }
+            let seg = buf;
+            buf = '';
+            if (!sawContent) seg = seg.replace(/^\s+/, '');
+            if (seg.trim()) onSentence(seg);
+        },
+    };
+}
+
 // ============================================================
 // Real API — DashScope (Qwen) via Vercel Serverless (/api/chat)
 // ============================================================
@@ -72,8 +118,11 @@ function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: strin
  */
 type RealResult = 'ok' | 'unavailable';
 
-const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, onSpec, genuiProjects }: StreamChatOptions): Promise<RealResult> => {
-    const emo = makeEmotionStripper(onToken, onEmotion);
+const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, onSpec, onSentence, genuiProjects }: StreamChatOptions): Promise<RealResult> => {
+    const sentencer = makeSentencer(onSentence);
+    // Feed the emotion-stripped (clean, spoken) text to BOTH the transcript and the
+    // sentence splitter, so sentence-streaming TTS sees exactly what will be shown.
+    const emo = makeEmotionStripper((t) => { onToken(t); sentencer.push(t); }, onEmotion);
     let response: Response;
     try {
         response = await fetch('/api/chat', {
@@ -172,6 +221,7 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
         }
 
         emo.flush();
+        sentencer.flush();
 
         // Authoritative final spec: prefer the complete args, fall back to the
         // tolerant closer if the stream ended mid-token. Supersedes any partial.

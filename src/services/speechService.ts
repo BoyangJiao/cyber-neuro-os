@@ -207,13 +207,49 @@ function speakBrowser(text: string, opts: SpeakOpts): Promise<void> {
     });
 }
 
-/** Stop any in-flight speech and reset the jaw. */
-export function cancelSpeech() {
-    cancelCurrent?.();
-    cancelCurrent = null;
+// ── Sequential speak queue (sentence-streaming TTS) ─────────────────────────
+// Sentences are enqueued as the model streams; they play strictly in order so
+// Borvis can speak WHILE the UI renders. `speakGen` invalidates queued/in-flight
+// items on cancel (barge-in / new query).
+let speakGen = 0;
+const speakQueue: Array<() => Promise<void>> = [];
+let pumping = false;
+
+async function pumpQueue() {
+    if (pumping) return;
+    pumping = true;
+    while (speakQueue.length) {
+        const job = speakQueue.shift()!;
+        await job();
+    }
+    pumping = false;
 }
 
-/** Speak `text`. Resolves when playback finishes (or is cancelled). */
+/** Stop any in-flight + queued speech and reset the jaw. */
+export function cancelSpeech() {
+    speakGen++;
+    speakQueue.length = 0;
+    cancelCurrent?.();
+    cancelCurrent = null;
+    avatarSignal.jaw = 0;
+}
+
+/** Enqueue one chunk to be spoken in order. Resolves when it finishes/skips. */
+export function speakEnqueue(text: string, opts: SpeakOpts = {}): Promise<void> {
+    if (!text.trim()) return Promise.resolve();
+    const myGen = speakGen;
+    return new Promise<void>((resolve) => {
+        speakQueue.push(async () => {
+            if (myGen !== speakGen) { resolve(); return; } // cancelled before its turn
+            const ok = await speakDashScope(text, opts);
+            if (myGen === speakGen && !ok) await speakBrowser(text, opts);
+            resolve();
+        });
+        void pumpQueue();
+    });
+}
+
+/** Speak `text` in one shot. Resolves when playback finishes (or is cancelled). */
 export async function speak(text: string, opts: SpeakOpts = {}): Promise<void> {
     cancelSpeech();
     if (!text.trim()) return;

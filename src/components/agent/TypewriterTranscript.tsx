@@ -24,16 +24,26 @@ interface Props {
 export const TypewriterTranscript = ({ text, lines = DEMO_LINES, speed = 45, className = '', onUpdate }: Props) => {
     const [idx, setIdx] = useState(0);
     const [shown, setShown] = useState('');
+    const shownRef = useRef('');
     const timer = useRef<ReturnType<typeof setInterval>>(undefined);
     const hold = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     useEffect(() => {
         const full = text ?? lines[idx % lines.length];
-        setShown('');
-        let i = 0;
+        // Streaming case: when the live text simply GROWS, resume from where we are
+        // instead of re-typing the whole line (avoids per-sentence flicker).
+        let i: number;
+        if (text !== undefined && shownRef.current.length > 0 && full.startsWith(shownRef.current)) {
+            i = shownRef.current.length;
+        } else {
+            i = 0;
+            shownRef.current = '';
+            setShown('');
+        }
         timer.current = setInterval(() => {
             i++;
-            setShown(full.slice(0, i));
+            shownRef.current = full.slice(0, i);
+            setShown(shownRef.current);
             onUpdate?.();
             if (i >= full.length) {
                 clearInterval(timer.current);
