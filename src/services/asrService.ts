@@ -13,13 +13,36 @@ export interface Recording {
     cancel: () => void;
 }
 
-function encodeWav(chunks: Float32Array[], sampleRate: number): Blob {
+/** Flatten captured chunks into one PCM buffer. */
+function concatChunks(chunks: Float32Array[]): Float32Array {
     let length = 0;
     for (const c of chunks) length += c.length;
     const pcm = new Float32Array(length);
     let off = 0;
     for (const c of chunks) { pcm.set(c, off); off += c.length; }
+    return pcm;
+}
 
+/** Downsample mono PCM to 16kHz (qwen-asr's native rate) — cuts the upload
+ *  payload ~3x vs the mic's typical 48kHz, the dominant ASR latency. Box-average
+ *  over each source window to limit aliasing. No-op if already ≤16kHz. */
+function downsampleTo16k(pcm: Float32Array, srcRate: number): { data: Float32Array; rate: number } {
+    const TARGET = 16000;
+    if (srcRate <= TARGET) return { data: pcm, rate: srcRate };
+    const ratio = srcRate / TARGET;
+    const outLen = Math.floor(pcm.length / ratio);
+    const out = new Float32Array(outLen);
+    for (let i = 0; i < outLen; i++) {
+        const start = Math.floor(i * ratio);
+        const end = Math.min(pcm.length, Math.floor((i + 1) * ratio));
+        let sum = 0, n = 0;
+        for (let j = start; j < end; j++) { sum += pcm[j]; n++; }
+        out[i] = n ? sum / n : pcm[start] ?? 0;
+    }
+    return { data: out, rate: TARGET };
+}
+
+function encodeWav(pcm: Float32Array, sampleRate: number): Blob {
     const buffer = new ArrayBuffer(44 + pcm.length * 2);
     const view = new DataView(buffer);
     const writeStr = (o: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
@@ -108,7 +131,8 @@ export async function startListening(opts: ListenOpts = {}): Promise<Recording> 
             const sampleRate = ctx.sampleRate;
             teardown();
             if (chunks.length === 0) return '';
-            const wav = encodeWav(chunks, sampleRate);
+            const { data, rate } = downsampleTo16k(concatChunks(chunks), sampleRate);
+            const wav = encodeWav(data, rate);
             const dataUri = await blobToDataUri(wav);
             try {
                 const res = await fetch('/api/asr', {

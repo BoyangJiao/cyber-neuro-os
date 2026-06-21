@@ -278,7 +278,7 @@ export const BorvisOverlay = () => {
             const rec = await startListening({
                 onLevel: (lvl) => { avatarSignal.mic = lvl; setMicLevel(lvl); },
                 onSilence: () => { void stopPTT(); },
-                silenceMs: 3000,
+                silenceMs: 1800,
             });
             // If the user already released (or the overlay exited) while the mic was
             // coming up, don't keep a live recording — discard it cleanly.
