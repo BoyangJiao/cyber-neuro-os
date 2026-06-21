@@ -20,6 +20,9 @@ dist-ssr
 # Harness-kit scaffolding (methodology now lives in-repo; keep only the stamp).
 .harness-kit/
 
+# Local agent/skill scratch (harness-managed, not project source).
+.agents/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
