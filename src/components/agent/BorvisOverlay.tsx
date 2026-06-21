@@ -60,6 +60,11 @@ export const BorvisOverlay = () => {
     const stopRequestedRef = useRef(false);   // set if the user releases before startListening() resolves
     const busyRef = useRef(false);
     const aliveRef = useRef(true);   // false once unmounted → in-flight respond() must not speak
+    // Conversation generation: each new turn (or barge-in) bumps it, so a superseded
+    // respond() bails instead of stomping the new turn's state. abortRef stops the
+    // old turn's chat stream immediately.
+    const genRef = useRef(0);
+    const abortRef = useRef<AbortController | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const { exitBorvis, isBorvisTransitioning, borvisTransitionDir } = useAgentStore(useShallow((s) => ({
@@ -98,6 +103,8 @@ export const BorvisOverlay = () => {
     // recording (getUserMedia stream + AudioContext), so exiting never leaks audio.
     useEffect(() => () => {
         aliveRef.current = false;       // stop any in-flight respond() from speaking after exit
+        genRef.current++;               // invalidate any in-flight turn
+        abortRef.current?.abort();      // stop the chat stream
         cancelSpeech();
         recRef.current?.cancel();
         recRef.current = null;
@@ -148,7 +155,14 @@ export const BorvisOverlay = () => {
 
     // ── Conversation pipeline ─────────────────────────────────────
     const respond = useCallback(async (msg: string) => {
-        if (!msg.trim() || busyRef.current) return;
+        if (!msg.trim()) return;
+        // Supersede any in-flight turn (barge-in / re-ask): bump the generation so the
+        // older respond() bails at its checkpoints, and abort its chat stream now.
+        const myGen = ++genRef.current;
+        abortRef.current?.abort();
+        const ac = new AbortController();
+        abortRef.current = ac;
+
         busyRef.current = true;
         setBusy(true);
         setStatus('thinking');
@@ -189,13 +203,14 @@ export const BorvisOverlay = () => {
             streamChat({
                 messages: [{ id: 'u', role: 'user', content: msg, timestamp: Date.now() }],
                 genuiProjects,
-                onToken: (t) => { reply += t; },
+                abortSignal: ac.signal,
+                onToken: (t) => { if (genRef.current !== myGen) return; reply += t; },
                 onEmotion: (e) => { detected = e; },
                 // Speak each sentence the moment it's ready — Borvis talks WHILE the
                 // rest streams and the UI assembles. Transcript reveals in lock-step
                 // with each sentence's audio (onStart fires when it begins playing).
                 onSentence: (s) => {
-                    if (!aliveRef.current) return;
+                    if (!aliveRef.current || genRef.current !== myGen) return;
                     beginSpeaking();
                     plays.push(speakEnqueue(s, {
                         onStart: (dur) => {
@@ -205,12 +220,14 @@ export const BorvisOverlay = () => {
                         },
                     }));
                 },
-                onSpec: (s) => { setSpec(s); },
+                onSpec: (s) => { if (genRef.current !== myGen) return; setSpec(s); },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });
         });
 
+        // Superseded by a newer turn (barge-in)? Leave all shared state to its owner.
+        if (genRef.current !== myGen) return;
         // Exited (e.g. ESC) while streaming? Stop speech, drop the partial spec, bail.
         if (!aliveRef.current) { cancelSpeech(); setSpec(null); busyRef.current = false; return; }
 
@@ -229,6 +246,7 @@ export const BorvisOverlay = () => {
             await Promise.all(plays); // let the queued sentences finish playing
         }
 
+        if (genRef.current !== myGen) return;   // superseded during playback
         if (!aliveRef.current) { busyRef.current = false; return; }
         setStatus('idle');
         setEmotion('neutral');
@@ -271,7 +289,13 @@ export const BorvisOverlay = () => {
     const startPTT = useCallback(async () => {
         if (recRef.current) return;
         stopRequestedRef.current = false;
+        // Barge-in: abandon any in-flight reply (audio + chat stream + its respond()),
+        // and clear the busy flags so the upcoming transcript's respond() isn't blocked.
+        genRef.current++;
+        abortRef.current?.abort();
         cancelSpeech();
+        busyRef.current = false;
+        setBusy(false);
         useAvatarStore.getState().setStatus('listening');
         setRecording(true);
         try {

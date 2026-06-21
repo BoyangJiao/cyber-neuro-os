@@ -37,6 +37,8 @@ interface StreamChatOptions {
         liveUrl?: string;
         projectType?: string | string[];
     }[];
+    /** Abort the in-flight request (barge-in / new turn supersedes the old one). */
+    abortSignal?: AbortSignal;
 }
 
 /**
@@ -133,7 +135,7 @@ function makeSentencer(onSentence?: (s: string) => void) {
  */
 type RealResult = 'ok' | 'unavailable';
 
-const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, onSpec, onSentence, genuiProjects }: StreamChatOptions): Promise<RealResult> => {
+const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, onSpec, onSentence, genuiProjects, abortSignal }: StreamChatOptions): Promise<RealResult> => {
     const sentencer = makeSentencer(onSentence);
     // Feed the emotion-stripped (clean, spoken) text to BOTH the transcript and the
     // sentence splitter, so sentence-streaming TTS sees exactly what will be shown.
@@ -143,6 +145,7 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
         response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: abortSignal,
             body: JSON.stringify({
                 messages: messages.map(m => ({
                     role: m.role,
@@ -154,6 +157,8 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
             }),
         });
     } catch {
+        // Aborted (barge-in) → clean stop, NOT a mock fallback.
+        if (abortSignal?.aborted) { onDone(); return 'ok'; }
         // Network-level failure (no dev server / offline) → let caller use the mock.
         return 'unavailable';
     }
@@ -252,6 +257,8 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
         onDone();
         return 'ok';
     } catch (error) {
+        // Aborted mid-stream (barge-in) → clean stop, not an error.
+        if (abortSignal?.aborted) { onDone(); return 'ok'; }
         // Failure mid-stream (already connected) is a real error, not "unavailable".
         onError(error instanceof Error ? error.message : 'Network error');
         return 'ok';
