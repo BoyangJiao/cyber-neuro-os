@@ -60,36 +60,50 @@ interface SpeakOpts {
 }
 
 /** Fetch + DECODE a TTS clip without playing it — so the next sentence can be
- *  synthesised while the current one is still speaking (no dead air between). */
+ *  synthesised while the current one is still speaking (no dead air between).
+ *  Retries once on a TRANSIENT failure (network blip, 5xx upstream, expired CDN
+ *  url giving an empty/undecodable body) so a momentary hiccup doesn't surface
+ *  the robotic browser voice. A 501 (not configured) / 400 (bad request) is
+ *  permanent — return immediately so the browser fallback kicks in cleanly. */
 async function prepareTts(text: string): Promise<AudioBuffer | null> {
-    let res: Response;
-    try {
-        res = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
-        });
-    } catch {
-        return null; // endpoint unreachable → caller uses browser fallback
-    }
-    if (!res.ok) {
-        if (import.meta.env.DEV) {
-            const detail = await res.text().catch(() => '');
-            console.info('[speech] /api/tts not ok (', res.status, ') → browser TTS fallback. upstream:', detail);
+    const MAX_ATTEMPTS = 2;
+    const RETRY_DELAY_MS = 300;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+
+        let res: Response;
+        try {
+            res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text }),
+            });
+        } catch {
+            continue; // network error → retry, then browser fallback
         }
-        return null;
+
+        if (!res.ok) {
+            if (import.meta.env.DEV) {
+                const detail = await res.text().catch(() => '');
+                console.info('[speech] /api/tts not ok (', res.status, ') upstream:', detail);
+            }
+            // Permanent: no key / bad request — don't waste a retry.
+            if (res.status === 501 || res.status === 400) return null;
+            continue; // transient upstream (5xx/502) → retry
+        }
+
+        const buf = await res.arrayBuffer();
+        if (buf.byteLength < 256) continue; // empty/expired CDN body → retry
+
+        try {
+            return await getAudioCtx().decodeAudioData(buf.slice(0)); // decode works on a suspended ctx
+        } catch {
+            continue; // not decodable audio → retry
+        }
     }
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength < 256) {
-        if (import.meta.env.DEV) console.info('[speech] /api/tts returned no audio → browser TTS fallback');
-        return null;
-    }
-    try {
-        return await getAudioCtx().decodeAudioData(buf.slice(0)); // decode works on a suspended ctx
-    } catch {
-        if (import.meta.env.DEV) console.info('[speech] /api/tts payload not decodable audio → browser TTS fallback');
-        return null;
-    }
+
+    if (import.meta.env.DEV) console.info('[speech] /api/tts failed after retry → browser TTS fallback');
+    return null;
 }
 
 // Cap concurrent /api/tts synthesis. We still prefetch ahead so playback never
