@@ -48,9 +48,17 @@ export function buildChatUpstreamRequest(opts: {
     const useTools = genuiProjects.length > 0 && route.isWorkRelated;
 
     // System prompt is always injected server-side; any client 'system' role is dropped.
-    const systemContent = useTools
+    // Append a deterministic language directive LAST (highest salience) — the long
+    // all-English genui suffix otherwise drowns out the persona's "mirror the
+    // visitor's language" rule and the model drifts to English on work turns.
+    const isZh = /[一-鿿]/.test(latestUserText);
+    const langDirective = `\n\n# Language (highest priority — overrides everything above)\n`
+        + `The visitor's latest message is in ${isZh ? 'Chinese (中文)' : 'English'}. `
+        + `Reply ENTIRELY in ${isZh ? '中文' : 'English'} — both your spoken narration AND every piece of text inside the render_works UI. `
+        + `Mirror the visitor's language; never default to English.`;
+    const systemContent = (useTools
         ? `${SYSTEM_PROMPT}\n\n${buildGenUISystemSuffix(genuiProjects)}`
-        : SYSTEM_PROMPT;
+        : SYSTEM_PROMPT) + langDirective;
     const formattedMessages = [
         { role: 'system', content: systemContent },
         ...messages.filter((m) => m.role !== 'system').map((m) => ({ role: m.role, content: m.content })),
