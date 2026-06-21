@@ -5,7 +5,7 @@ import type { PluginOption } from 'vite'
 import { fetch as undiciFetch, ProxyAgent } from 'undici'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { SYSTEM_PROMPT } from './src/data/agentSystemPrompt'
+import { buildChatUpstreamRequest } from './src/agent/chatRequest'
 
 // Single source of truth for the displayed app version: package.json `version`,
 // read at config time and injected via `define` (below) as __APP_VERSION__.
@@ -102,17 +102,13 @@ function apiProxy(env: Record<string, string>): PluginOption {
               return
             }
 
-            // System prompt is server-injected; drop any client-supplied 'system' role.
-            const formattedMessages = [
-              { role: 'system', content: SYSTEM_PROMPT },
-              ...messages
-                .filter((m: { role: string }) => m.role !== 'system')
-                .map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
-            ];
-
-            // Endpoint + model env-configurable (defaults = Coding Plan endpoint).
-            const apiUrl = (env.CHAT_API_URL || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions').trim()
-            const chatModel = (env.CHAT_MODEL || 'qwen3.5-plus').trim()
+            // Build the upstream payload via the shared helper — guarantees this
+            // dev proxy and the prod api/chat.ts send byte-identical requests.
+            const { apiUrl, body: upstreamBody } = buildChatUpstreamRequest({
+              messages,
+              genuiProjects: parsedBody.genui?.projects,
+              env,
+            })
 
             const dsRes: any = await undiciFetch(apiUrl, {
               method: 'POST',
@@ -120,14 +116,7 @@ function apiProxy(env: Record<string, string>): PluginOption {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
               },
-              body: JSON.stringify({
-                model: chatModel,
-                messages: formattedMessages,
-                stream: true,
-                temperature: 0.5,
-                max_tokens: 1536,
-                enable_thinking: false, // SKIP slow reasoning
-              }),
+              body: JSON.stringify(upstreamBody),
               ...(dispatcher ? { dispatcher } : {}),
             })
 

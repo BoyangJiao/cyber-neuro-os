@@ -13,7 +13,10 @@ import * as THREE from 'three';
 
 // URLs for the 3D models
 // Local compressed models
-const HEAD_MODEL_URL = '/models/Borvis.glb';   // Boyang's own face (Avaturn, with hair)
+// Boot head — position-only, texture-stripped, Draco-compressed extract of the
+// Avaturn export (4.0MB → 58KB). The boot rebuilds geometry from POSITION and
+// applies a flat matcap, so dropping textures/skins/UVs changes nothing visually.
+const HEAD_MODEL_URL = '/models/Borvis-boot.glb';
 const HELMET_MODEL_URL = '/models/DamagedHelmet-geometry-draco.glb';
 
 // Avaturn is a full body. We keep the head + a bit of shoulders (a bust) but

@@ -11,7 +11,7 @@
  *     small/none). Background = no dots.
  * Bloom / chromatic aberration / grain (lab EffectComposer) add the hazy veil.
  */
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -31,6 +31,7 @@ interface Props {
     maxPitch?: number; // max up/down head tilt (radians)
     headScale?: number; // overall head size on screen (1 = fills frame)
     offsetY?: number;   // vertical shift of the head in scene units (+ = up on screen)
+    offsetX?: number;   // horizontal shift of the head in scene units (- = left on screen)
     scanAngle?: number;     // scanline direction (degrees)
     scanIntensity?: number; // 0..1
     glitch?: number;        // 0..1
@@ -137,16 +138,35 @@ export const NeuralHalftoneFace = ({
     maxPitch = 0.28,
     headScale = 0.8,
     offsetY = 0,
+    offsetX = 0,
     scanAngle = 133,
     scanIntensity = 0.18,
     glitch = 0.06,
     intro = true,
 }: Props) => {
-    const { gl, size, pointer } = useThree();
+    const { gl, size } = useThree();
     const { scene } = useGLTF(modelUrl);
     const jawRef = useRef(0);
     const introT = useRef(intro ? 0 : 1);
     const expr = useRef<Record<string, number>>({}); // smoothed blendshape weights
+    // Smoothed head placement so stage transitions (offset/scale changes) glide
+    // instead of snapping — and without ever resizing the WebGL canvas.
+    const curScale = useRef(headScale);
+    const curOffX = useRef(offsetX);
+    const curOffY = useRef(offsetY);
+
+    // Gaze tracking is intrinsic to the face: track the cursor at the WINDOW level
+    // (NDC) so the head follows it even over overlay panels that swallow the
+    // canvas's own pointer events. Owning this here means every consumer (Borvis
+    // overlay, the avatar lab page) gets gaze for free.
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            avatarSignal.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+            avatarSignal.pointerY = -((e.clientY / window.innerHeight) * 2 - 1);
+        };
+        window.addEventListener('mousemove', handler);
+        return () => window.removeEventListener('mousemove', handler);
+    }, []);
 
     const built = useMemo(() => {
         scene.updateMatrixWorld(true);
@@ -293,13 +313,27 @@ export const NeuralHalftoneFace = ({
         // Limited head rotation: follow the cursor within ±maxYaw/±maxPitch + idle
         // drift; while speaking add a subtle nod/sway scaled by the current jaw.
         const sway = speaking ? jaw * 0.06 : 0;
-        const tYaw = pointer.x * maxYaw + Math.sin(t * 0.25) * 0.05 + Math.sin(t * 2.3) * sway;
-        const tPitch = -pointer.y * maxPitch + Math.sin(t * 0.21) * 0.03 + Math.sin(t * 3.1) * sway;
+        // Track the WINDOW cursor (avatarSignal, set at window level so it works over
+        // overlay panels), mapped relative to the head's CURRENT screen position so the
+        // gaze stays accurate when the head is offset into a left pane.
+        const halfW = 2.066 * (size.height > 0 ? size.width / size.height : 1); // tan(19°)*6 * aspect
+        const faceNormX = halfW > 0 ? curOffX.current / halfW : 0;
+        const faceNormY = curOffY.current / 2.066;
+        const yawF = Math.max(-1, Math.min(1, avatarSignal.pointerX - faceNormX));
+        const pitchF = Math.max(-1, Math.min(1, avatarSignal.pointerY - faceNormY));
+        const tYaw = yawF * maxYaw + Math.sin(t * 0.25) * 0.05 + Math.sin(t * 2.3) * sway;
+        const tPitch = -pitchF * maxPitch + Math.sin(t * 0.21) * 0.03 + Math.sin(t * 3.1) * sway;
         const pivot = built.pivot;
         pivot.rotation.y += (tYaw - pivot.rotation.y) * Math.min(1, delta * 4);
         pivot.rotation.x += (tPitch - pivot.rotation.x) * Math.min(1, delta * 4);
-        pivot.scale.setScalar(headScale);
-        pivot.position.y = offsetY;
+        // Glide toward the target placement (≈0.2s time constant) so opening/closing
+        // the content stage moves the face smoothly rather than snapping.
+        const place = Math.min(1, delta * 5);
+        curScale.current += (headScale - curScale.current) * place;
+        curOffX.current += (offsetX - curOffX.current) * place;
+        curOffY.current += (offsetY - curOffY.current) * place;
+        pivot.scale.setScalar(curScale.current);
+        pivot.position.set(curOffX.current, curOffY.current, 0);
         pivot.updateMatrixWorld(true);
 
         const prevTarget = gl.getRenderTarget();

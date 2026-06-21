@@ -26,6 +26,11 @@ const LabLandingPage = lazy(() => import('./pages/LabLandingPage').then(module =
 const AvatarLabPage = import.meta.env.DEV
   ? lazy(() => import('./pages/AvatarLabPage').then(module => ({ default: module.AvatarLabPage })))
   : null;
+// DEV-ONLY: proving ground for the generative-UI contract (Borvis "show your
+// work"). Same dead-strip guard so it never enters the production bundle.
+const GenUILabPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/GenUILabPage').then(module => ({ default: module.GenUILabPage })))
+  : null;
 // Borvis immersive interface + its transition overlay — lazy so the halftone +
 // postprocessing payload only loads when a visitor actually opens Borvis.
 const BorvisOverlay = lazy(() => import('./components/agent/BorvisOverlay').then(module => ({ default: module.BorvisOverlay })));
@@ -161,6 +166,15 @@ function App() {
     return (
       <Suspense fallback={<ShimmerLoader variant="overlay" label="[ BOOTING_NEURAL_ENTITY... ]" />}>
         <AvatarLabPage />
+      </Suspense>
+    );
+  }
+
+  // DEV-ONLY: generative-UI proving ground — standalone, before the dashboard layout.
+  if (import.meta.env.DEV && GenUILabPage && location.pathname === '/genui-lab') {
+    return (
+      <Suspense fallback={<ShimmerLoader variant="overlay" label="[ COMPILING_GENERATIVE_UI... ]" />}>
+        <GenUILabPage />
       </Suspense>
     );
   }

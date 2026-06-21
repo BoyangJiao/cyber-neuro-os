@@ -35,9 +35,14 @@ interface AgentState {
 // ============================================================
 
 let _savedMusicVol = 15;
+let _musicWasPlaying = false;
 let _musicFadeTimer: ReturnType<typeof setInterval> | null = null;
 
-function startMusicFade(targetVol: number, durationMs: number) {
+// Fade music volume to `targetVol` over `durationMs`, then run `onDone`. onDone
+// only fires if the fade runs to completion — an opposite transition that calls
+// startMusicFade again clears this timer, so a pending "pause after fade-out"
+// is cancelled if the user bails back out mid-fade.
+function startMusicFade(targetVol: number, durationMs: number, onDone?: () => void) {
     if (_musicFadeTimer !== null) { clearInterval(_musicFadeTimer); _musicFadeTimer = null; }
     const startVol = useMusicStore.getState().volume;
     const steps = Math.ceil(durationMs / 16);
@@ -47,7 +52,10 @@ function startMusicFade(targetVol: number, durationMs: number) {
         step++;
         const v = Math.max(0, Math.min(100, Math.round(startVol + delta * step)));
         useMusicStore.getState().setVolume(v);
-        if (step >= steps) { clearInterval(_musicFadeTimer!); _musicFadeTimer = null; }
+        if (step >= steps) {
+            clearInterval(_musicFadeTimer!); _musicFadeTimer = null;
+            onDone?.();
+        }
     }, 16);
 }
 
@@ -95,8 +103,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         av.setStatus('idle');
         av.setEmotion('neutral');
 
+        // Duck music to silence, THEN pause it — fading volume alone leaves the
+        // track playing under Borvis (the GainNode ramp doesn't reliably stop it).
+        // Pausing is the only guaranteed stop; we resume on exit if it was playing.
         _savedMusicVol = useMusicStore.getState().volume;
-        startMusicFade(0, 600);
+        _musicWasPlaying = useMusicStore.getState().isPlaying;
+        startMusicFade(0, 600, () => {
+            if (_musicWasPlaying) useMusicStore.getState().pause();
+        });
 
         // Mobile: no SignalHijack phase — its 700ms pre-mount window reads as a
         // frozen home page on phones. Mount the overlay immediately; its
@@ -121,6 +135,8 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         // unmount cleanup). Status reset so re-entry starts clean.
         cancelSpeech();
         useAvatarStore.getState().setStatus('idle');
+        // Resume the track if Borvis paused it, then fade the volume back up.
+        if (_musicWasPlaying) useMusicStore.getState().play();
         startMusicFade(_savedMusicVol, 800);
 
         // Mobile mirrors the instant enter: drop straight back to the home page.

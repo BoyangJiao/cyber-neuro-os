@@ -59,53 +59,85 @@ interface SpeakOpts {
     onStart?: (durationSec: number) => void;
 }
 
-async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
-    let res: Response;
-    try {
-        res = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
-        });
-    } catch {
-        return false; // endpoint unreachable → fall back
-    }
-    if (!res.ok) {
-        if (import.meta.env.DEV) {
-            const detail = await res.text().catch(() => '');
-            console.info('[speech] /api/tts not ok (', res.status, ') → browser TTS fallback. upstream:', detail);
+/** Fetch + DECODE a TTS clip without playing it — so the next sentence can be
+ *  synthesised while the current one is still speaking (no dead air between).
+ *  Retries once on a TRANSIENT failure (network blip, 5xx upstream, expired CDN
+ *  url giving an empty/undecodable body) so a momentary hiccup doesn't surface
+ *  the robotic browser voice. A 501 (not configured) / 400 (bad request) is
+ *  permanent — return immediately so the browser fallback kicks in cleanly. */
+async function prepareTts(text: string): Promise<AudioBuffer | null> {
+    const MAX_ATTEMPTS = 2;
+    const RETRY_DELAY_MS = 300;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+
+        let res: Response;
+        try {
+            res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text }),
+            });
+        } catch {
+            continue; // network error → retry, then browser fallback
         }
-        return false;
+
+        if (!res.ok) {
+            if (import.meta.env.DEV) {
+                const detail = await res.text().catch(() => '');
+                console.info('[speech] /api/tts not ok (', res.status, ') upstream:', detail);
+            }
+            // Permanent: no key / bad request — don't waste a retry.
+            if (res.status === 501 || res.status === 400) return null;
+            continue; // transient upstream (5xx/502) → retry
+        }
+
+        const buf = await res.arrayBuffer();
+        if (buf.byteLength < 256) continue; // empty/expired CDN body → retry
+
+        try {
+            return await getAudioCtx().decodeAudioData(buf.slice(0)); // decode works on a suspended ctx
+        } catch {
+            continue; // not decodable audio → retry
+        }
     }
 
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength < 256) {
-        if (import.meta.env.DEV) console.info('[speech] /api/tts returned no audio → browser TTS fallback');
-        return false;
-    }
+    if (import.meta.env.DEV) console.info('[speech] /api/tts failed after retry → browser TTS fallback');
+    return null;
+}
 
+// Cap concurrent /api/tts synthesis. We still prefetch ahead so playback never
+// stalls, but a long reply split into many sentences won't fire a dozen parallel
+// requests at the proxy (rate-limit / resource spike). FIFO so clips synthesise
+// roughly in the order they'll play.
+const MAX_TTS_CONCURRENCY = 3;
+let ttsInFlight = 0;
+const ttsWaiters: Array<() => void> = [];
+async function prepareTtsThrottled(text: string): Promise<AudioBuffer | null> {
+    while (ttsInFlight >= MAX_TTS_CONCURRENCY) {
+        await new Promise<void>((r) => ttsWaiters.push(r));
+    }
+    ttsInFlight++;
+    try {
+        return await prepareTts(text);
+    } finally {
+        ttsInFlight--;
+        ttsWaiters.shift()?.();
+    }
+}
+
+/** Ensure the AudioContext is actually running (needs a prior user gesture). */
+async function ensureRunning(): Promise<boolean> {
     const ctx = getAudioCtx();
-    // If the context still isn't running (no unlocking gesture happened yet),
-    // playing would hang silently forever — use the SpeechSynthesis fallback,
-    // which has its own watchdogs. (Function read defeats TS narrowing across
-    // the await — resume() can legitimately flip the state.)
     const isRunning = () => (ctx.state as AudioContextState) === 'running';
-    if (!isRunning()) {
-        await ctx.resume().catch(() => { /* noop */ });
-        if (!isRunning()) {
-            if (import.meta.env.DEV) console.info('[speech] AudioContext not running (no user gesture yet) → browser TTS fallback');
-            return false;
-        }
-    }
-    let audioBuf: AudioBuffer;
-    try {
-        audioBuf = await ctx.decodeAudioData(buf.slice(0));
-    } catch {
-        if (import.meta.env.DEV) console.info('[speech] /api/tts payload not decodable audio → browser TTS fallback');
-        return false; // not decodable audio → fall back
-    }
-    if (import.meta.env.DEV) console.info('[speech] DashScope TTS ok — amplitude lip-sync');
+    if (isRunning()) return true;
+    await ctx.resume().catch(() => { /* noop */ });
+    return isRunning();
+}
 
+/** Play a decoded clip, driving the jaw lip-sync signal; resolves when it ends. */
+function playBuffer(audioBuf: AudioBuffer, opts: SpeakOpts): Promise<void> {
+    const ctx = getAudioCtx();
     const src = ctx.createBufferSource();
     src.buffer = audioBuf;
     const analyser = ctx.createAnalyser();
@@ -128,13 +160,13 @@ async function speakDashScope(text: string, opts: SpeakOpts): Promise<boolean> {
         raf = requestAnimationFrame(tick);
     };
 
-    return new Promise<boolean>((resolve) => {
+    return new Promise<void>((resolve) => {
         const finish = () => {
             clearTimeout(watchdog);
             cancelAnimationFrame(raf);
             avatarSignal.jaw = 0;
             try { src.disconnect(); } catch { /* noop */ }
-            resolve(true);
+            resolve();
         };
         src.onended = finish;
         cancelCurrent = () => { try { src.stop(); } catch { /* noop */ } finish(); };
@@ -207,16 +239,74 @@ function speakBrowser(text: string, opts: SpeakOpts): Promise<void> {
     });
 }
 
-/** Stop any in-flight speech and reset the jaw. */
-export function cancelSpeech() {
-    cancelCurrent?.();
-    cancelCurrent = null;
+// ── Sequential speak queue (sentence-streaming TTS) ─────────────────────────
+// Sentences are enqueued as the model streams; they play strictly in order so
+// Borvis can speak WHILE the UI renders. `speakGen` invalidates queued/in-flight
+// items on cancel (barge-in / new query).
+// Natural pause at a sentence boundary (a "period" beat) — the only gap we keep,
+// now that synthesis no longer stalls between clips.
+const SENTENCE_GAP_MS = 180;
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+let speakGen = 0;
+interface QueueItem { gen: number; text: string; bufP: Promise<AudioBuffer | null>; opts: SpeakOpts; resolve: () => void; }
+const speakQueue: QueueItem[] = [];
+let pumping = false;
+// The gen we've already played a sentence for — the leading sentence of each new
+// run (gen) plays with no gap; only between sentences do we keep the period beat.
+// Keyed by gen (not a reset-on-cancel flag) so it's correct even if a caller
+// enqueues without first calling cancelSpeech.
+let playedGen = -1;
+
+async function pumpQueue() {
+    if (pumping) return;
+    pumping = true;
+    while (speakQueue.length) {
+        const item = speakQueue.shift()!;
+        if (item.gen !== speakGen) { item.resolve(); continue; }
+        // The clip is already being synthesised (prefetched at enqueue time), so this
+        // usually resolves immediately — the next sentence is ready before this ends.
+        const buffer = await item.bufP;
+        if (item.gen !== speakGen) { item.resolve(); continue; }
+        if (playedGen === item.gen) await delay(SENTENCE_GAP_MS);
+        if (item.gen !== speakGen) { item.resolve(); continue; }
+        playedGen = item.gen;
+        if (buffer && (await ensureRunning())) await playBuffer(buffer, item.opts);
+        else await speakBrowser(item.text, item.opts); // synth failed / audio not unlocked
+        item.resolve();
+    }
+    pumping = false;
 }
 
-/** Speak `text`. Resolves when playback finishes (or is cancelled). */
+/** Stop any in-flight + queued speech and reset the jaw. */
+export function cancelSpeech() {
+    speakGen++; // new gen ⇒ the next run's first sentence plays gap-free automatically
+    speakQueue.length = 0;
+    cancelCurrent?.();
+    cancelCurrent = null;
+    avatarSignal.jaw = 0;
+}
+
+/**
+ * Enqueue one sentence to be spoken in order. Synthesis STARTS immediately (in
+ * parallel) so it's ready by the time prior sentences finish — continuous speech
+ * with only the natural sentence pause. Resolves when this clip finishes/skips.
+ */
+export function speakEnqueue(text: string, opts: SpeakOpts = {}): Promise<void> {
+    if (!text.trim()) return Promise.resolve();
+    const gen = speakGen;
+    const bufP = prepareTtsThrottled(text); // kick off synthesis NOW (prefetch, capped)
+    return new Promise<void>((resolve) => {
+        speakQueue.push({ gen, text, bufP, opts, resolve });
+        void pumpQueue();
+    });
+}
+
+/** Speak `text` in one shot. Resolves when playback finishes (or is cancelled). */
 export async function speak(text: string, opts: SpeakOpts = {}): Promise<void> {
     cancelSpeech();
     if (!text.trim()) return;
-    const ok = await speakDashScope(text, opts);
-    if (!ok) await speakBrowser(text, opts);
+    const buffer = await prepareTts(text);
+    if (buffer && (await ensureRunning())) await playBuffer(buffer, opts);
+    else await speakBrowser(text, opts);
 }

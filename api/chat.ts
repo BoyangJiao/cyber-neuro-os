@@ -9,13 +9,15 @@ export const config = {
     runtime: 'edge',
 };
 
-import { SYSTEM_PROMPT } from '../src/data/agentSystemPrompt';
-import { isOriginAllowed, validateChatMessages, stripSystemMessages, type ChatMsg } from './_shared';
+import { isOriginAllowed, validateChatMessages, type ChatMsg } from './_shared';
+import { buildChatUpstreamRequest } from '../src/agent/chatRequest';
 
 declare const process: any;
 
 interface RequestBody {
     messages: ChatMsg[];
+    /** Optional compact list of real projects, used only when generative UI is enabled. */
+    genui?: { projects?: unknown };
 }
 
 export default async function handler(req: Request) {
@@ -42,7 +44,7 @@ export default async function handler(req: Request) {
     }
 
     try {
-        const { messages } = (await req.json()) as RequestBody;
+        const { messages, genui } = (await req.json()) as RequestBody;
 
         // Validate shape + enforce size caps to prevent token-budget abuse.
         const invalid = validateChatMessages(messages);
@@ -53,19 +55,15 @@ export default async function handler(req: Request) {
             });
         }
 
-        // Prep messages for OpenAI-compatible format. The system prompt is always
-        // injected server-side; any client-supplied 'system' role is dropped.
-        const formattedMessages = [
-            { role: 'system', content: SYSTEM_PROMPT },
-            ...stripSystemMessages(messages),
-        ];
-
-        // Endpoint + model are env-configurable. Defaults target the Coding Plan
-        // global endpoint (production); a standard Bailian key should set
-        // CHAT_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
-        // and CHAT_MODEL=qwen-plus in its env.
-        const apiUrl = ((process.env as any).CHAT_API_URL || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions').trim();
-        const chatModel = ((process.env as any).CHAT_MODEL || 'qwen3.5-plus').trim();
+        // Build the upstream payload (system-prompt injection, model routing,
+        // generative-UI tool attachment). Shared with the dev proxy so the two
+        // never drift. Defaults target the Coding Plan global endpoint; a standard
+        // Bailian key should set CHAT_API_URL / CHAT_MODEL in its env.
+        const { apiUrl, body } = buildChatUpstreamRequest({
+            messages,
+            genuiProjects: genui?.projects,
+            env: process.env,
+        });
 
         const dsResponse = await fetch(apiUrl, {
             method: 'POST',
@@ -73,14 +71,7 @@ export default async function handler(req: Request) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
             },
-            body: JSON.stringify({
-                model: chatModel,
-                messages: formattedMessages,
-                stream: true,
-                temperature: 0.5,
-                max_tokens: 1500,
-                enable_thinking: false, // SKIP slow reasoning
-            }),
+            body: JSON.stringify(body),
         });
 
         if (!dsResponse.ok) {

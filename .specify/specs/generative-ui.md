@@ -1,0 +1,92 @@
+# Spec — Generative UI for Borvis ("作品实时渲染")
+
+> Status: **v3 compositional + streaming landed** on `claude/vercel-json-render-borvis-scrw9q`
+> (foundation → agent wiring → Borvis surface → reference-bound content → **free
+> compositional node tree** → **progressive/streamed render**). Auto model routing
+> (turbo↔plus) verified end to end. Gated off by default (`GENUI_ENABLED`).
+> Owner: Boyang. Routing: high-capability (architecture + agent + design-system).
+
+## Goal
+
+When a visitor asks Borvis about Boyang's work, the agent can **show, not just
+tell** — assembling a small UI from our own components/design system and rendering
+it live, alongside its spoken reply. Inspired by Vercel's `json-render` mental
+model (closed catalog → constrained spec → validate-before-render), but built on
+our existing `switch(_type)` dispatch (`ContentSlotRenderer`) with **zero new
+dependencies**.
+
+## Non-negotiable design decisions
+
+1. **Free composition + narration, but hard facts are bound.** (Decision updated
+   2026-06-19, owner's call: the core goal is to demo a striking *declarative UI*,
+   so the model composes layout AND writes its own narration freely.) The boundary:
+   the model may author framing text (`text`/`heading`/`callout`/`badge`), but
+   **hard facts — metrics, dates, links, tech names, real screenshots/content —
+   come from reference-bound nodes** (`metrics`/`link`/`techStack`/`media`/`content`)
+   that the renderer fills from `useProjectStore` + the CMS. So a live portfolio
+   never shows fabricated numbers/links, while every layout still feels generated.
+   The model is given real light facts per project (desc/tech/timeline/status/url)
+   to ground its narration.
+2. **Validate before render.** Every spec (untrusted model output) passes through
+   `parseUISpec`, which whitelists block types, type-checks fields, caps array
+   sizes, and drops anything malformed. Unknown blocks are discarded, not trusted.
+3. **Reuse the design system.** Blocks render through our existing tokens and
+   components (`CyberButton`, the StatsRenderer card visual language, etc.).
+4. **Don't touch the China-access proxy.** No changes to `main.tsx` interceptors,
+   `api/sanity.ts`/`api/emulator.ts`, or vite proxy. The render channel rides the
+   existing `/api/chat` path only (Phase 1).
+
+## The contract (v2 catalog — flat, reference-bound)
+
+`UISpec = { version: 1, blocks: UIBlock[] }` — blocks render top-to-bottom; the model
+orders them to match its narration. Composition is by SELECTION + ORDER of rich blocks
+(a flat list), not a recursive component tree — far more reliable with current
+tool-calling models, and enough to render real content inline.
+
+| Block | Shape | Renders |
+| :-- | :-- | :-- |
+| `prose` | `{ type, text }` | Agent framing (markdown, no HTML) — the only model-authored text |
+| `projectHeader` | `{ type, projectId, emphasis? }` | Compact inline title + meta (NOT a clickable card) |
+| `projectMedia` | `{ type, projectId }` | The project's real hero image/video, inline |
+| `projectMetrics` | `{ type, projectId }` | The project's real core metrics as stat cards |
+| `projectContent` | `{ type, projectId, kinds?, limit? }` | The project's REAL CMS content sections inline |
+| `workCard` | `{ type, projectId, emphasis? }` | One project as an entry card (a link to click) |
+| `workGrid` | `{ type, projectIds[], columns? }` | Several projects as a grid of entry cards |
+
+`emphasis ∈ ['techStack','timeline','status','liveUrl']`. `columns ∈ [2,3]`.
+`kinds ⊆ ['text','media','stats','compare','tabs']`. `limit ∈ [1,6]` (default 3).
+
+The rich blocks bind to a project's separate CMS detail (`ProjectDetailData`):
+`projectContent` reuses the detail page's leaf renderer `ContentSlotRenderer` over the
+project's real `contentModules` (flattened + filtered in `detail.ts`). Detail is fetched
+on demand and cached by `useProjectDetails` via the shared Sanity client (China-proxied).
+**Zero hallucination holds:** the model only picks project + kinds + order; every byte of
+displayed content comes from real data.
+
+Source of truth: `src/agent/generativeUI/spec.ts`. The LLM-facing description lives
+in `catalog.ts` (`describeCatalog()`) so prompt and validator can't drift far.
+
+## Phases
+
+- **Phase 0 — foundation (this work).** Spec types, `parseUISpec` validator,
+  catalog description + `render_works` tool descriptor, `WorkCard`, the
+  `GenerativeUI` dispatch renderer, and a dev-only `/genui-lab` proving ground.
+  Adds **no** dependency; touches **no** production path. Gate: `tsc -b` + build green.
+- **Phase 1 — agent wiring (DONE).** `render_works` function-call tool added to
+  `/api/chat` (+ vite dev proxy), flag-gated by `GENUI_ENABLED`. Client sends a
+  compact {id,title} project list, accumulates tool-call deltas, validates via
+  `parseUISpec`, surfaces the spec through `streamChat`'s `onSpec`.
+- **Phase 2 — Borvis surface (DONE).** `BorvisOverlay` sends the project list,
+  captures `onSpec`, and renders the spec in a "RENDER" panel under the transcript
+  (two-channel: Borvis still speaks tersely). Cards open the project page on click.
+- **Phase 3 — polish (next).** Progressive/streamed rendering, i18n of card chrome,
+  persist rendered blocks in the agent store for replay, refine panel placement
+  for the immersive layout. Verify on preview with `GENUI_ENABLED=1` + real key.
+
+## Open questions (defer until Phase 1/2)
+
+- Tool-calling vs. `response_format: json_object` on DashScope (Qwen needs the word
+  "json" in messages; thinking-mode can't do structured output). Leaning tool-call.
+- Exact placement/animation of the panel in the immersive Borvis layout.
+- Whether to later adopt `@json-render/core` if the catalog grows complex enough to
+  justify the dependency (currently NOT justified).

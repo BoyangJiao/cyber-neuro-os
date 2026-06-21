@@ -8,6 +8,7 @@
  *   • exit: top-edge-hover button + ESC key
  */
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
@@ -19,12 +20,17 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStore } from '../../store/useAgentStore';
 import { useAvatarStore, avatarSignal } from '../../store/useAvatarStore';
 import { streamChat } from '../../services/agentService';
-import { speak, cancelSpeech } from '../../services/speechService';
+import { speak, speakEnqueue, cancelSpeech } from '../../services/speechService';
 import { startListening } from '../../services/asrService';
 import { classifyEmotion } from '../three/avatar/expressions';
 import type { Emotion } from '../../store/useAvatarStore';
 import { useLanguage } from '../../i18n';
 import { useIsMobile, useIsCoarsePointer } from '../../hooks/useDevice';
+import { useNavigate } from 'react-router-dom';
+import { useProjectStore } from '../../store/useProjectStore';
+import { GenerativeUI } from '../../agent/generativeUI';
+import type { UISpec } from '../../agent/generativeUI/spec';
+import type { Project } from '../../data/projects';
 
 /** Mounts only once its Suspense boundary resolves (face GLB + shaders ready). */
 const FaceReadyNotifier = ({ onReady }: { onReady: () => void }) => {
@@ -39,12 +45,16 @@ export const BorvisOverlay = () => {
     const isCoarsePointer = useIsCoarsePointer();
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
-    const [typeSpeed, setTypeSpeed] = useState(45);
+    const [typeDurMs, setTypeDurMs] = useState<number | undefined>(undefined);
+    const [replyId, setReplyId] = useState(0);
     const [recording, setRecording] = useState(false);
     const [micLevel, setMicLevel] = useState(0);
     const [showExit, setShowExit] = useState(false);
     const [faceReady, setFaceReady] = useState(false);
     const handleFaceReady = useCallback(() => setFaceReady(true), []);
+    // Generative UI spec attached to the latest reply (null = text-only reply).
+    const [spec, setSpec] = useState<UISpec | null>(null);
+    const navigate = useNavigate();
 
     const recRef = useRef<Awaited<ReturnType<typeof startListening>> | null>(null);
     const stopRequestedRef = useRef(false);   // set if the user releases before startListening() resolves
@@ -110,7 +120,7 @@ export const BorvisOverlay = () => {
             setStatus('speaking');
             speak(greeting, {
                 onStart: (dur) => {
-                    setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, greeting.length))));
+                    setTypeDurMs(dur * 1000);
                     setTranscript(greeting);
                 },
             }).finally(() => {
@@ -121,7 +131,8 @@ export const BorvisOverlay = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [faceReady]);
 
-    // Top-edge hover → reveal exit button for 3s
+    // Top-edge hover → reveal exit button. (Cursor→gaze tracking is owned by
+    // NeuralHalftoneFace itself, so it works for every avatar consumer.)
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         const handler = (e: MouseEvent) => {
@@ -142,34 +153,83 @@ export const BorvisOverlay = () => {
         setBusy(true);
         setStatus('thinking');
         setTranscript('');
+        setSpec(null);
+
+        cancelSpeech(); // stop any prior queued/in-flight speech (barge-in / re-ask)
+        setReplyId((n) => n + 1); // stable transcript identity for this reply
 
         let reply = '';
         let detected: string | null = null;
+        let started = false;
+        let spoken = '';
+        const plays: Promise<void>[] = [];
+
+        const beginSpeaking = () => {
+            if (started) return;
+            started = true;
+            setEmotion(detected ? (detected as Emotion) : 'neutral');
+            setStatus('speaking');
+        };
+
+        // Real projects the model may reference (id + light facts, for grounded
+        // narration). Hard data (metrics/media/content) is still filled by the
+        // renderer from the store/CMS by id, so facts can't be fabricated.
+        const genuiProjects = useProjectStore.getState().projects.map((p) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            techStack: p.techStack,
+            timeline: p.timeline,
+            status: p.status,
+            liveUrl: p.liveUrl,
+            projectType: p.projectType,
+        }));
 
         await new Promise<void>((resolve) => {
             streamChat({
                 messages: [{ id: 'u', role: 'user', content: msg, timestamp: Date.now() }],
+                genuiProjects,
                 onToken: (t) => { reply += t; },
                 onEmotion: (e) => { detected = e; },
+                // Speak each sentence the moment it's ready — Borvis talks WHILE the
+                // rest streams and the UI assembles. Transcript reveals in lock-step
+                // with each sentence's audio (onStart fires when it begins playing).
+                onSentence: (s) => {
+                    if (!aliveRef.current) return;
+                    beginSpeaking();
+                    plays.push(speakEnqueue(s, {
+                        onStart: (dur) => {
+                            spoken += s;
+                            setTranscript(spoken);
+                            setTypeDurMs(dur * 1000);
+                        },
+                    }));
+                },
+                onSpec: (s) => { setSpec(s); },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });
         });
 
-        // Exited (e.g. ESC) while still thinking? Don't speak on the home page.
+        // Exited (e.g. ESC) while streaming? Stop speech, drop the partial spec, bail.
+        if (!aliveRef.current) { cancelSpeech(); setSpec(null); busyRef.current = false; return; }
+
+        if (!started) {
+            // Nothing was spoken (empty reply or mock path) → one-shot fallback.
+            reply = reply.trim() || '……';
+            setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));
+            setStatus('speaking');
+            await speak(reply, {
+                onStart: (dur) => {
+                    setTypeDurMs(dur * 1000);
+                    setTranscript(reply);
+                },
+            });
+        } else {
+            await Promise.all(plays); // let the queued sentences finish playing
+        }
+
         if (!aliveRef.current) { busyRef.current = false; return; }
-
-        reply = reply.trim() || '……';
-        setEmotion(detected ? (detected as Emotion) : classifyEmotion(reply));
-        setStatus('speaking');
-
-        await speak(reply, {
-            onStart: (dur) => {
-                setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, reply.length))));
-                setTranscript(reply);
-            },
-        });
-
         setStatus('idle');
         setEmotion('neutral');
         busyRef.current = false;
@@ -182,6 +242,12 @@ export const BorvisOverlay = () => {
         setInput('');
         void respond(msg);
     }, [input, respond]);
+
+    // Opening a rendered card leaves the immersive overlay for the project page.
+    const onOpenProject = useCallback((p: Project) => {
+        exitBorvis();
+        navigate(`/projects/${p.id}`);
+    }, [exitBorvis, navigate]);
 
     // ── Push-to-talk ───────────────────────────────────────────────
     const stopPTT = useCallback(async () => {
@@ -212,7 +278,7 @@ export const BorvisOverlay = () => {
             const rec = await startListening({
                 onLevel: (lvl) => { avatarSignal.mic = lvl; setMicLevel(lvl); },
                 onSilence: () => { void stopPTT(); },
-                silenceMs: 3000,
+                silenceMs: 1800,
             });
             // If the user already released (or the overlay exited) while the mic was
             // coming up, don't keep a live recording — discard it cleanly.
@@ -258,6 +324,12 @@ export const BorvisOverlay = () => {
             ? `[ ${status}... ]`
             : (language === 'zh' ? '打字，或按住麦克风 / 空格说话…' : 'Type, or hold mic / Space to speak…');
 
+    // When the model attaches a UI (intent = "show the work"), desktop steps the
+    // face aside (canvas shrinks to a left pane) and opens a right content stage;
+    // mobile keeps the stacked layout.
+    const stageOpen = !!spec && !isMobile;
+    const stageWidth = Math.min(600, Math.round((typeof window !== 'undefined' ? window.innerWidth : 1280) * 0.4));
+
     return (
         <motion.div
             className="fixed inset-0 z-[250] bg-[#020406]"
@@ -266,8 +338,10 @@ export const BorvisOverlay = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45 }}
         >
-            {/* ── Three.js Canvas — full screen. Mobile renders at a lower DPR,
-                 without MSAA, and with a slimmer post chain (bloom blurs anyway) ── */}
+            {/* ── Three.js Canvas — full screen & FIXED size. When a content stage
+                 opens, the FACE glides left in 3D (cheap, no canvas resize) so the
+                 glow keeps filling the whole viewport and the right content floats
+                 over it — one unified backdrop, not a hard split. Mobile unchanged. */}
             <AppErrorBoundary fallback={null}>
                 <Canvas
                     camera={{ position: [0, 0.4, 5.5], fov: 42 }}
@@ -279,8 +353,9 @@ export const BorvisOverlay = () => {
                         <NeuralHalftoneFace
                             intensity={1.0}
                             grid={isMobile ? 120 : 150}
-                            headScale={isMobile ? 0.52 : 0.7}
+                            headScale={isMobile ? 0.52 : stageOpen ? 0.6 : 0.7}
                             offsetY={isMobile ? 0.55 : 0}
+                            offsetX={stageOpen ? -1.7 : 0}
                             scanAngle={133}
                             scanIntensity={0.15}
                             glitch={glitchLevel}
@@ -335,16 +410,24 @@ export const BorvisOverlay = () => {
                 )}
             </AnimatePresence>
 
-            {/* ── Transcript panel — mobile: above the input bar, full width, on a
-                 dark blur panel for readability over the face; lg+: right side ── */}
-            <div className="absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:w-[340px] lg:-translate-y-1/2">
+            {/* ── Transcript panel — mobile: above the input bar, full width. lg+: a
+                 CENTRED floating column that grows from the middle with content; the
+                 transcript and render are each capped + scroll internally, so a long
+                 reply fills then scrolls instead of spilling past the top / the input. */}
+            <div
+                className={clsx(
+                    'absolute left-4 right-4 bottom-24 max-lg:rounded-md max-lg:border max-lg:border-brand-primary/15 max-lg:bg-black/50 max-lg:p-3 max-lg:backdrop-blur-sm',
+                    'lg:left-auto lg:right-10 lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2 lg:transition-[width] lg:duration-500 lg:ease-out',
+                )}
+                style={isMobile ? undefined : { width: stageOpen ? stageWidth : 340 }}
+            >
                 <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">
                     TRANSCRIPT ·{' '}
                     <span className="text-brand-primary/70">{status.toUpperCase()}</span>
                 </div>
                 <div
                     ref={scrollRef}
-                    className="pointer-events-auto max-h-[28dvh] lg:max-h-[50vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]"
+                    className="pointer-events-auto max-h-[28dvh] lg:max-h-[32vh] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]"
                 >
                     {busy && !transcript ? (
                         <div className="flex items-center gap-2 font-mono text-sm text-brand-primary/80">
@@ -357,14 +440,25 @@ export const BorvisOverlay = () => {
                         </div>
                     ) : (
                         <TypewriterTranscript
-                            key={transcript || 'idle'}
+                            key={replyId}
                             text={transcript || undefined}
-                            speed={typeSpeed}
+                            durationMs={typeDurMs}
                             onUpdate={onTranscriptUpdate}
                             className="text-sm leading-relaxed"
                         />
                     )}
                 </div>
+
+                {/* Generative UI — the composed node tree, capped + scrolling so the
+                    whole panel stays centred and clear of the input bar. */}
+                {spec && (
+                    <div className="mt-3 border-t border-brand-primary/15 pt-3">
+                        <div className="mb-2 text-[10px] tracking-[0.3em] text-brand-primary/40">RENDER</div>
+                        <div className="pointer-events-auto max-h-[34dvh] lg:max-h-[42vh] overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--color-brand-primary,#22d3ee)_transparent]">
+                            <GenerativeUI spec={spec} onOpenProject={onOpenProject} />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* ── Input bar (bottom center) ── */}

@@ -6,6 +6,9 @@
  */
 
 import type { AgentMessage } from '../store/useAgentStore';
+import { parseUISpec } from '../agent/generativeUI/parseSpec';
+import { closePartialJson } from '../agent/generativeUI/streamParse';
+import type { UISpec } from '../agent/generativeUI/spec';
 
 interface StreamChatOptions {
     messages: AgentMessage[];
@@ -14,6 +17,26 @@ interface StreamChatOptions {
     onError: (error: string) => void;
     /** Fired once if the reply opens with a [[emo:X]] tag (stripped from onToken). */
     onEmotion?: (emotion: string) => void;
+    /**
+     * Fired once at end-of-stream if the model attached a valid render_works UI
+     * spec (generative UI). Requires `genuiProjects` to be sent and the server
+     * flag GENUI_ENABLED=1; otherwise never fires.
+     */
+    onSpec?: (spec: UISpec) => void;
+    /** Fires per spoken SENTENCE of the cleaned reply (sentence-streaming TTS), so
+     *  the host can speak while the rest streams + the UI renders. */
+    onSentence?: (sentence: string) => void;
+    /** Compact list of real projects (id + light facts) the model may reference (genui). */
+    genuiProjects?: {
+        id: string;
+        title: string;
+        description?: string;
+        techStack?: string[];
+        timeline?: string;
+        status?: string;
+        liveUrl?: string;
+        projectType?: string | string[];
+    }[];
 }
 
 /**
@@ -40,6 +63,64 @@ function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: strin
     };
 }
 
+/**
+ * makeSentencer — split the clean (spoken) text stream into sentences for TTS.
+ * Splits on CJK/!/?/newline enders, plus an English '.' that is followed by
+ * whitespace and not preceded by a digit (so decimals/version numbers and
+ * dotted abbreviations like "v1.2" aren't split, and "..." stays together).
+ * Fragments are merged until a minimum length so playback isn't choppy.
+ * Whitespace is preserved across emits so concatenated sentences reconstruct
+ * the reply verbatim.
+ */
+function makeSentencer(onSentence?: (s: string) => void) {
+    const ENDERS = '。！？!?？\n…';
+    const MIN = 8;
+    let buf = '';
+    let sawContent = false;
+
+    const isDigit = (c: string) => c >= '0' && c <= '9';
+    const isSpace = (c: string) => c === ' ' || c === '\t' || c === '\n' || c === '\r';
+
+    const drain = () => {
+        if (!onSentence) { buf = ''; return; }
+        while (true) {
+            let cut = -1;
+            for (let i = 0; i < buf.length; i++) {
+                const c = buf[i];
+                let end = -1;
+                if (ENDERS.includes(c)) {
+                    let j = i;
+                    while (j + 1 < buf.length && ENDERS.includes(buf[j + 1])) j++;
+                    end = j + 1;
+                } else if (c === '.' && i > 0 && !isDigit(buf[i - 1])) {
+                    // English sentence period: only a boundary once the trailing
+                    // whitespace has arrived (so we never split a decimal mid-stream).
+                    let j = i;
+                    while (j + 1 < buf.length && buf[j + 1] === '.') j++;
+                    if (j + 1 < buf.length && isSpace(buf[j + 1])) end = j + 1;
+                }
+                if (end !== -1 && buf.slice(0, end).trim().length >= MIN) { cut = end; break; }
+            }
+            if (cut === -1) break;
+            let seg = buf.slice(0, cut);
+            buf = buf.slice(cut);
+            if (!sawContent) seg = seg.replace(/^\s+/, '');
+            if (seg.trim()) { sawContent = true; onSentence(seg); }
+        }
+    };
+
+    return {
+        push: (chunk: string) => { buf += chunk; drain(); },
+        flush: () => {
+            if (!onSentence) { buf = ''; return; }
+            let seg = buf;
+            buf = '';
+            if (!sawContent) seg = seg.replace(/^\s+/, '');
+            if (seg.trim()) onSentence(seg);
+        },
+    };
+}
+
 // ============================================================
 // Real API — DashScope (Qwen) via Vercel Serverless (/api/chat)
 // ============================================================
@@ -52,8 +133,11 @@ function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: strin
  */
 type RealResult = 'ok' | 'unavailable';
 
-const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }: StreamChatOptions): Promise<RealResult> => {
-    const emo = makeEmotionStripper(onToken, onEmotion);
+const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, onSpec, onSentence, genuiProjects }: StreamChatOptions): Promise<RealResult> => {
+    const sentencer = makeSentencer(onSentence);
+    // Feed the emotion-stripped (clean, spoken) text to BOTH the transcript and the
+    // sentence splitter, so sentence-streaming TTS sees exactly what will be shown.
+    const emo = makeEmotionStripper((t) => { onToken(t); sentencer.push(t); }, onEmotion);
     let response: Response;
     try {
         response = await fetch('/api/chat', {
@@ -64,6 +148,9 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
                     role: m.role,
                     content: m.content,
                 })),
+                // Only sent when the caller opted into generative UI. The server
+                // ignores it unless GENUI_ENABLED=1.
+                ...(genuiProjects?.length ? { genui: { projects: genuiProjects } } : {}),
             }),
         });
     } catch {
@@ -90,6 +177,24 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
 
         const decoder = new TextDecoder();
         let buffer = '';
+        // Accumulate render_works tool-call argument deltas (generative UI). Stays
+        // empty for plain text-only replies, so the spec path is purely additive.
+        let toolName = '';
+        let toolArgs = '';
+        let lastSpecJson = ''; // de-dupes progressive onSpec emissions
+
+        // Progressive render: close the partial tool args and surface whatever tree
+        // is valid so far, so nodes appear as Borvis streams. Best-effort; the final
+        // parse after the loop is authoritative.
+        const emitPartialSpec = () => {
+            if (!onSpec || toolName !== 'render_works' || !toolArgs.includes('"blocks"')) return;
+            const result = parseUISpec(closePartialJson(toolArgs));
+            if (!result.ok) return;
+            const json = JSON.stringify(result.spec);
+            if (json === lastSpecJson) return;
+            lastSpecJson = json;
+            onSpec(result.spec);
+        };
 
         while (true) {
             const { done, value } = await reader.read();
@@ -108,10 +213,20 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
 
                     try {
                         const parsed = JSON.parse(data);
+                        const delta = parsed?.choices?.[0]?.delta;
                         // Extract text from Standard OpenAI/DashScope SSE response
-                        const text = parsed?.choices?.[0]?.delta?.content;
+                        const text = delta?.content;
                         if (text) {
                             emo.feed(text);
+                        }
+                        // Tool-call arguments arrive as deltas across chunks.
+                        const tc = delta?.tool_calls?.[0];
+                        if (tc) {
+                            if (tc.function?.name) toolName = tc.function.name;
+                            if (tc.function?.arguments) {
+                                toolArgs += tc.function.arguments;
+                                emitPartialSpec();
+                            }
                         }
                     } catch {
                         // Skip unparseable chunks
@@ -121,6 +236,19 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion }:
         }
 
         emo.flush();
+        sentencer.flush();
+
+        // Authoritative final spec: prefer the complete args, fall back to the
+        // tolerant closer if the stream ended mid-token. Supersedes any partial.
+        if (onSpec && toolName === 'render_works' && toolArgs.trim()) {
+            const strict = parseUISpec(toolArgs);
+            const result = strict.ok ? strict : parseUISpec(closePartialJson(toolArgs));
+            if (result.ok) {
+                const json = JSON.stringify(result.spec);
+                if (json !== lastSpecJson) onSpec(result.spec);
+            }
+        }
+
         onDone();
         return 'ok';
     } catch (error) {
