@@ -45,7 +45,7 @@ export const BorvisOverlay = () => {
     const isCoarsePointer = useIsCoarsePointer();
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
-    const [typeSpeed, setTypeSpeed] = useState(45);
+    const [typeDurMs, setTypeDurMs] = useState<number | undefined>(undefined);
     const [replyId, setReplyId] = useState(0);
     const [recording, setRecording] = useState(false);
     const [micLevel, setMicLevel] = useState(0);
@@ -120,7 +120,7 @@ export const BorvisOverlay = () => {
             setStatus('speaking');
             speak(greeting, {
                 onStart: (dur) => {
-                    setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, greeting.length))));
+                    setTypeDurMs(dur * 1000);
                     setTranscript(greeting);
                 },
             }).finally(() => {
@@ -131,14 +131,11 @@ export const BorvisOverlay = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [faceReady]);
 
-    // Top-edge hover → reveal exit button; also feed the window-level cursor into
-    // avatarSignal (NDC) so the head tracks it even over the content panel (which
-    // captures the canvas's own pointer events).
+    // Top-edge hover → reveal exit button. (Cursor→gaze tracking is owned by
+    // NeuralHalftoneFace itself, so it works for every avatar consumer.)
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         const handler = (e: MouseEvent) => {
-            avatarSignal.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
-            avatarSignal.pointerY = -((e.clientY / window.innerHeight) * 2 - 1);
             if (e.clientY < 60) {
                 setShowExit(true);
                 clearTimeout(timer);
@@ -163,7 +160,6 @@ export const BorvisOverlay = () => {
 
         let reply = '';
         let detected: string | null = null;
-        let nextSpec: UISpec | null = null;
         let started = false;
         let spoken = '';
         const plays: Promise<void>[] = [];
@@ -205,20 +201,18 @@ export const BorvisOverlay = () => {
                         onStart: (dur) => {
                             spoken += s;
                             setTranscript(spoken);
-                            setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, s.length))));
+                            setTypeDurMs(dur * 1000);
                         },
                     }));
                 },
-                onSpec: (s) => { nextSpec = s; setSpec(s); },
+                onSpec: (s) => { setSpec(s); },
                 onDone: () => resolve(),
                 onError: () => resolve(),
             });
         });
 
-        // Exited (e.g. ESC) while streaming? Stop speech and bail.
-        if (!aliveRef.current) { cancelSpeech(); busyRef.current = false; return; }
-
-        setSpec(nextSpec);
+        // Exited (e.g. ESC) while streaming? Stop speech, drop the partial spec, bail.
+        if (!aliveRef.current) { cancelSpeech(); setSpec(null); busyRef.current = false; return; }
 
         if (!started) {
             // Nothing was spoken (empty reply or mock path) → one-shot fallback.
@@ -227,7 +221,7 @@ export const BorvisOverlay = () => {
             setStatus('speaking');
             await speak(reply, {
                 onStart: (dur) => {
-                    setTypeSpeed(Math.max(24, Math.min(140, (dur * 1000) / Math.max(1, reply.length))));
+                    setTypeDurMs(dur * 1000);
                     setTranscript(reply);
                 },
             });
@@ -448,7 +442,7 @@ export const BorvisOverlay = () => {
                         <TypewriterTranscript
                             key={replyId}
                             text={transcript || undefined}
-                            speed={typeSpeed}
+                            durationMs={typeDurMs}
                             onUpdate={onTranscriptUpdate}
                             className="text-sm leading-relaxed"
                         />

@@ -65,9 +65,12 @@ function makeEmotionStripper(onToken: (t: string) => void, onEmotion?: (e: strin
 
 /**
  * makeSentencer — split the clean (spoken) text stream into sentences for TTS.
- * Splits on CJK/!/?/newline enders (NOT '.', to avoid decimals/abbreviations), and
- * merges fragments until a minimum length so playback isn't choppy. Whitespace is
- * preserved across emits so concatenated sentences reconstruct the reply verbatim.
+ * Splits on CJK/!/?/newline enders, plus an English '.' that is followed by
+ * whitespace and not preceded by a digit (so decimals/version numbers and
+ * dotted abbreviations like "v1.2" aren't split, and "..." stays together).
+ * Fragments are merged until a minimum length so playback isn't choppy.
+ * Whitespace is preserved across emits so concatenated sentences reconstruct
+ * the reply verbatim.
  */
 function makeSentencer(onSentence?: (s: string) => void) {
     const ENDERS = '。！？!?？\n…';
@@ -75,16 +78,28 @@ function makeSentencer(onSentence?: (s: string) => void) {
     let buf = '';
     let sawContent = false;
 
+    const isDigit = (c: string) => c >= '0' && c <= '9';
+    const isSpace = (c: string) => c === ' ' || c === '\t' || c === '\n' || c === '\r';
+
     const drain = () => {
         if (!onSentence) { buf = ''; return; }
         while (true) {
             let cut = -1;
             for (let i = 0; i < buf.length; i++) {
-                if (ENDERS.includes(buf[i])) {
+                const c = buf[i];
+                let end = -1;
+                if (ENDERS.includes(c)) {
                     let j = i;
                     while (j + 1 < buf.length && ENDERS.includes(buf[j + 1])) j++;
-                    if (buf.slice(0, j + 1).trim().length >= MIN) { cut = j + 1; break; }
+                    end = j + 1;
+                } else if (c === '.' && i > 0 && !isDigit(buf[i - 1])) {
+                    // English sentence period: only a boundary once the trailing
+                    // whitespace has arrived (so we never split a decimal mid-stream).
+                    let j = i;
+                    while (j + 1 < buf.length && buf[j + 1] === '.') j++;
+                    if (j + 1 < buf.length && isSpace(buf[j + 1])) end = j + 1;
                 }
+                if (end !== -1 && buf.slice(0, end).trim().length >= MIN) { cut = end; break; }
             }
             if (cut === -1) break;
             let seg = buf.slice(0, cut);
@@ -226,9 +241,8 @@ const realStreamChat = async ({ messages, onToken, onDone, onError, onEmotion, o
         // Authoritative final spec: prefer the complete args, fall back to the
         // tolerant closer if the stream ended mid-token. Supersedes any partial.
         if (onSpec && toolName === 'render_works' && toolArgs.trim()) {
-            const result = parseUISpec(toolArgs).ok
-                ? parseUISpec(toolArgs)
-                : parseUISpec(closePartialJson(toolArgs));
+            const strict = parseUISpec(toolArgs);
+            const result = strict.ok ? strict : parseUISpec(closePartialJson(toolArgs));
             if (result.ok) {
                 const json = JSON.stringify(result.spec);
                 if (json !== lastSpecJson) onSpec(result.spec);

@@ -81,8 +81,12 @@ export const CyberSlotCard = memo(({
     const [scanProgress, setScanProgress] = useState(0);
     const animationRef = useRef<number | null>(null);
 
+    // Always (re)starts from 0, so a card can scan again on a later activation —
+    // handleMouseLeave is suppressed during touch triggers, so a once-only guard
+    // here would let a non-unmounted card scan only once. A scan already running
+    // is left alone.
     const startScan = useCallback(() => {
-        if (animationRef.current || scanProgress === 100) return;
+        if (animationRef.current) return;
 
         const duration = 400; // ms
         const startTime = Date.now();
@@ -100,13 +104,13 @@ export const CyberSlotCard = memo(({
         };
 
         animationRef.current = requestAnimationFrame(animate);
-    }, [scanProgress]);
+    }, []);
 
     const handleMouseEnter = () => {
         startScan();
     };
 
-    // Touch activation: parent sets scanTrigger to play the scan before navigating
+    // Touch activation: parent sets scanTrigger to play the scan before navigating.
     useEffect(() => {
         if (scanTrigger) startScan();
     }, [scanTrigger, startScan]);

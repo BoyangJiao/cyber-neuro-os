@@ -92,6 +92,26 @@ async function prepareTts(text: string): Promise<AudioBuffer | null> {
     }
 }
 
+// Cap concurrent /api/tts synthesis. We still prefetch ahead so playback never
+// stalls, but a long reply split into many sentences won't fire a dozen parallel
+// requests at the proxy (rate-limit / resource spike). FIFO so clips synthesise
+// roughly in the order they'll play.
+const MAX_TTS_CONCURRENCY = 3;
+let ttsInFlight = 0;
+const ttsWaiters: Array<() => void> = [];
+async function prepareTtsThrottled(text: string): Promise<AudioBuffer | null> {
+    while (ttsInFlight >= MAX_TTS_CONCURRENCY) {
+        await new Promise<void>((r) => ttsWaiters.push(r));
+    }
+    ttsInFlight++;
+    try {
+        return await prepareTts(text);
+    } finally {
+        ttsInFlight--;
+        ttsWaiters.shift()?.();
+    }
+}
+
 /** Ensure the AudioContext is actually running (needs a prior user gesture). */
 async function ensureRunning(): Promise<boolean> {
     const ctx = getAudioCtx();
@@ -218,7 +238,11 @@ let speakGen = 0;
 interface QueueItem { gen: number; text: string; bufP: Promise<AudioBuffer | null>; opts: SpeakOpts; resolve: () => void; }
 const speakQueue: QueueItem[] = [];
 let pumping = false;
-let firstOfRun = true; // no leading gap before the first sentence of a reply
+// The gen we've already played a sentence for — the leading sentence of each new
+// run (gen) plays with no gap; only between sentences do we keep the period beat.
+// Keyed by gen (not a reset-on-cancel flag) so it's correct even if a caller
+// enqueues without first calling cancelSpeech.
+let playedGen = -1;
 
 async function pumpQueue() {
     if (pumping) return;
@@ -230,9 +254,9 @@ async function pumpQueue() {
         // usually resolves immediately — the next sentence is ready before this ends.
         const buffer = await item.bufP;
         if (item.gen !== speakGen) { item.resolve(); continue; }
-        if (!firstOfRun) await delay(SENTENCE_GAP_MS);
+        if (playedGen === item.gen) await delay(SENTENCE_GAP_MS);
         if (item.gen !== speakGen) { item.resolve(); continue; }
-        firstOfRun = false;
+        playedGen = item.gen;
         if (buffer && (await ensureRunning())) await playBuffer(buffer, item.opts);
         else await speakBrowser(item.text, item.opts); // synth failed / audio not unlocked
         item.resolve();
@@ -242,9 +266,8 @@ async function pumpQueue() {
 
 /** Stop any in-flight + queued speech and reset the jaw. */
 export function cancelSpeech() {
-    speakGen++;
+    speakGen++; // new gen ⇒ the next run's first sentence plays gap-free automatically
     speakQueue.length = 0;
-    firstOfRun = true;
     cancelCurrent?.();
     cancelCurrent = null;
     avatarSignal.jaw = 0;
@@ -258,7 +281,7 @@ export function cancelSpeech() {
 export function speakEnqueue(text: string, opts: SpeakOpts = {}): Promise<void> {
     if (!text.trim()) return Promise.resolve();
     const gen = speakGen;
-    const bufP = prepareTts(text); // kick off synthesis NOW (prefetch)
+    const bufP = prepareTtsThrottled(text); // kick off synthesis NOW (prefetch, capped)
     return new Promise<void>((resolve) => {
         speakQueue.push({ gen, text, bufP, opts, resolve });
         void pumpQueue();

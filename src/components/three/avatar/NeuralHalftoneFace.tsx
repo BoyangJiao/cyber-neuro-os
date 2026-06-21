@@ -11,7 +11,7 @@
  *     small/none). Background = no dots.
  * Bloom / chromatic aberration / grain (lab EffectComposer) add the hazy veil.
  */
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -154,6 +154,19 @@ export const NeuralHalftoneFace = ({
     const curScale = useRef(headScale);
     const curOffX = useRef(offsetX);
     const curOffY = useRef(offsetY);
+
+    // Gaze tracking is intrinsic to the face: track the cursor at the WINDOW level
+    // (NDC) so the head follows it even over overlay panels that swallow the
+    // canvas's own pointer events. Owning this here means every consumer (Borvis
+    // overlay, the avatar lab page) gets gaze for free.
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            avatarSignal.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+            avatarSignal.pointerY = -((e.clientY / window.innerHeight) * 2 - 1);
+        };
+        window.addEventListener('mousemove', handler);
+        return () => window.removeEventListener('mousemove', handler);
+    }, []);
 
     const built = useMemo(() => {
         scene.updateMatrixWorld(true);
